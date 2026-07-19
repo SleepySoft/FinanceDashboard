@@ -1,0 +1,23 @@
+{
+  "code": "000001.SZ",
+  "name": "平安银行",
+  "sector": "银行",
+  "added_at": "2026-07-19T03:46:00Z",
+  "tags": {
+    "overall": "green",
+    "watchlist": true
+  },
+  "price_marks": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "last": null,
+      "valid_until": null
+    },
+    "technical": {
+      "last": null,
+      "valid_until": null
+    }
+  },
+  "reports": []
+}
