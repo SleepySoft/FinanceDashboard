@@ -337,7 +337,14 @@ class TagUpdateReq(BaseModel):
 class PriceMarkReq(BaseModel):
     label: str
     price: float
-    type: Literal["buy", "sell", "stop", "target", "other"] = "other"
+    type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark"] = "mark"
+
+class StatusReq(BaseModel):
+    status: Literal["tracking", "bullish", "neutral", "avoid", "archive"]
+
+class HoldingsReq(BaseModel):
+    cost: Optional[float] = None
+    quantity: Optional[int] = None
 
 class NoteReq(BaseModel):
     content: str
@@ -537,6 +544,8 @@ def list_stocks():
                 "name": meta["name"],
                 "sector": meta.get("sector", ""),
                 "tags": meta["tags"],
+                "status": meta.get("status", "neutral"),
+                "holdings": meta.get("holdings"),
                 "dimensions": _normalize_dimensions(meta),
                 "watchlist": meta["tags"].get("watchlist", False),
                 "overall": meta["tags"].get("overall", "none"),
@@ -572,6 +581,8 @@ def get_stock(code: str):
     meta["last_price"] = p.get("price")
     meta["change_pct"] = p.get("change_pct")
     meta["daily_briefs"] = _load_briefs(code)
+    meta["status"] = meta.get("status", "neutral")
+    meta["holdings"] = meta.get("holdings")
     meta["dimensions"] = _normalize_dimensions(meta)
     return {**meta, "latest_report": latest}
 
@@ -584,6 +595,20 @@ def update_tags(code: str, req: TagUpdateReq):
         meta["tags"]["watchlist"] = req.watchlist
     _save_meta(code, meta)
     return meta["tags"]
+
+@app.patch("/api/stocks/{code}/status")
+def update_status(code: str, req: StatusReq):
+    meta = _load_meta(code)
+    meta["status"] = req.status
+    _save_meta(code, meta)
+    return {"status": meta["status"]}
+
+@app.patch("/api/stocks/{code}/holdings")
+def update_holdings(code: str, req: HoldingsReq):
+    meta = _load_meta(code)
+    meta["holdings"] = {"cost": req.cost, "quantity": req.quantity}
+    _save_meta(code, meta)
+    return meta["holdings"]
 
 @app.post("/api/stocks/{code}/price-marks")
 def add_price_mark(code: str, req: PriceMarkReq):

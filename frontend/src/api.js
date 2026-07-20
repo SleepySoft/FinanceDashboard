@@ -24,6 +24,8 @@ export default {
     list: () => api('/stocks'),
     get: (code) => api(`/stocks/${code}`),
     updateTags: (code, tags) => api(`/stocks/${code}/tags`, { method: 'PATCH', body: tags }),
+    updateStatus: (code, status) => api(`/stocks/${code}/status`, { method: 'PATCH', body: { status } }),
+    updateHoldings: (code, holdings) => api(`/stocks/${code}/holdings`, { method: 'PATCH', body: holdings }),
     addPriceMark: (code, mark) => api(`/stocks/${code}/price-marks`, { method: 'POST', body: mark }),
     deletePriceMark: (code, id) => api(`/stocks/${code}/price-marks/${id}`, { method: 'DELETE' }),
     listReports: (code) => api(`/stocks/${code}/reports`),

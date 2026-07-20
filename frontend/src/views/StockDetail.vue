@@ -6,8 +6,28 @@
         <div>
           <h1>{{ meta.code }}</h1>
           <p class="subtitle">{{ meta.name }} <span v-if="meta.sector">· {{ meta.sector }}</span></p>
+          <div class="header-info-row">
+            <span v-if="meta.last_price != null" class="header-price" :class="priceClass(meta.change_pct)">
+              ¥{{ meta.last_price.toFixed(2) }}
+              <span v-if="meta.change_pct != null">{{ meta.change_pct > 0 ? '+' : '' }}{{ meta.change_pct.toFixed(2) }}%</span>
+            </span>
+            <span v-if="meta.holdings?.cost != null" class="header-holdings">
+              持仓: ¥{{ meta.holdings.cost.toFixed(2) }} × {{ meta.holdings.quantity || 0 }}
+              <span v-if="meta.last_price != null" :class="['holdings-pnl', holdingsPnl >= 0 ? 'up' : 'down']">
+                {{ holdingsPnl >= 0 ? '+' : '' }}{{ holdingsPnl.toFixed(2) }}%
+              </span>
+            </span>
+            <span v-else class="header-holdings empty">未记录持仓</span>
+          </div>
         </div>
         <div class="actions">
+          <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
+            <option value="tracking">🔭 跟踪中</option>
+            <option value="bullish">看好</option>
+            <option value="neutral">观望</option>
+            <option value="avoid">回避</option>
+            <option value="archive">📁 归档</option>
+          </select>
           <select v-model="tagForm.overall" @change="updateTag">
             <option value="none">无标签</option>
             <option value="green">看好</option>
@@ -138,6 +158,33 @@
       </div>
     </div>
 
+    <!-- Holdings -->
+    <div class="card holdings-card">
+      <div class="holdings-header">
+        <h3>💼 持仓</h3>
+        <button class="ghost" style="padding:2px 8px;font-size:12px" @click="showHoldingsEdit = !showHoldingsEdit">
+          {{ showHoldingsEdit ? '取消' : '编辑' }}
+        </button>
+      </div>
+      <div v-if="!showHoldingsEdit">
+        <div v-if="meta.holdings?.cost != null" class="holdings-display">
+          <span>成本: ¥{{ meta.holdings.cost.toFixed(2) }}</span>
+          <span>数量: {{ meta.holdings.quantity || 0 }}</span>
+          <span v-if="meta.last_price != null" :class="['holdings-pnl', holdingsPnl >= 0 ? 'up' : 'down']">
+            盈亏: {{ holdingsPnl >= 0 ? '+' : '' }}{{ holdingsPnl.toFixed(2) }}%
+          </span>
+        </div>
+        <div v-else class="empty">未记录持仓信息</div>
+      </div>
+      <div v-else class="holdings-edit">
+        <div class="holdings-row">
+          <input v-model.number="holdingsForm.cost" placeholder="成本价" type="number" step="0.01" />
+          <input v-model.number="holdingsForm.quantity" placeholder="数量" type="number" />
+          <button class="primary" @click="saveHoldings">保存</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Price Marks -->
     <div class="card">
       <h3>📌 价格标记</h3>
@@ -155,12 +202,12 @@
       <div v-if="meta.price_marks?.length === 0" class="empty" style="margin-bottom:12px">暂无价格标记</div>
       <div class="add-mark">
         <div class="preset-labels">
-          <span class="preset-label" @click="newMark.label = '买入'; newMark.type = 'buy'">买入</span>
-          <span class="preset-label" @click="newMark.label = '卖出'; newMark.type = 'sell'">卖出</span>
-          <span class="preset-label" @click="newMark.label = '止损'; newMark.type = 'stop'">止损</span>
-          <span class="preset-label" @click="newMark.label = '目标'; newMark.type = 'target'">目标</span>
-          <span class="preset-label" @click="newMark.label = '加仓'; newMark.type = 'buy'">加仓</span>
-          <span class="preset-label" @click="newMark.label = '减仓'; newMark.type = 'sell'">减仓</span>
+          <span class="preset-label" @click="newMark.label = '目标买入'; newMark.type = 'target_buy'">目标买入</span>
+          <span class="preset-label" @click="newMark.label = '止损'; newMark.type = 'stop_loss'">止损</span>
+          <span class="preset-label" @click="newMark.label = '止盈'; newMark.type = 'take_profit'">止盈</span>
+          <span class="preset-label" @click="newMark.label = '加仓'; newMark.type = 'add'">加仓</span>
+          <span class="preset-label" @click="newMark.label = '减仓'; newMark.type = 'reduce'">减仓</span>
+          <span class="preset-label" @click="newMark.label = '标记'; newMark.type = 'mark'">标记</span>
         </div>
         <div class="add-mark-row">
           <input v-model="newMark.label" placeholder="标签（可自定义）" style="flex:1" />
@@ -170,12 +217,13 @@
             <button class="ghost price-shortcut" @click="fillPrice(0.1)">+10%</button>
             <input v-model.number="newMark.price" placeholder="价格" type="number" step="0.01" style="width:100px" />
           </div>
-          <select v-model="newMark.type" style="width:90px">
-            <option value="buy">买入</option>
-            <option value="sell">卖出</option>
-            <option value="stop">止损</option>
-            <option value="target">目标</option>
-            <option value="other">其他</option>
+          <select v-model="newMark.type" style="width:100px">
+            <option value="target_buy">目标买入</option>
+            <option value="stop_loss">止损</option>
+            <option value="take_profit">止盈</option>
+            <option value="add">加仓</option>
+            <option value="reduce">减仓</option>
+            <option value="mark">标记</option>
           </select>
           <button class="primary" @click="addMark" :disabled="!newMark.label || !newMark.price">添加</button>
         </div>
@@ -268,7 +316,10 @@ const fundExpandedIndex = ref(-1)
 const techExpandedIndex = ref(-1)
 
 const tagForm = ref({ overall: 'none', watchlist: false })
-const newMark = ref({ label: '', price: null, type: 'other' })
+const statusForm = ref({ status: 'neutral' })
+const showHoldingsEdit = ref(false)
+const holdingsForm = ref({ cost: null, quantity: null })
+const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
 
 // Daily briefs
@@ -287,10 +338,21 @@ const displayBriefs = computed(() => {
   return briefs.value.slice(0, 5)
 })
 
+const holdingsPnl = computed(() => {
+  const h = meta.value.holdings
+  if (!h || h.cost == null || !meta.value.last_price) return 0
+  return ((meta.value.last_price - h.cost) / h.cost) * 100
+})
+
 async function load() {
   const data = await api.stocks.get(props.code)
   meta.value = data
   tagForm.value = { ...data.tags }
+  statusForm.value = { status: data.status || 'neutral' }
+  holdingsForm.value = {
+    cost: data.holdings?.cost ?? null,
+    quantity: data.holdings?.quantity ?? null
+  }
   briefs.value = data.daily_briefs || []
   const n = await api.stocks.getNotes(props.code)
   notes.value = n.notes
@@ -384,6 +446,16 @@ async function updateTag() {
   await api.stocks.updateTags(props.code, tagForm.value)
 }
 
+async function updateStatus() {
+  await api.stocks.updateStatus(props.code, statusForm.value.status)
+}
+
+async function saveHoldings() {
+  await api.stocks.updateHoldings(props.code, holdingsForm.value)
+  showHoldingsEdit.value = false
+  await load()
+}
+
 async function toggleWatchlist() {
   tagForm.value.watchlist = !tagForm.value.watchlist
   await updateTag()
@@ -410,7 +482,7 @@ async function analyze(type) {
 
 async function addMark() {
   await api.stocks.addPriceMark(props.code, newMark.value)
-  newMark.value = { label: '', price: null, type: 'other' }
+  newMark.value = { label: '', price: null, type: 'mark' }
   await load()
 }
 
@@ -524,11 +596,12 @@ onMounted(load)
 .price-mark { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #334155; flex-wrap: wrap; }
 .price-mark:last-child { border-bottom: none; }
 .mark-label { padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }
-.mark-buy { background: #064e3b; color: #34d399; }
-.mark-sell { background: #7f1d1d; color: #f87171; }
-.mark-stop { background: #78350f; color: #fbbf24; }
-.mark-target { background: #1e3a5f; color: #60a5fa; }
-.mark-other { background: #334155; color: #94a3b8; }
+.mark-target_buy { background: #064e3b; color: #34d399; }
+.mark-stop_loss { background: #7f1d1d; color: #f87171; }
+.mark-take_profit { background: #1e3a5f; color: #60a5fa; }
+.mark-add { background: #064e3b; color: #34d399; }
+.mark-reduce { background: #7f1d1d; color: #f87171; }
+.mark-mark { background: #334155; color: #94a3b8; }
 .mark-price { font-size: 14px; font-weight: 600; }
 .mark-diff { font-size: 12px; font-weight: 500; }
 .up { color: #f87171; }
@@ -624,4 +697,21 @@ onMounted(load)
   .brief-dot { left: -12px; }
   .mark-diff { font-size: 11px; }
 }
+
+/* Header info row */
+.header-info-row { display: flex; align-items: center; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+.header-price { font-size: 20px; font-weight: 700; }
+.header-holdings { font-size: 13px; color: #94a3b8; }
+.header-holdings.empty { color: #64748b; font-style: italic; }
+.holdings-pnl { font-weight: 600; margin-left: 4px; }
+.holdings-pnl.up { color: #34d399; }
+.holdings-pnl.down { color: #f87171; }
+
+/* Holdings card */
+.holdings-card { margin-bottom: 12px; }
+.holdings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.holdings-header h3 { margin: 0; }
+.holdings-display { display: flex; gap: 16px; font-size: 14px; flex-wrap: wrap; }
+.holdings-edit .holdings-row { display: flex; gap: 8px; align-items: center; }
+.holdings-edit input { width: 120px; }
 </style>

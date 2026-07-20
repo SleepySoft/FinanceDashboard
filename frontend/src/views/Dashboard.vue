@@ -59,6 +59,62 @@
 
     <!-- VIEW 1: Grouped -->
     <template v-if="viewMode === 'grouped'">
+      <!-- By Status -->
+      <template v-if="groupMode === 'status'">
+        <div v-for="group in statusGroups" :key="group.key" class="sector-group">
+          <div class="sector-header">
+            <span :class="['tag-badge', 'tag-' + group.key]">{{ group.label }}</span>
+            <span class="sector-count">{{ group.stocks.length }} 只</span>
+          </div>
+          <div class="stock-grid">
+            <div
+              v-for="s in group.stocks"
+              :key="s.code"
+              class="stock-card card"
+              @click="$router.push('/stock/' + s.code)"
+            >
+              <div class="stock-main">
+                <div class="stock-title-row">
+                  <span class="stock-code">{{ s.code }}</span>
+                  <span class="stock-name">{{ s.name }}</span>
+                  <span class="stock-sector">{{ s.sector }}</span>
+                  <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                </div>
+                <div class="stock-price-row">
+                  <span class="price-current" :class="priceClass(s.change_pct)">
+                    {{ s.last_price != null ? '¥' + s.last_price.toFixed(2) : '--' }}
+                  </span>
+                  <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
+                    {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
+                  </span>
+                </div>
+                <div class="stock-dims">
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'valuation')]">估</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'timing')]">时</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
+                </div>
+              </div>
+              <div v-if="s.price_marks?.length > 0" class="marks-section">
+                <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
+                  <span class="mark-label">{{ m.label }}</span>
+                  <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
+                    {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
+                  </span>
+                </div>
+              </div>
+              <div class="stock-footer">
+                <span>报告: {{ s.report_count }}</span>
+                <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
+                  分析: {{ fmtDate(s.last_analysis) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <!-- By Rating -->
       <template v-if="groupMode === 'rating'">
         <div v-for="group in ratingGroups" :key="group.key" class="sector-group">
@@ -355,10 +411,11 @@ const filterWatchlist = ref(false)
 const sortKey = ref('code')
 const sortAsc = ref(true)
 
-const groupMode = ref('rating')
+const groupMode = ref('status')
 const groupModes = [
-  { key: 'rating', label: '按综合评级' },
-  { key: 'sector', label: '按行业' }
+  { key: 'status', label: '按投资状态' },
+  { key: 'sector', label: '按行业' },
+  { key: 'rating', label: '按综合评级' }
 ]
 
 let autoTimer = null
@@ -415,6 +472,17 @@ const filteredStocks = computed(() => {
 const sectors = computed(() => {
   const set = new Set(stocks.value.map(s => s.sector).filter(Boolean))
   return Array.from(set).sort()
+})
+
+// ── Status groups ──
+const statusGroups = computed(() => {
+  const order = ['tracking', 'bullish', 'neutral', 'avoid', 'archive']
+  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', avoid: '回避', archive: '📁 归档' }
+  return order.map(key => ({
+    key,
+    label: labels[key],
+    stocks: filteredStocks.value.filter(s => (s.status || 'neutral') === key)
+  })).filter(g => g.stocks.length > 0)
 })
 
 // ── Rating groups (default) ──
@@ -588,6 +656,11 @@ onUnmounted(stopAutoRefresh)
 .tag-yellow { background: #713f12; color: #fbbf24; }
 .tag-red { background: #7f1d1d; color: #f87171; }
 .tag-none { background: #334155; color: #94a3b8; }
+.tag-tracking { background: #1e3a5f; color: #60a5fa; }
+.tag-bullish { background: #064e3b; color: #34d399; }
+.tag-neutral { background: #713f12; color: #fbbf24; }
+.tag-avoid { background: #7f1d1d; color: #f87171; }
+.tag-archive { background: #334155; color: #94a3b8; }
 .tag-watch { background: #1e3a5f; color: #60a5fa; font-size: 11px; padding: 1px 8px; }
 
 .marks-section { border-top: 1px solid #334155; padding-top: 8px; margin-bottom: 8px; }
