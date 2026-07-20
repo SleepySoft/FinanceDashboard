@@ -52,12 +52,50 @@
           <span class="sector-count">{{ group.stocks.length }} 只</span>
         </div>
         <div class="stock-grid">
-          <StockCard
+          <div
             v-for="s in group.stocks"
             :key="s.code"
-            :stock="s"
+            class="stock-card card"
             @click="$router.push('/stock/' + s.code)"
-          />
+          >
+            <div class="stock-main">
+              <div class="stock-title-row">
+                <span class="stock-code">{{ s.code }}</span>
+                <span class="stock-name">{{ s.name }}</span>
+                <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+              </div>
+              <div class="stock-price-row">
+                <span class="price-current" :class="priceClass(s.change_pct)">
+                  {{ s.last_price != null ? '¥' + s.last_price.toFixed(2) : '--' }}
+                </span>
+                <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
+                  {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
+                </span>
+              </div>
+              <div class="stock-dims">
+                <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
+                <span :class="['dim-badge', 'dim-' + dim(s, 'valuation')]">估</span>
+                <span :class="['dim-badge', 'dim-' + dim(s, 'timing')]">时</span>
+                <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
+                <span :class="['verdict-badge', 'verdict-' + (s.dimensions?.verdict || s.overall)]">{{ verdictLabel(s) }}</span>
+              </div>
+            </div>
+            <div v-if="s.price_marks?.length > 0" class="marks-section">
+              <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
+                <span class="mark-label">{{ m.label }}</span>
+                <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
+                  {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
+                </span>
+              </div>
+            </div>
+            <div class="stock-footer">
+              <span>报告: {{ s.report_count }}</span>
+              <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
+                分析: {{ fmtDate(s.last_analysis) }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -78,48 +116,80 @@
             <div class="q-title">🟢 重仓区</div>
             <div class="q-sub">质量好 + 估值便宜</div>
             <div class="q-stocks">
-              <MatrixStock
+              <div
                 v-for="s in matrixQ1"
                 :key="s.code"
-                :stock="s"
+                class="matrix-stock"
                 @click="$router.push('/stock/' + s.code)"
-              />
+              >
+                <div class="ms-code">{{ s.code }}</div>
+                <div class="ms-name">{{ s.name }}</div>
+                <div class="ms-price" :class="priceClass(s.change_pct)">
+                  {{ s.last_price != null ? '¥' + s.last_price.toFixed(1) : '--' }}
+                  <span v-if="s.change_pct != null">{{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(1) }}%</span>
+                </div>
+              </div>
+              <div v-if="matrixQ1.length === 0" class="q-empty">暂无</div>
             </div>
           </div>
           <div class="matrix-quadrant q-hold">
             <div class="q-title">🔵 持有区</div>
             <div class="q-sub">质量好 + 估值合理/贵</div>
             <div class="q-stocks">
-              <MatrixStock
+              <div
                 v-for="s in matrixQ2"
                 :key="s.code"
-                :stock="s"
+                class="matrix-stock"
                 @click="$router.push('/stock/' + s.code)"
-              />
+              >
+                <div class="ms-code">{{ s.code }}</div>
+                <div class="ms-name">{{ s.name }}</div>
+                <div class="ms-price" :class="priceClass(s.change_pct)">
+                  {{ s.last_price != null ? '¥' + s.last_price.toFixed(1) : '--' }}
+                  <span v-if="s.change_pct != null">{{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(1) }}%</span>
+                </div>
+              </div>
+              <div v-if="matrixQ2.length === 0" class="q-empty">暂无</div>
             </div>
           </div>
           <div class="matrix-quadrant q-speculate">
             <div class="q-title">🟡 投机区</div>
             <div class="q-sub">质量一般 + 估值便宜</div>
             <div class="q-stocks">
-              <MatrixStock
+              <div
                 v-for="s in matrixQ3"
                 :key="s.code"
-                :stock="s"
+                class="matrix-stock"
                 @click="$router.push('/stock/' + s.code)"
-              />
+              >
+                <div class="ms-code">{{ s.code }}</div>
+                <div class="ms-name">{{ s.name }}</div>
+                <div class="ms-price" :class="priceClass(s.change_pct)">
+                  {{ s.last_price != null ? '¥' + s.last_price.toFixed(1) : '--' }}
+                  <span v-if="s.change_pct != null">{{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(1) }}%</span>
+                </div>
+              </div>
+              <div v-if="matrixQ3.length === 0" class="q-empty">暂无</div>
             </div>
           </div>
           <div class="matrix-quadrant q-avoid">
             <div class="q-title">🔴 回避区</div>
             <div class="q-sub">质量差 或 估值离谱</div>
             <div class="q-stocks">
-              <MatrixStock
+              <div
                 v-for="s in matrixQ4"
                 :key="s.code"
-                :stock="s"
+                class="matrix-stock"
                 @click="$router.push('/stock/' + s.code)"
-              />
+              >
+                <div class="ms-code">{{ s.code }}</div>
+                <div class="ms-name">{{ s.name }}</div>
+                <div class="ms-price" :class="priceClass(s.change_pct)">
+                  {{ s.last_price != null ? '¥' + s.last_price.toFixed(1) : '--' }}
+                  <span v-if="s.change_pct != null">{{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(1) }}%</span>
+                </div>
+              </div>
+              <div v-if="matrixQ4.length === 0" class="q-empty">暂无</div>
             </div>
           </div>
         </div>
@@ -318,93 +388,22 @@ function priceClass(pct) {
   if (pct == null) return ''
   return pct >= 0 ? 'up' : 'down'
 }
+function fmtDate(iso) {
+  if (!iso) return '-'
+  const d = new Date(iso)
+  return `${d.getMonth() + 1}/${d.getDate()}`
+}
 function fmtTime(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
+function isExpired(iso) {
+  return iso && (Date.now() - new Date(iso).getTime()) > 7 * 86400000
+}
 
 onMounted(() => { load(); startAutoRefresh() })
 onUnmounted(stopAutoRefresh)
-</script>
-
-<script>
-// Inline sub-components
-export default {
-  components: {
-    StockCard: {
-      props: ['stock'],
-      emits: ['click'],
-      template: `
-        <div class="stock-card card" @click="$emit('click')">
-          <div class="stock-main">
-            <div class="stock-title-row">
-              <span class="stock-code">{{ stock.code }}</span>
-              <span class="stock-name">{{ stock.name }}</span>
-              <span v-if="stock.watchlist" class="tag-badge tag-watch">关注</span>
-            </div>
-            <div class="stock-price-row">
-              <span class="price-current" :class="priceClass(stock.change_pct)">
-                {{ stock.last_price != null ? '¥' + stock.last_price.toFixed(2) : '--' }}
-              </span>
-              <span v-if="stock.change_pct != null" class="price-change" :class="priceClass(stock.change_pct)">
-                {{ stock.change_pct > 0 ? '+' : '' }}{{ stock.change_pct.toFixed(2) }}%
-              </span>
-            </div>
-            <div class="stock-dims">
-              <span :class="['dim-badge', 'dim-' + (stock.dimensions?.quality || stock.tags?.moat || 'none')]">质</span>
-              <span :class="['dim-badge', 'dim-' + (stock.dimensions?.valuation || stock.tags?.valuation || 'none')]">估</span>
-              <span :class="['dim-badge', 'dim-' + (stock.dimensions?.timing || stock.tags?.technical || 'none')]">时</span>
-              <span :class="['dim-badge', 'dim-' + (stock.dimensions?.risk || stock.tags?.risk || 'none')]">险</span>
-              <span :class="['verdict-badge', 'verdict-' + (stock.dimensions?.verdict || stock.overall)]">{{ verdictLabel(stock) }}</span>
-            </div>
-          </div>
-          <div v-if="stock.price_marks?.length > 0" class="marks-section">
-            <div v-for="m in stock.price_marks" :key="m.id" class="mark-row">
-              <span class="mark-label">{{ m.label }}</span>
-              <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
-              <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
-                {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
-              </span>
-            </div>
-          </div>
-          <div class="stock-footer">
-            <span>报告: {{ stock.report_count }}</span>
-            <span v-if="stock.last_analysis" :class="{ expired: isExpired(stock.last_analysis) }">
-              分析: {{ fmtDate(stock.last_analysis) }}
-            </span>
-          </div>
-        </div>
-      `,
-      methods: {
-        priceClass(pct) { return pct == null ? '' : (pct >= 0 ? 'up' : 'down') },
-        verdictLabel(s) {
-          const labels = { green: '看好', yellow: '观望', red: '回避', none: '-' }
-          return labels[s.dimensions?.verdict || s.overall] || '-'
-        },
-        isExpired(iso) { return iso && (Date.now() - new Date(iso).getTime()) > 7 * 86400000 },
-        fmtDate(iso) { if (!iso) return '-'; const d = new Date(iso); return `${d.getMonth()+1}/${d.getDate()}` }
-      }
-    },
-    MatrixStock: {
-      props: ['stock'],
-      emits: ['click'],
-      template: `
-        <div class="matrix-stock" @click="$emit('click')">
-          <div class="ms-code">{{ stock.code }}</div>
-          <div class="ms-name">{{ stock.name }}</div>
-          <div class="ms-price" :class="priceClass(stock.change_pct)">
-            {{ stock.last_price != null ? '¥' + stock.last_price.toFixed(1) : '--' }}
-            <span v-if="stock.change_pct != null">{{ stock.change_pct > 0 ? '+' : '' }}{{ stock.change_pct.toFixed(1) }}%</span>
-          </div>
-        </div>
-      `,
-      methods: {
-        priceClass(pct) { return pct == null ? '' : (pct >= 0 ? 'up' : 'down') }
-      }
-    }
-  }
-}
 </script>
 
 <style scoped>
@@ -494,6 +493,7 @@ export default {
 .q-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
 .q-sub { font-size: 11px; color: #64748b; margin-bottom: 8px; }
 .q-stocks { display: flex; flex-wrap: wrap; gap: 6px; }
+.q-empty { font-size: 12px; color: #64748b; font-style: italic; }
 
 .matrix-stock { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 8px 10px; cursor: pointer; min-width: 100px; }
 .matrix-stock:hover { border-color: #3b82f6; }
