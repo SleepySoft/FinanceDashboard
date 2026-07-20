@@ -551,7 +551,7 @@ onMounted(load)
 .tag-toggle { padding: 6px 14px; border-radius: 6px; border: 1px solid #475569; background: transparent; color: #94a3b8; font-size: 13px; cursor: pointer; }
 .tag-toggle.active { background: #fbbf24; color: #1e293b; border-color: #fbbf24; }
 
-.analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.analysis-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
 .analysis-card h3 { font-size: 16px; margin-bottom: 2px; }
 .analysis-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 14px; transition: background 0.15s; }
 .analysis-header:hover { background: #1e293b; }
@@ -667,7 +667,6 @@ onMounted(load)
   .add-mark-row { flex-direction: column; }
   .add-mark-row input, .add-mark-row select, .add-mark-row button { width: 100% !important; }
 
-  .analysis-grid { grid-template-columns: 1fr; gap: 12px; }
   .title-row { flex-direction: column; gap: 10px; }
   .title-row h1 { font-size: 20px; }
   .actions { flex-wrap: wrap; }
