@@ -1,19 +1,9 @@
 <template>
   <div class="dashboard">
-    <!-- Compact Header -->
-    <div class="dash-header compact">
-      <div class="header-left">
-        <span class="dash-title">📊 股票池</span>
-        <span v-if="lastRefresh" class="refresh-info">{{ fmtTime(lastRefresh) }}</span>
-      </div>
-      <button class="ghost" @click="refreshPrices" :disabled="loading" style="padding:4px 12px;font-size:12px">
-        {{ loading ? '刷新中' : '🔄' }}
-      </button>
-    </div>
-
-    <!-- View Switcher & Filters -->
-    <div class="toolbar">
-      <div class="view-tabs">
+    <!-- Single-line header: title + view tabs + refresh -->
+    <div class="dash-header">
+      <span class="dash-title">📊 股票池</span>
+      <div class="view-tabs mini">
         <button
           v-for="v in views"
           :key="v.key"
@@ -23,39 +13,37 @@
           {{ v.label }}
         </button>
       </div>
+      <button class="ghost" @click="refreshPrices" :disabled="loading">
+        {{ loading ? '...' : '🔄' }}
+      </button>
+    </div>
+
+    <!-- Single-line filters + group mode -->
+    <div class="toolbar compact">
       <div class="filters">
         <select v-model="filterSector" class="filter-select">
           <option value="">全部行业</option>
           <option v-for="sec in sectors" :key="sec" :value="sec">{{ sec }}</option>
         </select>
-        <select v-model="filterVerdict" class="filter-select">
-          <option value="">全部评级</option>
-          <option value="green">看好</option>
-          <option value="yellow">观望</option>
-          <option value="red">回避</option>
-        </select>
         <label class="filter-check">
           <input type="checkbox" v-model="filterWatchlist" />
-          仅关注
+          关注
         </label>
+      </div>
+      <div class="group-tabs" v-if="viewMode === 'grouped'">
+        <button
+          v-for="gm in groupModes"
+          :key="gm.key"
+          :class="['group-tab', { active: groupMode === gm.key }]"
+          @click="groupMode = gm.key"
+        >
+          {{ gm.label }}
+        </button>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="loading && stocks.length === 0" class="card empty">加载中...</div>
-
-    <!-- Group Mode Switch -->
-    <div v-if="viewMode === 'grouped'" class="group-mode-bar">
-      <span class="group-label">分组方式：</span>
-      <button
-        v-for="gm in groupModes"
-        :key="gm.key"
-        :class="['group-tab', { active: groupMode === gm.key }]"
-        @click="groupMode = gm.key"
-      >
-        {{ gm.label }}
-      </button>
-    </div>
 
     <!-- VIEW 1: Grouped -->
     <template v-if="viewMode === 'grouped'">
@@ -594,28 +582,23 @@ onUnmounted(stopAutoRefresh)
 </script>
 
 <style scoped>
-.dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.dash-header.compact { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #334155; }
-.dash-title { font-size: 15px; font-weight: 600; }
-.header-left { display: flex; align-items: center; gap: 12px; }
-.refresh-info { font-size: 11px; color: #64748b; }
-.dash-actions { display: flex; gap: 10px; }
+.dash-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dash-title { font-size: 15px; font-weight: 600; flex-shrink: 0; }
 
-.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px; }
-
-.view-tabs { display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 8px; }
+.view-tabs { display: flex; gap: 2px; background: #0f172a; padding: 3px; border-radius: 6px; flex-shrink: 0; }
+.view-tabs.mini .tab { padding: 3px 10px; border-radius: 4px; font-size: 12px; }
 .tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; background: transparent; color: #94a3b8; border: none; }
 .tab.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
 
-.filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.filter-select { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 5px 10px; font-size: 13px; }
-.filter-check { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #94a3b8; cursor: pointer; }
-.filter-check input { accent-color: #3b82f6; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
 
+.filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.filter-select { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 5px; padding: 3px 8px; font-size: 12px; }
+.filter-check { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #94a3b8; cursor: pointer; }
+.filter-check input { accent-color: #3b82f6; width: 14px; height: 14px; }
 
-.group-mode-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 0 2px; }
-.group-label { font-size: 12px; color: #64748b; }
-.group-tab { padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; }
+.group-tabs { display: flex; gap: 2px; background: #0f172a; padding: 2px; border-radius: 5px; }
+.group-tab { padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; }
 .group-tab.active { background: #1e3a5f; color: #60a5fa; border-color: #1e3a5f; font-weight: 600; }
 
 /* ── Grouped view ── */
@@ -726,9 +709,11 @@ onUnmounted(stopAutoRefresh)
 
 /* Mobile */
 @media (max-width: 768px) {
-  .dash-header.compact { flex-direction: row; gap: 8px; }
-  .toolbar { flex-direction: column; align-items: stretch; }
-  .view-tabs { justify-content: center; }
+  .dash-header { gap: 6px; }
+  .view-tabs.mini .tab { padding: 3px 8px; font-size: 11px; }
+  .toolbar { gap: 6px; }
+  .filter-select { padding: 3px 6px; font-size: 11px; }
+  .group-tab { padding: 2px 6px; font-size: 10px; }
   .stock-grid { grid-template-columns: 1fr; gap: 10px; }
   .stock-card { padding: 14px; }
   .stock-title-row { gap: 6px; }
