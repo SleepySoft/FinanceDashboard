@@ -4,7 +4,7 @@
   "sector": "片式电感",
   "tags": {
     "overall": "green",
-    "watchlist": "",
+    "watchlist": true,
     "quality": "green",
     "valuation": "green",
     "timing": "none",
