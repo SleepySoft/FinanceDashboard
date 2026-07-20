@@ -187,6 +187,8 @@ function renderMarkdown(md) {
   width: 100%; max-width: 680px; max-height: 85vh;
   display: flex; flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
+  min-width: 0;
 }
 .modal-content.mobile {
   max-width: 100%; max-height: 100%; border-radius: 0;
@@ -205,7 +207,7 @@ function renderMarkdown(md) {
   font-size: 20px; padding: 4px 8px; cursor: pointer;
 }
 .modal-close:hover { color: #e2e8f0; }
-.modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+.modal-body { padding: 16px 20px; overflow-y: auto; overflow-x: hidden; flex: 1; min-width: 0; }
 .modal-price-row {
   display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
 }
@@ -261,13 +263,16 @@ function renderMarkdown(md) {
   font-size: 14px;
   line-height: 1.8;
   background: #0b1220;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 .report-body h1 { font-size: 17px; font-weight: 700; margin: 14px 0 10px; color: #e2e8f0; }
 .report-body h2 { font-size: 14px; font-weight: 600; margin: 12px 0 8px; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 4px; }
 .report-body h3 { font-size: 13px; font-weight: 600; margin: 10px 0 6px; color: #60a5fa; }
 .report-body strong { color: #e2e8f0; }
-.report-body table { width: 100%; margin: 10px 0; font-size: 12px; }
-.report-body td { padding: 5px 8px; border: 1px solid #334155; }
+.report-body table { width: 100%; margin: 10px 0; font-size: 12px; table-layout: fixed; display: block; overflow-x: auto; }
+.report-body td { padding: 5px 8px; border: 1px solid #334155; word-break: break-all; }
 .report-body tr:first-child td { background: #1e293b; font-weight: 600; }
 
 .modal-footer { text-align: center; padding-top: 12px; border-top: 1px solid #334155; }
@@ -275,4 +280,21 @@ function renderMarkdown(md) {
   color: #60a5fa; text-decoration: none; font-size: 14px;
 }
 .modal-full-link:hover { color: #93c5fd; }
+
+/* Mobile */
+@media (max-width: 640px) {
+  .modal-overlay { padding: 0; }
+  .modal-content { border-radius: 0; max-height: 100vh; max-width: 100vw; }
+  .modal-body { padding: 12px 14px; }
+  .modal-price { font-size: 22px; }
+  .modal-price-row { gap: 6px; }
+  .report-body { padding: 10px 12px; font-size: 13px; }
+  .report-body h1 { font-size: 15px; }
+  .report-body h2 { font-size: 13px; }
+  .report-body table { font-size: 11px; }
+  .report-header-bar { padding: 8px 10px; }
+  .report-meta { gap: 4px; }
+  .modal-title-row { gap: 4px; }
+  .modal-name { font-size: 14px; }
+}
 </style>
