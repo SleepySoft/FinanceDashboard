@@ -1,0 +1,40 @@
+{
+  "code": "300346.SZ",
+  "name": "南大光电",
+  "sector": "半导体材料",
+  "tags": {
+    "overall": "yellow",
+    "fundamental": "yellow",
+    "technical": "none",
+    "moat": "green",
+    "valuation": "red",
+    "growth": "green",
+    "risk": "yellow"
+  },
+  "watchlist": true,
+  "overall": "yellow",
+  "price_marks": [],
+  "reports": [
+    {
+      "id": "fundamental_20260720",
+      "type": "fundamental",
+      "date": "2026-07-20",
+      "title": "南大光电基本面分析",
+      "filename": "fundamental_20260720.md"
+    }
+  ],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "date": "2026-07-20",
+      "valid_until": "2026-08-20",
+      "expired": false
+    },
+    "technical": {
+      "date": null,
+      "valid_until": null,
+      "expired": true
+    }
+  },
+  "daily_briefs": []
+}

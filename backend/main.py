@@ -511,7 +511,7 @@ def list_stocks():
                 "overall": meta["tags"].get("overall", "none"),
                 "price_marks": meta.get("price_marks", []),
                 "report_count": len(meta.get("reports", [])),
-                "last_analysis": meta["cache"]["fundamental"]["last"],
+                "last_analysis": meta["cache"]["fundamental"].get("last") or meta["cache"]["fundamental"].get("date"),
                 "last_price": p.get("price"),
                 "change_pct": p.get("change_pct"),
                 "price_updated": p.get("updated_at")
@@ -769,7 +769,7 @@ def get_dashboard():
                 "overall": meta["tags"].get("overall", "none"),
                 "price_marks": marks_with_diff,
                 "report_count": len(meta.get("reports", [])),
-                "last_analysis": meta["cache"]["fundamental"]["last"],
+                "last_analysis": meta["cache"]["fundamental"].get("last") or meta["cache"]["fundamental"].get("date"),
                 "last_price": current_price,
                 "change_pct": p.get("change_pct"),
                 "price_updated": p.get("updated_at")

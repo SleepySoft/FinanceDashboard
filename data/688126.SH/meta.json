@@ -6,7 +6,15 @@
     "overall": "red",
     "watchlist": ""
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "8a5ca8bd",
+      "label": "卖出",
+      "price": 26.86,
+      "type": "sell",
+      "created_at": "2026-07-20T05:09:32.939645+00:00"
+    }
+  ],
   "cache": {
     "fundamental": {
       "last": "2026-07-19",
