@@ -629,18 +629,18 @@ onUnmounted(stopAutoRefresh)
 .stock-card { cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 14px; }
 .stock-card:hover { transform: translateY(-1px); border-color: #3b82f6; }
 
-.stock-main { margin-bottom: 8px; }
-.stock-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+.stock-main { margin-bottom: 10px; }
+.stock-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
 .stock-code { font-size: 14px; font-weight: 600; color: #60a5fa; }
 .stock-name { font-size: 13px; color: #94a3b8; }
 
-.stock-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.stock-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
 .price-current { font-size: 22px; font-weight: 700; }
 .price-change { font-size: 13px; font-weight: 500; }
 .up { color: #f87171; }
 .down { color: #34d399; }
 
-.stock-dims { display: flex; gap: 4px; margin-bottom: 6px; }
+.stock-dims { display: flex; gap: 6px; margin-bottom: 8px; }
 .dim-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; }
 .dim-green { background: #064e3b; color: #34d399; }
 .dim-yellow { background: #713f12; color: #fbbf24; }
@@ -729,11 +729,19 @@ onUnmounted(stopAutoRefresh)
   .dash-header.compact { flex-direction: row; gap: 8px; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .view-tabs { justify-content: center; }
-  .stock-grid { grid-template-columns: 1fr; }
+  .stock-grid { grid-template-columns: 1fr; gap: 10px; }
+  .stock-card { padding: 14px; }
+  .stock-title-row { gap: 6px; }
+  .stock-code { font-size: 15px; }
+  .stock-name { font-size: 14px; }
+  .price-current { font-size: 24px; }
+  .price-change { font-size: 14px; }
+  .stock-dims { gap: 6px; }
+  .dim-badge { padding: 2px 8px; font-size: 12px; }
   .matrix-container { flex-direction: column; }
   .matrix-labels { display: none; }
   .matrix-grid { grid-template-columns: 1fr; }
-  .list-table { font-size: 12px; }
-  .list-table th, .list-table td { padding: 6px 8px; }
+  .list-table { font-size: 13px; }
+  .list-table th, .list-table td { padding: 8px 10px; }
 }
 </style>

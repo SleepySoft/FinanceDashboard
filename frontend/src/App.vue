@@ -34,8 +34,9 @@ button.danger { background: #dc2626; color: white; }
 .tag-none { background: #334155; color: #94a3b8; }
 
 @media (max-width: 640px) {
-  #app { padding: 10px; }
-  .nav { flex-direction: column; gap: 10px; align-items: stretch; }
-  .nav-links { justify-content: center; }
+  #app { padding: 6px 10px 10px; }
+  .card { padding: 14px; margin-bottom: 10px; }
+  .nav { padding: 6px 0 2px; margin-bottom: 6px; }
+  .logo { font-size: 14px; }
 }
 </style>
