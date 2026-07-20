@@ -585,7 +585,8 @@ def get_report(code: str, report_id: str):
     rpt = next((r for r in meta["reports"] if r["id"] == report_id), None)
     if not rpt:
         raise HTTPException(404, "Report not found")
-    path = os.path.join(_reports_dir(code), rpt["filename"])
+    filename = rpt.get("filename", report_id + ".md")
+    path = os.path.join(_reports_dir(code), filename)
     if not os.path.exists(path):
         raise HTTPException(404, "Report file missing")
     with open(path, "r", encoding="utf-8") as f:
