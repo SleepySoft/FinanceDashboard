@@ -164,7 +164,12 @@
         </div>
         <div class="add-mark-row">
           <input v-model="newMark.label" placeholder="标签（可自定义）" style="flex:1" />
-          <input v-model.number="newMark.price" placeholder="价格" type="number" step="0.01" style="width:100px" />
+          <div class="price-input-group">
+            <button class="ghost price-shortcut" @click="fillPrice(-0.1)">-10%</button>
+            <button class="ghost price-shortcut" @click="fillPrice(0)">当前</button>
+            <button class="ghost price-shortcut" @click="fillPrice(0.1)">+10%</button>
+            <input v-model.number="newMark.price" placeholder="价格" type="number" step="0.01" style="width:100px" />
+          </div>
           <select v-model="newMark.type" style="width:90px">
             <option value="buy">买入</option>
             <option value="sell">卖出</option>
@@ -174,6 +179,49 @@
           </select>
           <button class="primary" @click="addMark" :disabled="!newMark.label || !newMark.price">添加</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Daily Briefs -->
+    <div class="card briefs-card">
+      <div class="briefs-header" @click="showBriefs = !showBriefs">
+        <div class="briefs-title">
+          <span class="briefs-icon">📋</span>
+          <div>
+            <h3>交易日简评</h3>
+            <p class="briefs-count">{{ briefs.length }} 条记录</p>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="primary" @click.stop="generateBrief" :disabled="generatingBrief || todayBriefExists">
+            {{ generatingBrief ? '生成中...' : (todayBriefExists ? '今日已评' : '生成今日简评') }}
+          </button>
+          <span class="collapse-btn">{{ showBriefs ? '▼' : '▶' }}</span>
+        </div>
+      </div>
+      
+      <div v-show="showBriefs" class="briefs-content">
+        <div v-if="displayBriefs.length > 0" class="briefs-timeline">
+          <div v-for="b in displayBriefs" :key="b.id" class="brief-item">
+            <div class="brief-date-line">
+              <span class="brief-dot"></span>
+              <span class="brief-date-text">{{ b.date }}</span>
+              <span :class="['brief-pct', b.change_pct > 0 ? 'up' : 'down']">
+                {{ b.change_pct > 0 ? '+' : '' }}{{ b.change_pct?.toFixed(2) }}%
+              </span>
+            </div>
+            <div class="brief-body">
+              <div class="brief-meta">
+                <span class="brief-price">收 ¥{{ b.price?.toFixed(2) }}</span>
+              </div>
+              <div class="brief-text">{{ b.content }}</div>
+            </div>
+          </div>
+        </div>
+        <div v-if="briefs.length > 5 && !showAllBriefs" class="briefs-more" @click="showAllBriefs = true">
+          ▼ 还有 {{ briefs.length - 5 }} 条记录
+        </div>
+        <div v-if="briefs.length === 0" class="empty">暂无交易日简评</div>
       </div>
     </div>
 
@@ -223,14 +271,49 @@ const tagForm = ref({ overall: 'none', watchlist: false })
 const newMark = ref({ label: '', price: null, type: 'other' })
 const newNote = ref('')
 
+// Daily briefs
+const briefs = ref([])
+const showBriefs = ref(false)
+const showAllBriefs = ref(false)
+const generatingBrief = ref(false)
+
+const todayBriefExists = computed(() => {
+  const today = new Date().toISOString().slice(0, 10)
+  return briefs.value.some(b => b.date === today)
+})
+
+const displayBriefs = computed(() => {
+  if (showAllBriefs.value) return briefs.value
+  return briefs.value.slice(0, 5)
+})
+
 async function load() {
   const data = await api.stocks.get(props.code)
   meta.value = data
   tagForm.value = { ...data.tags }
+  briefs.value = data.daily_briefs || []
   const n = await api.stocks.getNotes(props.code)
   notes.value = n.notes
   await loadLatestFundamental()
   await loadLatestTechnical()
+}
+
+async function generateBrief() {
+  if (todayBriefExists.value) return
+  generatingBrief.value = true
+  try {
+    const res = await api.stocks.generateBrief(props.code)
+    if (res.brief) {
+      briefs.value.unshift(res.brief)
+      briefs.value.sort((a, b) => b.date.localeCompare(a.date))
+    } else {
+      alert(res.message || '今日无显著变化，已跳过')
+    }
+  } catch (e) {
+    alert('生成简评失败: ' + e.message)
+  } finally {
+    generatingBrief.value = false
+  }
 }
 
 const fundamentalReports = computed(() =>
@@ -358,6 +441,12 @@ function renderMarkdown(md) {
     .replace(/\n/g, '<br>')
 }
 
+function fillPrice(offset) {
+  const base = newMark.value.price || meta.value.last_price
+  if (base == null) return
+  newMark.value.price = Number((base * (1 + offset)).toFixed(2))
+}
+
 function diffClass(diff) {
   return diff >= 0 ? 'up' : 'down'
 }
@@ -458,6 +547,43 @@ onMounted(load)
 .note-time { font-size: 12px; color: #64748b; margin-bottom: 4px; }
 .note-content { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
 
+.price-input-group { display: flex; align-items: center; gap: 4px; }
+.price-shortcut { padding: 2px 6px; font-size: 12px; border-radius: 4px; }
+
+.price-input-group { display: flex; align-items: center; gap: 4px; }
+.price-shortcut { padding: 2px 6px; font-size: 12px; border-radius: 4px; }
+
+/* Daily Briefs */
+.briefs-card { margin-top: 16px; }
+.briefs-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 14px; transition: background 0.15s; }
+.briefs-header:hover { background: #1e293b; }
+.briefs-title { display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.briefs-icon { font-size: 22px; }
+.briefs-count { font-size: 12px; color: #64748b; margin-top: 2px; }
+.briefs-content { padding-top: 4px; }
+.briefs-timeline { position: relative; padding-left: 16px; }
+.briefs-timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: #334155;
+}
+.brief-item { position: relative; margin-bottom: 16px; padding-left: 12px; }
+.brief-item:last-child { margin-bottom: 0; }
+.brief-date-line { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; position: relative; }
+.brief-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; position: absolute; left: -14px; top: 6px; flex-shrink: 0; }
+.brief-date-text { font-size: 13px; color: #94a3b8; font-weight: 500; }
+.brief-pct { font-size: 12px; font-weight: 600; }
+.brief-body { padding-left: 4px; }
+.brief-meta { display: flex; gap: 10px; margin-bottom: 2px; }
+.brief-price { font-size: 12px; color: #64748b; }
+.brief-text { font-size: 14px; line-height: 1.6; color: #e2e8f0; }
+.briefs-more { text-align: center; padding: 10px; font-size: 13px; color: #64748b; cursor: pointer; border-top: 1px dashed #334155; margin-top: 8px; transition: color 0.15s; }
+.briefs-more:hover { color: #94a3b8; }
+
 /* Mobile */
 @media (max-width: 640px) {
   .add-mark { flex-direction: column; align-items: stretch; gap: 8px; }
@@ -487,7 +613,15 @@ onMounted(load)
   .note-input { flex-direction: column; }
   .note-input button { width: 100%; }
   .notes-list { max-height: 300px; }
-  .price-mark { flex-wrap: wrap; gap: 6px; }
+  .price-input-group { flex-wrap: wrap; justify-content: flex-end; }
+  .price-shortcut { flex: 1; min-width: 50px; }
+
+  .briefs-header { flex-direction: column; gap: 8px; align-items: stretch; padding-bottom: 12px; }
+  .briefs-header button { width: 100%; }
+  .briefs-timeline { padding-left: 12px; }
+  .brief-item { padding-left: 8px; }
+  .brief-text { font-size: 13px; }
+  .brief-dot { left: -12px; }
   .mark-diff { font-size: 11px; }
 }
 </style>

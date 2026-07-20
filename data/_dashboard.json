@@ -2,10 +2,149 @@
   "prices": {
     "002430.SZ": {
       "price": 23.71,
+      "open": 24.0,
+      "high": 24.69,
+      "low": 23.46,
+      "prev_close": 24.05,
       "change_pct": -1.41,
-      "updated_at": "2026-07-19T14:43:20.675423+00:00"
+      "amplitude": 5.11,
+      "volume": 20178931.0,
+      "amount": 486635636.59,
+      "updated_at": "2026-07-20T00:20:21.427127+00:00"
+    },
+    "688278.SH": {
+      "price": 57.53,
+      "open": 59.97,
+      "high": 61.32,
+      "low": 57.0,
+      "prev_close": 60.29,
+      "change_pct": -4.58,
+      "amplitude": 7.17,
+      "volume": 5408076.0,
+      "amount": 317467739.0,
+      "updated_at": "2026-07-20T00:20:21.427143+00:00"
+    },
+    "300628.SZ": {
+      "price": 36.71,
+      "open": 36.65,
+      "high": 38.16,
+      "low": 36.56,
+      "prev_close": 36.8,
+      "change_pct": -0.24,
+      "amplitude": 4.35,
+      "volume": 19784474.0,
+      "amount": 738785405.94,
+      "updated_at": "2026-07-20T00:20:21.427117+00:00"
+    },
+    "605117.SH": {
+      "price": 80.15,
+      "open": 82.0,
+      "high": 83.27,
+      "low": 79.47,
+      "prev_close": 82.62,
+      "change_pct": -2.99,
+      "amplitude": 4.6,
+      "volume": 12570630.0,
+      "amount": 1017161850.0,
+      "updated_at": "2026-07-20T00:20:21.427103+00:00"
+    },
+    "300832.SZ": {
+      "price": 45.16,
+      "open": 45.06,
+      "high": 46.26,
+      "low": 44.51,
+      "prev_close": 45.0,
+      "change_pct": 0.36,
+      "amplitude": 3.89,
+      "volume": 8773544.0,
+      "amount": 396412312.4,
+      "updated_at": "2026-07-20T00:20:21.427031+00:00"
+    },
+    "688126.SH": {
+      "price": 26.66,
+      "open": 28.88,
+      "high": 29.4,
+      "low": 26.35,
+      "prev_close": 28.9,
+      "change_pct": -7.75,
+      "amplitude": 10.55,
+      "volume": 150092318.0,
+      "amount": 4181184008.0,
+      "updated_at": "2026-07-20T00:20:21.427135+00:00"
+    },
+    "002661.SZ": {
+      "price": 7.38,
+      "open": 7.53,
+      "high": 7.67,
+      "low": 7.32,
+      "prev_close": 7.54,
+      "change_pct": -2.12,
+      "amplitude": 4.64,
+      "volume": 3522060.0,
+      "amount": 26394794.0,
+      "updated_at": "2026-07-20T00:20:21.427067+00:00"
+    },
+    "601006.SH": {
+      "price": 4.71,
+      "open": 4.68,
+      "high": 4.77,
+      "low": 4.68,
+      "prev_close": 4.68,
+      "change_pct": 0.64,
+      "amplitude": 1.92,
+      "volume": 148764514.0,
+      "amount": 704559584.0,
+      "updated_at": "2026-07-20T00:20:21.427095+00:00"
+    },
+    "000636.SZ": {
+      "price": 46.53,
+      "open": 51.0,
+      "high": 52.3,
+      "low": 46.53,
+      "prev_close": 51.7,
+      "change_pct": -10.0,
+      "amplitude": 11.16,
+      "volume": 89449289.0,
+      "amount": 4281098602.27,
+      "updated_at": "2026-07-20T00:20:21.427077+00:00"
+    },
+    "300408.SZ": {
+      "price": 99.01,
+      "open": 106.61,
+      "high": 107.54,
+      "low": 95.4,
+      "prev_close": 106.86,
+      "change_pct": -7.35,
+      "amplitude": 11.36,
+      "volume": 76777293.0,
+      "amount": 7699675187.04,
+      "updated_at": "2026-07-20T00:20:21.427054+00:00"
+    },
+    "002138.SZ": {
+      "price": 42.31,
+      "open": 44.88,
+      "high": 45.22,
+      "low": 40.9,
+      "prev_close": 44.87,
+      "change_pct": -5.71,
+      "amplitude": 9.63,
+      "volume": 51195004.0,
+      "amount": 2198429452.47,
+      "updated_at": "2026-07-20T00:20:21.427085+00:00"
+    },
+    "300319.SZ": {
+      "price": 16.18,
+      "open": 17.82,
+      "high": 17.89,
+      "low": 15.89,
+      "prev_close": 17.65,
+      "change_pct": -8.33,
+      "amplitude": 11.33,
+      "volume": 79113930.0,
+      "amount": 1324422920.66,
+      "updated_at": "2026-07-20T00:20:21.427110+00:00"
     }
   },
-  "last_update": "2026-07-19T14:43:20.675520+00:00",
+  "last_update": "2026-07-20T00:20:21.427247+00:00",
   "source": "kimi_finance"
 }

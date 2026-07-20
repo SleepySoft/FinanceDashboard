@@ -1,0 +1,29 @@
+{
+    "code": "601006.SH",
+    "name": "\u5927\u79e6\u94c1\u8def",
+    "sector": "\u4ea4\u901a\u8fd0\u8f93",
+    "tags": {
+        "overall": "green",
+        "watchlist": ""
+    },
+    "price_marks": [],
+    "cache": {
+        "fundamental": {
+            "last": "2026-07-19",
+            "valid_until": "2026-08-18"
+        },
+        "technical": {
+            "last": "2026-07-19",
+            "valid_until": "2026-07-26"
+        }
+    },
+    "reports": [
+        {
+            "id": "fundamental_20260719",
+            "type": "fundamental",
+            "date": "2026-07-19",
+            "title": "\u5927\u79e6\u94c1\u8def\u57fa\u672c\u9762\u5206\u6790"
+        }
+    ],
+    "created_at": "2026-07-19"
+}
