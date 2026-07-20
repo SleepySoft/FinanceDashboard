@@ -59,7 +59,7 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
-              @click="$router.push('/stock/' + s.code)"
+              @click="openStock(s.code)"
             >
               <div class="stock-main">
                 <div class="stock-title-row">
@@ -115,7 +115,7 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
-              @click="$router.push('/stock/' + s.code)"
+              @click="openStock(s.code)"
             >
               <div class="stock-main">
                 <div class="stock-title-row">
@@ -171,7 +171,7 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
-              @click="$router.push('/stock/' + s.code)"
+              @click="openStock(s.code)"
             >
               <div class="stock-main">
                 <div class="stock-title-row">
@@ -226,7 +226,7 @@
             v-for="s in unassessedStocks"
             :key="s.code"
             class="matrix-stock"
-            @click="$router.push('/stock/' + s.code)"
+            @click="openStock(s.code)"
           >
             <div class="ms-code">{{ s.code }}</div>
             <div class="ms-name">{{ s.name }}</div>
@@ -256,7 +256,7 @@
                 v-for="s in matrixQ1"
                 :key="s.code"
                 class="matrix-stock"
-                @click="$router.push('/stock/' + s.code)"
+                @click="openStock(s.code)"
               >
                 <div class="ms-code">{{ s.code }}</div>
                 <div class="ms-name">{{ s.name }}</div>
@@ -276,7 +276,7 @@
                 v-for="s in matrixQ2"
                 :key="s.code"
                 class="matrix-stock"
-                @click="$router.push('/stock/' + s.code)"
+                @click="openStock(s.code)"
               >
                 <div class="ms-code">{{ s.code }}</div>
                 <div class="ms-name">{{ s.name }}</div>
@@ -296,7 +296,7 @@
                 v-for="s in matrixQ3"
                 :key="s.code"
                 class="matrix-stock"
-                @click="$router.push('/stock/' + s.code)"
+                @click="openStock(s.code)"
               >
                 <div class="ms-code">{{ s.code }}</div>
                 <div class="ms-name">{{ s.name }}</div>
@@ -316,7 +316,7 @@
                 v-for="s in matrixQ4"
                 :key="s.code"
                 class="matrix-stock"
-                @click="$router.push('/stock/' + s.code)"
+                @click="openStock(s.code)"
               >
                 <div class="ms-code">{{ s.code }}</div>
                 <div class="ms-name">{{ s.name }}</div>
@@ -356,7 +356,7 @@
               v-for="s in sortedStocks"
               :key="s.code"
               class="list-row"
-              @click="$router.push('/stock/' + s.code)"
+              @click="openStock(s.code)"
             >
               <td class="cell-code">{{ s.code }}</td>
               <td class="cell-name">{{ s.name }}</td>
