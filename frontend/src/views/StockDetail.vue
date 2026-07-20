@@ -2,31 +2,15 @@
   <div class="detail">
     <!-- Header -->
     <div class="detail-header card">
-      <div class="title-row">
-        <div>
-          <h1>{{ meta.code }}</h1>
-          <p class="subtitle">{{ meta.name }} <span v-if="meta.sector">· {{ meta.sector }}</span></p>
-          <div class="dim-row">
-            <span :class="['dim-badge', 'dim-' + dim('quality')]">质</span>
-            <span :class="['dim-badge', 'dim-' + dim('valuation')]">估</span>
-            <span :class="['dim-badge', 'dim-' + dim('timing')]">时</span>
-            <span :class="['dim-badge', 'dim-' + dim('risk')]">险</span>
-          </div>
-          <!--
-          <div class="header-info-row">
-            <span v-if="meta.last_price != null" class="header-price" :class="priceClass(meta.change_pct)">
-              ¥{{ meta.last_price.toFixed(2) }}
-              <span v-if="meta.change_pct != null">{{ meta.change_pct > 0 ? '+' : '' }}{{ meta.change_pct.toFixed(2) }}%</span>
-            </span>
-            <span v-if="meta.holdings?.cost != null" class="header-holdings">
-              持仓: ¥{{ meta.holdings.cost.toFixed(2) }} × {{ meta.holdings.quantity || 0 }}
-              <span v-if="meta.last_price != null" :class="['holdings-pnl', holdingsPnl >= 0 ? 'up' : 'down']">
-                {{ holdingsPnl >= 0 ? '+' : '' }}{{ holdingsPnl.toFixed(2) }}%
-              </span>
-            </span>
-            <span v-else class="header-holdings empty">未记录持仓</span>
-          </div>
-          -->
+      <div class="title-row compact">
+        <div class="header-main">
+          <span class="header-code">{{ meta.code }}</span>
+          <span class="header-name">{{ meta.name }}</span>
+          <span v-if="meta.sector" class="header-sector">· {{ meta.sector }}</span>
+          <span :class="['dim-badge-sm', 'dim-' + dim('quality')]">质</span>
+          <span :class="['dim-badge-sm', 'dim-' + dim('valuation')]">估</span>
+          <span :class="['dim-badge-sm', 'dim-' + dim('timing')]">时</span>
+          <span :class="['dim-badge-sm', 'dim-' + dim('risk')]">险</span>
         </div>
         <div class="actions">
           <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
@@ -546,11 +530,18 @@ onMounted(load)
 
 <style scoped>
 .detail-header { margin-bottom: 20px; }
-.title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.title-row.compact { align-items: center; margin-bottom: 0; }
 .title-row h1 { font-size: 24px; font-weight: 700; }
-.subtitle { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+
+.header-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.header-code { font-size: 15px; font-weight: 600; color: #60a5fa; }
+.header-name { font-size: 16px; font-weight: 600; color: #e2e8f0; }
+.header-sector { font-size: 12px; color: #64748b; }
+
 .dim-row { display: flex; gap: 6px; margin-top: 8px; }
 .dim-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.dim-badge-sm { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 11px; font-weight: 600; }
 .dim-green { background: #064e3b; color: #34d399; }
 .dim-yellow { background: #713f12; color: #fbbf24; }
 .dim-red { background: #7f1d1d; color: #f87171; }
@@ -676,7 +667,9 @@ onMounted(load)
   .add-mark-row input, .add-mark-row select, .add-mark-row button { width: 100% !important; }
 
   .title-row { flex-direction: column; gap: 10px; }
-  .title-row h1 { font-size: 20px; }
+  .title-row.compact { flex-direction: column; align-items: stretch; }
+  .header-main { gap: 6px; }
+  .header-name { font-size: 15px; }
   .actions { flex-wrap: wrap; }
   .analysis-header { flex-direction: column; gap: 8px; align-items: stretch; padding-bottom: 12px; }
   .analysis-header button { width: 100%; }
