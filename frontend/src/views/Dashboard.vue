@@ -382,12 +382,18 @@
     <div v-if="filteredStocks.length === 0 && !loading" class="card empty">
       没有匹配的股票。调整筛选条件试试。
     </div>
+    <StockModal :show="showModal" :stock="selectedStock" @close="closeModal" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '../api.js'
+import StockModal from '../components/StockModal.vue'
+
+const route = useRoute()
+const router = useRouter()
 
 const stocks = ref([])
 const loading = ref(false)
@@ -398,6 +404,19 @@ const filterVerdict = ref('')
 const filterWatchlist = ref(false)
 const sortKey = ref('code')
 const sortAsc = ref(true)
+const selectedStock = ref(null)
+const showModal = ref(false)
+
+// Read view from URL query
+const queryView = route.query.view
+if (queryView && ['grouped', 'matrix', 'list'].includes(queryView)) {
+  viewMode.value = queryView
+}
+
+// Sync view to URL when changed
+watch(viewMode, (v) => {
+  router.replace({ query: { ...route.query, view: v } })
+})
 
 const groupMode = ref('status')
 const groupModes = [
@@ -444,6 +463,20 @@ function startAutoRefresh() {
 }
 function stopAutoRefresh() {
   if (autoTimer) { clearInterval(autoTimer); autoTimer = null }
+}
+
+function openStock(code) {
+  const stock = stocks.value.find(s => s.code === code)
+  if (stock) {
+    selectedStock.value = stock
+    showModal.value = true
+    router.push({ path: '/stock/' + code, query: { view: viewMode.value } })
+  }
+}
+function closeModal() {
+  showModal.value = false
+  selectedStock.value = null
+  router.push({ path: '/', query: { view: viewMode.value } })
 }
 
 // ── Filtered stocks ──
