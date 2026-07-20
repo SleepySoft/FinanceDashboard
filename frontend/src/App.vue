@@ -1,13 +1,7 @@
 <template>
   <div id="app">
     <nav class="nav">
-      <div class="nav-left">
-        <router-link to="/" class="logo">Stock Analyst</router-link>
-      </div>
-      <div class="nav-links">
-        <router-link to="/" class="nav-link">Dashboard</router-link>
-        <router-link to="/requests" class="nav-link">请求池</router-link>
-      </div>
+      <router-link to="/" class="logo">Stock Analyst</router-link>
     </nav>
     <main>
       <router-view />
@@ -18,13 +12,10 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b1120; color: #e2e8f0; min-height: 100vh; }
-#app { max-width: 1200px; margin: 0 auto; padding: 16px; }
+#app { max-width: 1200px; margin: 0 auto; padding: 8px 16px 16px; }
 
-.nav { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-bottom: 20px; border-bottom: 1px solid #334155; }
-.logo { font-size: 18px; font-weight: 700; color: #60a5fa; text-decoration: none; }
-.nav-links { display: flex; gap: 20px; }
-.nav-link { color: #94a3b8; text-decoration: none; font-size: 14px; padding: 4px 0; }
-.nav-link.router-link-active { color: #60a5fa; border-bottom: 2px solid #60a5fa; }
+.nav { padding: 8px 0 4px; margin-bottom: 8px; border-bottom: 1px solid #334155; }
+.logo { font-size: 16px; font-weight: 700; color: #60a5fa; text-decoration: none; }
 
 .card { background: #151e2e; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
 h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }

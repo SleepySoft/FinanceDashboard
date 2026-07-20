@@ -1,14 +1,14 @@
 <template>
   <div class="dashboard">
-    <div class="dash-header">
-      <h1>Dashboard</h1>
-      <div class="dash-actions">
-        <button class="primary" @click="$router.push('/requests')">+ 提交分析请求</button>
-        <button class="ghost" @click="refreshPrices" :disabled="loading">{{ loading ? '刷新中...' : '刷新价格' }}</button>
+    <!-- Compact Header -->
+    <div class="dash-header compact">
+      <div class="header-left">
+        <span class="dash-title">📊 股票池</span>
+        <span v-if="lastRefresh" class="refresh-info">{{ fmtTime(lastRefresh) }}</span>
       </div>
-    </div>
-    <div v-if="lastRefresh" class="refresh-info">
-      价格更新于 {{ fmtTime(lastRefresh) }} · 自动刷新每30秒
+      <button class="ghost" @click="refreshPrices" :disabled="loading" style="padding:4px 12px;font-size:12px">
+        {{ loading ? '刷新中' : '🔄' }}
+      </button>
     </div>
 
     <!-- View Switcher & Filters -->
@@ -594,11 +594,14 @@ onUnmounted(stopAutoRefresh)
 </script>
 
 <style scoped>
-.dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.dash-header h1 { font-size: 22px; font-weight: 600; }
+.dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.dash-header.compact { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #334155; }
+.dash-title { font-size: 15px; font-weight: 600; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.refresh-info { font-size: 11px; color: #64748b; }
 .dash-actions { display: flex; gap: 10px; }
 
-.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px; }
 
 .view-tabs { display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 8px; }
 .tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; background: transparent; color: #94a3b8; border: none; }
@@ -609,7 +612,6 @@ onUnmounted(stopAutoRefresh)
 .filter-check { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #94a3b8; cursor: pointer; }
 .filter-check input { accent-color: #3b82f6; }
 
-.refresh-info { font-size: 12px; color: #64748b; margin-bottom: 12px; margin-top: -4px; }
 
 .group-mode-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 0 2px; }
 .group-label { font-size: 12px; color: #64748b; }
@@ -724,7 +726,7 @@ onUnmounted(stopAutoRefresh)
 
 /* Mobile */
 @media (max-width: 768px) {
-  .dash-header { flex-direction: column; gap: 10px; align-items: stretch; }
+  .dash-header.compact { flex-direction: row; gap: 8px; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .view-tabs { justify-content: center; }
   .stock-grid { grid-template-columns: 1fr; }

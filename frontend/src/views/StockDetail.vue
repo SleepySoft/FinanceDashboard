@@ -6,6 +6,7 @@
         <div>
           <h1>{{ meta.code }}</h1>
           <p class="subtitle">{{ meta.name }} <span v-if="meta.sector">· {{ meta.sector }}</span></p>
+          <!--
           <div class="header-info-row">
             <span v-if="meta.last_price != null" class="header-price" :class="priceClass(meta.change_pct)">
               ¥{{ meta.last_price.toFixed(2) }}
@@ -19,6 +20,7 @@
             </span>
             <span v-else class="header-holdings empty">未记录持仓</span>
           </div>
+          -->
         </div>
         <div class="actions">
           <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
@@ -158,7 +160,7 @@
       </div>
     </div>
 
-    <!-- Holdings -->
+    <!--
     <div class="card holdings-card">
       <div class="holdings-header">
         <h3>💼 持仓</h3>
@@ -184,6 +186,7 @@
         </div>
       </div>
     </div>
+    -->
 
     <!-- Price Marks -->
     <div class="card">
