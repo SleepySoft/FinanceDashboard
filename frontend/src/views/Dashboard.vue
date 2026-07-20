@@ -339,16 +339,16 @@
           <thead>
             <tr>
               <th @click="sortBy('code')">代码 {{ sortIcon('code') }}</th>
-              <th>名称</th>
-              <th>行业</th>
+              <th @click="sortBy('name')">名称 {{ sortIcon('name') }}</th>
+              <th @click="sortBy('sector')">行业 {{ sortIcon('sector') }}</th>
               <th @click="sortBy('last_price')">价格 {{ sortIcon('last_price') }}</th>
               <th @click="sortBy('change_pct')">涨跌 {{ sortIcon('change_pct') }}</th>
-              <th>质量</th>
-              <th>估值</th>
-              <th>时机</th>
-              <th>风险</th>
-              <th>综合</th>
-              <th>报告</th>
+              <th @click="sortByDim('quality')">质量 {{ sortIconDim('quality') }}</th>
+              <th @click="sortByDim('valuation')">估值 {{ sortIconDim('valuation') }}</th>
+              <th @click="sortByDim('timing')">时机 {{ sortIconDim('timing') }}</th>
+              <th @click="sortByDim('risk')">风险 {{ sortIconDim('risk') }}</th>
+              <th @click="sortByDim('verdict')">综合 {{ sortIconDim('verdict') }}</th>
+              <th @click="sortBy('report_count')">报告 {{ sortIcon('report_count') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -526,7 +526,18 @@ const matrixQ4 = computed(() => filteredStocks.value.filter(s => isAssessed(s) &
 const unassessedStocks = computed(() => filteredStocks.value.filter(s => !isAssessed(s)))
 
 // ── List view ──
+const dimOrder = { green: 3, yellow: 2, red: 1, none: 0 }
+
 function sortBy(key) {
+  if (sortKey.value === key) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortKey.value = key
+    sortAsc.value = true
+  }
+}
+function sortByDim(dimKey) {
+  const key = 'dim:' + dimKey
   if (sortKey.value === key) {
     sortAsc.value = !sortAsc.value
   } else {
@@ -538,13 +549,25 @@ function sortIcon(key) {
   if (sortKey.value !== key) return ''
   return sortAsc.value ? '↑' : '↓'
 }
+function sortIconDim(dimKey) {
+  if (sortKey.value !== 'dim:' + dimKey) return ''
+  return sortAsc.value ? '↑' : '↓'
+}
 const sortedStocks = computed(() => {
   const arr = [...filteredStocks.value]
   const key = sortKey.value
   arr.sort((a, b) => {
-    let av = a[key], bv = b[key]
-    if (av == null) av = -Infinity
-    if (bv == null) bv = -Infinity
+    let av, bv
+    if (key.startsWith('dim:')) {
+      const dk = key.slice(4)
+      av = dimOrder[dim(a, dk)] ?? 0
+      bv = dimOrder[dim(b, dk)] ?? 0
+    } else {
+      av = a[key]
+      bv = b[key]
+      if (av == null) av = -Infinity
+      if (bv == null) bv = -Infinity
+    }
     return sortAsc.value ? (av > bv ? 1 : -1) : (av > bv ? -1 : 1)
   })
   return arr
