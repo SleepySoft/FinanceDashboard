@@ -3,17 +3,26 @@
   "name": "南大光电",
   "sector": "半导体材料",
   "tags": {
-    "overall": "yellow",
+    "overall": "green",
     "fundamental": "yellow",
     "technical": "none",
     "moat": "green",
     "valuation": "red",
     "growth": "green",
-    "risk": "yellow"
+    "risk": "yellow",
+    "watchlist": true
   },
   "watchlist": true,
   "overall": "yellow",
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "cf9368f7",
+      "label": "卖出",
+      "price": 58.11,
+      "type": "sell",
+      "created_at": "2026-07-20T05:29:34.094605+00:00"
+    }
+  ],
   "reports": [
     {
       "id": "fundamental_20260720",

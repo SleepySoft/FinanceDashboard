@@ -253,6 +253,36 @@ def _save_meta(code: str, meta: dict):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
 
+
+def _normalize_dimensions(meta: dict) -> dict:
+    """Extract evaluation dimensions from meta tags (new or legacy format)."""
+    tags = meta.get("tags", {})
+    dims = {}
+
+    # New format: direct dimension fields
+    if "quality" in tags:
+        dims["quality"] = tags["quality"]
+    else:
+        # Legacy fallback: derive from moat / fundamental
+        dims["quality"] = tags.get("moat") or tags.get("fundamental") or "none"
+
+    dims["valuation"] = tags.get("valuation", "none")
+
+    if "timing" in tags:
+        dims["timing"] = tags["timing"]
+    else:
+        dims["timing"] = tags.get("technical", "none")
+
+    dims["risk"] = tags.get("risk", "none")
+
+    if "verdict" in tags:
+        dims["verdict"] = tags["verdict"]
+    else:
+        dims["verdict"] = tags.get("overall", "none")
+
+    return dims
+
+
 def _load_tasks() -> list:
     if not os.path.exists(TASKS_FILE):
         return []
@@ -507,6 +537,7 @@ def list_stocks():
                 "name": meta["name"],
                 "sector": meta.get("sector", ""),
                 "tags": meta["tags"],
+                "dimensions": _normalize_dimensions(meta),
                 "watchlist": meta["tags"].get("watchlist", False),
                 "overall": meta["tags"].get("overall", "none"),
                 "price_marks": meta.get("price_marks", []),
@@ -541,6 +572,7 @@ def get_stock(code: str):
     meta["last_price"] = p.get("price")
     meta["change_pct"] = p.get("change_pct")
     meta["daily_briefs"] = _load_briefs(code)
+    meta["dimensions"] = _normalize_dimensions(meta)
     return {**meta, "latest_report": latest}
 
 @app.patch("/api/stocks/{code}/tags")
@@ -765,6 +797,7 @@ def get_dashboard():
                 "name": meta["name"],
                 "sector": meta.get("sector", ""),
                 "tags": meta["tags"],
+                "dimensions": _normalize_dimensions(meta),
                 "watchlist": meta["tags"].get("watchlist", False),
                 "overall": meta["tags"].get("overall", "none"),
                 "price_marks": marks_with_diff,
