@@ -638,7 +638,8 @@ onUnmounted(stopAutoRefresh)
 .stock-main { margin-bottom: 10px; }
 .stock-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
 .stock-code { font-size: 14px; font-weight: 600; color: #60a5fa; }
-.stock-name { font-size: 13px; color: #94a3b8; }
+.stock-name { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+.stock-sector { font-size: 11px; color: #64748b; }
 
 .stock-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
 .price-current { font-size: 22px; font-weight: 700; }
@@ -741,7 +742,8 @@ onUnmounted(stopAutoRefresh)
   .stock-card { padding: 14px; }
   .stock-title-row { gap: 6px; }
   .stock-code { font-size: 15px; }
-  .stock-name { font-size: 14px; }
+  .stock-name { font-size: 16px; }
+  .stock-sector { font-size: 11px; }
   .price-current { font-size: 24px; }
   .price-change { font-size: 14px; }
   .stock-dims { gap: 6px; }
