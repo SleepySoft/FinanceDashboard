@@ -44,60 +44,132 @@
     <!-- Loading -->
     <div v-if="loading && stocks.length === 0" class="card empty">加载中...</div>
 
-    <!-- VIEW 1: Grouped by Sector -->
+    <!-- Group Mode Switch -->
+    <div v-if="viewMode === 'grouped'" class="group-mode-bar">
+      <span class="group-label">分组方式：</span>
+      <button
+        v-for="gm in groupModes"
+        :key="gm.key"
+        :class="['group-tab', { active: groupMode === gm.key }]"
+        @click="groupMode = gm.key"
+      >
+        {{ gm.label }}
+      </button>
+    </div>
+
+    <!-- VIEW 1: Grouped -->
     <template v-if="viewMode === 'grouped'">
-      <div v-for="group in sectorGroups" :key="group.sector" class="sector-group">
-        <div class="sector-header">
-          <span class="sector-name">{{ group.sector || '未分类' }}</span>
-          <span class="sector-count">{{ group.stocks.length }} 只</span>
-        </div>
-        <div class="stock-grid">
-          <div
-            v-for="s in group.stocks"
-            :key="s.code"
-            class="stock-card card"
-            @click="$router.push('/stock/' + s.code)"
-          >
-            <div class="stock-main">
-              <div class="stock-title-row">
-                <span class="stock-code">{{ s.code }}</span>
-                <span class="stock-name">{{ s.name }}</span>
-                <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+      <!-- By Rating -->
+      <template v-if="groupMode === 'rating'">
+        <div v-for="group in ratingGroups" :key="group.key" class="sector-group">
+          <div class="sector-header">
+            <span :class="['tag-badge', 'tag-' + group.key]">{{ group.label }}</span>
+            <span class="sector-count">{{ group.stocks.length }} 只</span>
+          </div>
+          <div class="stock-grid">
+            <div
+              v-for="s in group.stocks"
+              :key="s.code"
+              class="stock-card card"
+              @click="$router.push('/stock/' + s.code)"
+            >
+              <div class="stock-main">
+                <div class="stock-title-row">
+                  <span class="stock-code">{{ s.code }}</span>
+                  <span class="stock-name">{{ s.name }}</span>
+                  <span class="stock-sector">{{ s.sector }}</span>
+                  <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                </div>
+                <div class="stock-price-row">
+                  <span class="price-current" :class="priceClass(s.change_pct)">
+                    {{ s.last_price != null ? '¥' + s.last_price.toFixed(2) : '--' }}
+                  </span>
+                  <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
+                    {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
+                  </span>
+                </div>
+                <div class="stock-dims">
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'valuation')]">估</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'timing')]">时</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
+                </div>
               </div>
-              <div class="stock-price-row">
-                <span class="price-current" :class="priceClass(s.change_pct)">
-                  {{ s.last_price != null ? '¥' + s.last_price.toFixed(2) : '--' }}
+              <div v-if="s.price_marks?.length > 0" class="marks-section">
+                <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
+                  <span class="mark-label">{{ m.label }}</span>
+                  <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
+                    {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
+                  </span>
+                </div>
+              </div>
+              <div class="stock-footer">
+                <span>报告: {{ s.report_count }}</span>
+                <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
+                  分析: {{ fmtDate(s.last_analysis) }}
                 </span>
-                <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
-                  {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
-                </span>
               </div>
-              <div class="stock-dims">
-                <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
-                <span :class="['dim-badge', 'dim-' + dim(s, 'valuation')]">估</span>
-                <span :class="['dim-badge', 'dim-' + dim(s, 'timing')]">时</span>
-                <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
-                <span :class="['verdict-badge', 'verdict-' + (s.dimensions?.verdict || s.overall)]">{{ verdictLabel(s) }}</span>
-              </div>
-            </div>
-            <div v-if="s.price_marks?.length > 0" class="marks-section">
-              <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
-                <span class="mark-label">{{ m.label }}</span>
-                <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
-                <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
-                  {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
-                </span>
-              </div>
-            </div>
-            <div class="stock-footer">
-              <span>报告: {{ s.report_count }}</span>
-              <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
-                分析: {{ fmtDate(s.last_analysis) }}
-              </span>
             </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- By Sector -->
+      <template v-if="groupMode === 'sector'">
+        <div v-for="group in sectorGroups" :key="group.sector" class="sector-group">
+          <div class="sector-header">
+            <span class="sector-name">{{ group.sector || '未分类' }}</span>
+            <span class="sector-count">{{ group.stocks.length }} 只</span>
+          </div>
+          <div class="stock-grid">
+            <div
+              v-for="s in group.stocks"
+              :key="s.code"
+              class="stock-card card"
+              @click="$router.push('/stock/' + s.code)"
+            >
+              <div class="stock-main">
+                <div class="stock-title-row">
+                  <span class="stock-code">{{ s.code }}</span>
+                  <span class="stock-name">{{ s.name }}</span>
+                  <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                </div>
+                <div class="stock-price-row">
+                  <span class="price-current" :class="priceClass(s.change_pct)">
+                    {{ s.last_price != null ? '¥' + s.last_price.toFixed(2) : '--' }}
+                  </span>
+                  <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
+                    {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
+                  </span>
+                </div>
+                <div class="stock-dims">
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'valuation')]">估</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'timing')]">时</span>
+                  <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
+                  <span :class="['verdict-badge', 'verdict-' + (s.dimensions?.verdict || s.overall)]">{{ verdictLabel(s) }}</span>
+                </div>
+              </div>
+              <div v-if="s.price_marks?.length > 0" class="marks-section">
+                <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
+                  <span class="mark-label">{{ m.label }}</span>
+                  <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
+                    {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
+                  </span>
+                </div>
+              </div>
+              <div class="stock-footer">
+                <span>报告: {{ s.report_count }}</span>
+                <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
+                  分析: {{ fmtDate(s.last_analysis) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
     </template>
 
     <!-- VIEW 2: Matrix (Quality × Valuation) -->
@@ -262,6 +334,13 @@ const filterVerdict = ref('')
 const filterWatchlist = ref(false)
 const sortKey = ref('code')
 const sortAsc = ref(true)
+
+const groupMode = ref('rating')
+const groupModes = [
+  { key: 'rating', label: '按综合评级' },
+  { key: 'sector', label: '按行业' }
+]
+
 let autoTimer = null
 
 const views = [
@@ -318,7 +397,21 @@ const sectors = computed(() => {
   return Array.from(set).sort()
 })
 
-// ── Grouped view ──
+// ── Rating groups (default) ──
+const ratingGroups = computed(() => {
+  const order = ['green', 'yellow', 'red', 'none']
+  const labels = { green: '看好', yellow: '观望', red: '回避', none: '未评级' }
+  return order.map(key => ({
+    key,
+    label: labels[key],
+    stocks: filteredStocks.value.filter(s => {
+      const v = s.dimensions?.verdict || s.overall
+      return v === key
+    })
+  })).filter(g => g.stocks.length > 0)
+})
+
+// ── Sector groups ──
 const sectorGroups = computed(() => {
   const map = {}
   for (const s of filteredStocks.value) {
@@ -348,7 +441,7 @@ function isExpensive(s) {
 const matrixQ1 = computed(() => filteredStocks.value.filter(s => isGoodQuality(s) && isCheap(s)))
 const matrixQ2 = computed(() => filteredStocks.value.filter(s => isGoodQuality(s) && !isCheap(s)))
 const matrixQ3 = computed(() => filteredStocks.value.filter(s => !isGoodQuality(s) && isCheap(s)))
-const matrixQ4 = computed(() => filteredStocks.value.filter(s => !isGoodQuality(s) && !isCheap(s) && isExpensive(s)))
+const matrixQ4 = computed(() => filteredStocks.value.filter(s => !isGoodQuality(s) && !isCheap(s)))
 
 // ── List view ──
 function sortBy(key) {
@@ -423,6 +516,11 @@ onUnmounted(stopAutoRefresh)
 .filter-check input { accent-color: #3b82f6; }
 
 .refresh-info { font-size: 12px; color: #64748b; margin-bottom: 12px; margin-top: -4px; }
+
+.group-mode-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 0 2px; }
+.group-label { font-size: 12px; color: #64748b; }
+.group-tab { padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; }
+.group-tab.active { background: #1e3a5f; color: #60a5fa; border-color: #1e3a5f; font-weight: 600; }
 
 /* ── Grouped view ── */
 .sector-group { margin-bottom: 20px; }
