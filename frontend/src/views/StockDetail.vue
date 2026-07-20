@@ -30,12 +30,6 @@
             <option value="avoid">回避</option>
             <option value="archive">📁 归档</option>
           </select>
-          <select v-model="tagForm.overall" @change="updateTag">
-            <option value="none">无标签</option>
-            <option value="green">看好</option>
-            <option value="yellow">观望</option>
-            <option value="red">回避</option>
-          </select>
           <button :class="['tag-toggle', { active: tagForm.watchlist }]" @click="toggleWatchlist">
             {{ tagForm.watchlist ? '已关注' : '关注' }}
           </button>
@@ -318,7 +312,7 @@ const showTechHistory = ref(false)
 const fundExpandedIndex = ref(-1)
 const techExpandedIndex = ref(-1)
 
-const tagForm = ref({ overall: 'none', watchlist: false })
+const tagForm = ref({ watchlist: false })
 const statusForm = ref({ status: 'neutral' })
 const showHoldingsEdit = ref(false)
 const holdingsForm = ref({ cost: null, quantity: null })
@@ -350,7 +344,7 @@ const holdingsPnl = computed(() => {
 async function load() {
   const data = await api.stocks.get(props.code)
   meta.value = data
-  tagForm.value = { ...data.tags }
+  tagForm.value = { watchlist: data.tags?.watchlist || false }
   statusForm.value = { status: data.status || 'neutral' }
   holdingsForm.value = {
     cost: data.holdings?.cost ?? null,
@@ -445,10 +439,6 @@ const technicalStatus = computed(() => {
   return c.expired ? `已过期（${fmtDate(c.last)}）` : `有效（${fmtDate(c.last)}）`
 })
 
-async function updateTag() {
-  await api.stocks.updateTags(props.code, tagForm.value)
-}
-
 async function updateStatus() {
   await api.stocks.updateStatus(props.code, statusForm.value.status)
 }
@@ -460,8 +450,9 @@ async function saveHoldings() {
 }
 
 async function toggleWatchlist() {
-  tagForm.value.watchlist = !tagForm.value.watchlist
-  await updateTag()
+  const newVal = !tagForm.value.watchlist
+  tagForm.value.watchlist = newVal
+  await api.stocks.updateTags(props.code, { watchlist: newVal })
 }
 
 async function analyze(type) {
