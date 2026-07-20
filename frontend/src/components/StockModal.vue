@@ -1,6 +1,7 @@
 <template>
   <div v-if="show" class="modal-overlay" @click.self="close">
     <div class="modal-content" :class="{ mobile: isMobile }">
+      <!-- Header -->
       <div class="modal-header">
         <div class="modal-title-row">
           <span class="modal-code">{{ stock.code }}</span>
@@ -11,23 +12,21 @@
       </div>
 
       <div class="modal-body">
-        <!-- Price & Status Row -->
-        <div class="top-bar">
-          <div class="price-block">
-            <span class="modal-price" :class="priceClass(full.change_pct)">
+        <!-- Info Bar -->
+        <div class="info-bar card">
+          <div class="info-main">
+            <span class="info-price" :class="priceClass(full.change_pct)">
               {{ full.last_price != null ? '¥' + full.last_price.toFixed(2) : '--' }}
             </span>
-            <span v-if="full.change_pct != null" class="price-pct" :class="priceClass(full.change_pct)">
+            <span v-if="full.change_pct != null" class="info-pct" :class="priceClass(full.change_pct)">
               {{ full.change_pct > 0 ? '+' : '' }}{{ full.change_pct.toFixed(2) }}%
             </span>
-          </div>
-          <div class="status-block">
-            <span :class="['status-badge', 'status-' + (full.status || 'neutral')]">
+            <span :class="['status-tag', 'status-' + (full.status || 'neutral')]">
               {{ statusLabel(full.status) }}
             </span>
-            <span v-if="full.tags?.watchlist" class="watch-badge">已关注</span>
+            <span v-if="full.tags?.watchlist" class="watch-tag">已关注</span>
           </div>
-          <div class="modal-dims">
+          <div class="info-dims">
             <span :class="['dim-badge', 'dim-' + dim('quality')]">质</span>
             <span :class="['dim-badge', 'dim-' + dim('valuation')]">估</span>
             <span :class="['dim-badge', 'dim-' + dim('timing')]">时</span>
@@ -38,74 +37,181 @@
           </div>
         </div>
 
-        <!-- Price Marks -->
-        <div v-if="full.price_marks?.length > 0" class="section">
-          <div class="section-title">📌 价格标记</div>
-          <div class="marks-list">
-            <div v-for="m in full.price_marks" :key="m.id" class="mark-row">
-              <span :class="['mark-label', 'mark-' + m.type]">{{ m.label }}</span>
-              <span class="mark-price">¥{{ m.price.toFixed(2) }}</span>
-              <span v-if="full.last_price != null" :class="['mark-diff', diffClass(full.last_price - m.price)]">
-                {{ full.last_price >= m.price ? '+' : '' }}{{ (full.last_price - m.price).toFixed(2) }}
-                ({{ full.last_price >= m.price ? '+' : '' }}{{ ((full.last_price - m.price) / m.price * 100).toFixed(1) }}%)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Reports -->
         <div v-if="loading" class="loading">加载中...</div>
-        <div v-else-if="reports.length > 0" class="section">
-          <div class="section-title">📊 分析报告</div>
-          <div class="report-list">
-            <div
-              v-for="(r, idx) in reports"
-              :key="r.id"
-              class="report-section"
-            >
-              <div class="report-header-bar" @click="toggleReport(idx)">
-                <div class="report-meta">
-                  <span :class="['report-badge', 'badge-' + r.type]">{{ badgeText(r.type) }}</span>
-                  <span class="report-time">{{ fmtDateTime(r.created_at) }}</span>
-                  <span v-if="idx === 0" class="report-latest-tag">最新</span>
+
+        <template v-else>
+          <!-- Fundamental Analysis -->
+          <div class="analysis-card card">
+            <div class="analysis-header" @click="showFund = !showFund">
+              <div class="analysis-title">
+                <span class="analysis-icon">📊</span>
+                <div>
+                  <h3>基本面分析</h3>
+                  <p class="analysis-status" :class="{ expired: isExpired(full.last_analysis) }">
+                    {{ fundamentalStatus }}
+                  </p>
                 </div>
-                <span class="collapse-btn">{{ expanded[idx] ? '▼' : '▶' }}</span>
               </div>
-              <div v-show="expanded[idx]" class="report-body" v-html="renderMarkdown(reportContents[r.id])"></div>
+              <span class="collapse-btn">{{ showFund ? '▼' : '▶' }}</span>
             </div>
-          </div>
-        </div>
-
-        <!-- Daily Briefs -->
-        <div v-if="briefs.length > 0" class="section">
-          <div class="section-title">📋 交易日简评</div>
-          <div class="briefs-list">
-            <div v-for="b in displayBriefs" :key="b.id" class="brief-item">
-              <div class="brief-header">
-                <span class="brief-date">{{ b.date }}</span>
-                <span :class="['brief-pct', b.change_pct > 0 ? 'up' : 'down']">
-                  {{ b.change_pct > 0 ? '+' : '' }}{{ b.change_pct?.toFixed(2) }}%
-                </span>
-                <span class="brief-price">收 ¥{{ b.price?.toFixed(2) }}</span>
+            <div class="analysis-content" v-show="showFund">
+              <div v-if="fundamentalReports.length > 0">
+                <div class="report-latest" v-if="fundamentalContent">
+                  <div class="report-badge-row">
+                    <span class="timeline-badge badge-fund">基本面</span>
+                    <span class="report-time">{{ fmtDateTime(fundamentalReports[0]?.created_at) }}</span>
+                    <span class="timeline-latest">最新</span>
+                  </div>
+                  <div class="report-body" v-html="renderMarkdown(fundamentalContent)"></div>
+                </div>
+                <div class="older-versions" v-if="fundamentalReports.length > 1">
+                  <div class="older-toggle" @click.stop="showFundHistory = !showFundHistory">
+                    <span>{{ showFundHistory ? '▼' : '▶' }} 历史版本 ({{ fundamentalReports.length - 1 }})</span>
+                  </div>
+                  <div v-show="showFundHistory" class="timeline-collapsed">
+                    <div
+                      v-for="(r, idx) in fundamentalReports.slice(1)"
+                      :key="r.id"
+                      class="timeline-collapsed-item"
+                      @click.stop="toggleFundVersion(idx + 1)"
+                    >
+                      <div class="tci-header">
+                        <span class="tci-dot"></span>
+                        <span class="tci-time">{{ fmtDateTime(r.created_at) }}</span>
+                        <span :class="['timeline-badge', r.type === 'full' ? 'badge-full' : 'badge-fund']">
+                          {{ r.type === 'full' ? '综合' : '基本面' }}
+                        </span>
+                      </div>
+                      <div class="tci-body" v-show="fundExpandedIndex === idx + 1" v-html="renderMarkdown(fundVersionContents[r.id] || '')"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="brief-text">{{ b.content }}</div>
+              <div class="empty" v-else>暂无基本面分析报告</div>
             </div>
           </div>
-        </div>
 
-        <!-- Notes -->
-        <div v-if="notes.length > 0" class="section">
-          <div class="section-title">📝 随想笔记</div>
-          <div class="notes-list">
-            <div v-for="n in notes.slice(0, 5)" :key="n.time" class="note-item">
-              <div class="note-time">{{ n.time }}</div>
-              <div class="note-content">{{ n.content }}</div>
+          <!-- Technical Analysis -->
+          <div class="analysis-card card">
+            <div class="analysis-header" @click="showTech = !showTech">
+              <div class="analysis-title">
+                <span class="analysis-icon">📈</span>
+                <div>
+                  <h3>技术面分析</h3>
+                  <p class="analysis-status" :class="{ expired: isExpired(full.last_analysis) }">
+                    {{ technicalStatus }}
+                  </p>
+                </div>
+              </div>
+              <span class="collapse-btn">{{ showTech ? '▼' : '▶' }}</span>
+            </div>
+            <div class="analysis-content" v-show="showTech">
+              <div v-if="technicalReports.length > 0">
+                <div class="report-latest" v-if="technicalContent">
+                  <div class="report-badge-row">
+                    <span class="timeline-badge badge-tech">技术面</span>
+                    <span class="report-time">{{ fmtDateTime(technicalReports[0]?.created_at) }}</span>
+                    <span class="timeline-latest">最新</span>
+                  </div>
+                  <div class="report-body" v-html="renderMarkdown(technicalContent)"></div>
+                </div>
+                <div class="older-versions" v-if="technicalReports.length > 1">
+                  <div class="older-toggle" @click.stop="showTechHistory = !showTechHistory">
+                    <span>{{ showTechHistory ? '▼' : '▶' }} 历史版本 ({{ technicalReports.length - 1 }})</span>
+                  </div>
+                  <div v-show="showTechHistory" class="timeline-collapsed">
+                    <div
+                      v-for="(r, idx) in technicalReports.slice(1)"
+                      :key="r.id"
+                      class="timeline-collapsed-item"
+                      @click.stop="toggleTechVersion(idx + 1)"
+                    >
+                      <div class="tci-header">
+                        <span class="tci-dot"></span>
+                        <span class="tci-time">{{ fmtDateTime(r.created_at) }}</span>
+                        <span :class="['timeline-badge', r.type === 'full' ? 'badge-full' : 'badge-tech']">
+                          {{ r.type === 'full' ? '综合' : '技术面' }}
+                        </span>
+                      </div>
+                      <div class="tci-body" v-show="techExpandedIndex === idx + 1" v-html="renderMarkdown(techVersionContents[r.id] || '')"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="empty" v-else>暂无技术面分析报告</div>
             </div>
           </div>
-        </div>
 
-        <!-- Actions -->
-        <div class="modal-actions">
+          <!-- Price Marks -->
+          <div class="analysis-card card" v-if="full.price_marks?.length > 0">
+            <div class="analysis-header" @click="showMarks = !showMarks">
+              <div class="analysis-title">
+                <span class="analysis-icon">📌</span>
+                <h3>价格标记</h3>
+              </div>
+              <span class="collapse-btn">{{ showMarks ? '▼' : '▶' }}</span>
+            </div>
+            <div class="analysis-content" v-show="showMarks">
+              <div class="marks-list">
+                <div v-for="m in full.price_marks" :key="m.id" class="mark-row">
+                  <span :class="['mark-label', 'mark-' + m.type]">{{ m.label }}</span>
+                  <span class="mark-price">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="full.last_price != null" :class="['mark-diff', diffClass(full.last_price - m.price)]">
+                    {{ full.last_price >= m.price ? '+' : '' }}{{ (full.last_price - m.price).toFixed(2) }}
+                    ({{ ((full.last_price - m.price) / m.price * 100).toFixed(1) }}%)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Briefs -->
+          <div class="analysis-card card" v-if="briefs.length > 0">
+            <div class="analysis-header" @click="showBriefs = !showBriefs">
+              <div class="analysis-title">
+                <span class="analysis-icon">📋</span>
+                <h3>交易日简评</h3>
+              </div>
+              <span class="collapse-btn">{{ showBriefs ? '▼' : '▶' }}</span>
+            </div>
+            <div class="analysis-content" v-show="showBriefs">
+              <div class="briefs-list">
+                <div v-for="b in briefs.slice(0, 5)" :key="b.id" class="brief-item">
+                  <div class="brief-header">
+                    <span class="brief-date">{{ b.date }}</span>
+                    <span :class="['brief-pct', b.change_pct > 0 ? 'up' : 'down']">
+                      {{ b.change_pct > 0 ? '+' : '' }}{{ b.change_pct?.toFixed(2) }}%
+                    </span>
+                    <span class="brief-price">收 ¥{{ b.price?.toFixed(2) }}</span>
+                  </div>
+                  <div class="brief-text">{{ b.content }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="analysis-card card" v-if="notes.length > 0">
+            <div class="analysis-header" @click="showNotes = !showNotes">
+              <div class="analysis-title">
+                <span class="analysis-icon">📝</span>
+                <h3>随想笔记</h3>
+              </div>
+              <span class="collapse-btn">{{ showNotes ? '▼' : '▶' }}</span>
+            </div>
+            <div class="analysis-content" v-show="showNotes">
+              <div class="notes-list">
+                <div v-for="n in notes.slice(0, 5)" :key="n.time" class="note-item">
+                  <div class="note-time">{{ n.time }}</div>
+                  <div class="note-content">{{ n.content }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Footer -->
+        <div class="modal-footer">
           <router-link :to="'/stock/' + stock.code" class="btn-primary" @click="close">
             进入完整页面 →
           </router-link>
@@ -129,20 +235,59 @@ const isMobile = computed(() => window.innerWidth <= 768)
 
 const full = ref({})
 const loading = ref(false)
-const reports = ref([])
-const reportContents = ref({})
-const expanded = ref([])
+const showFund = ref(true)
+const showTech = ref(true)
+const showMarks = ref(true)
+const showBriefs = ref(true)
+const showNotes = ref(true)
+const showFundHistory = ref(false)
+const showTechHistory = ref(false)
+const fundExpandedIndex = ref(0)
+const techExpandedIndex = ref(0)
+const fundVersionContents = ref({})
+const techVersionContents = ref({})
 const briefs = ref([])
 const notes = ref([])
+
+const fundamentalReports = computed(() => {
+  return (full.value.reports || [])
+    .filter(r => r.type === 'fundamental' || r.type === 'full')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+})
+
+const technicalReports = computed(() => {
+  return (full.value.reports || [])
+    .filter(r => r.type === 'technical' || r.type === 'full')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+})
+
+const fundamentalContent = computed(() => {
+  const r = fundamentalReports.value[0]
+  return r ? (fundVersionContents.value[r.id] || '') : ''
+})
+
+const technicalContent = computed(() => {
+  const r = technicalReports.value[0]
+  return r ? (techVersionContents.value[r.id] || '') : ''
+})
+
+const fundamentalStatus = computed(() => {
+  const r = fundamentalReports.value[0]
+  return r ? `最新: ${fmtDateTime(r.created_at)}` : '暂无报告'
+})
+
+const technicalStatus = computed(() => {
+  const r = technicalReports.value[0]
+  return r ? `最新: ${fmtDateTime(r.created_at)}` : '暂无报告'
+})
 
 watch(() => props.show, async (visible) => {
   if (!visible) {
     full.value = {}
-    reports.value = []
-    reportContents.value = {}
-    expanded.value = []
     briefs.value = []
     notes.value = []
+    fundVersionContents.value = {}
+    techVersionContents.value = {}
     return
   }
   const code = props.stock.code
@@ -151,24 +296,28 @@ watch(() => props.show, async (visible) => {
   try {
     const data = await api.stocks.get(code)
     full.value = data
-    // Reports
-    const reps = (data.reports || [])
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 3)
-    reports.value = reps
-    expanded.value = reps.map((_, i) => i === 0)
-    for (let i = 0; i < reps.length; i++) {
-      if (expanded.value[i]) {
-        await loadReportContent(code, reps[i].id)
-      }
+
+    // Load latest fundamental content
+    const fr = fundamentalReports.value[0]
+    if (fr) {
+      const d = await api.stocks.getReport(code, fr.id)
+      fundVersionContents.value[fr.id] = d.content || ''
     }
+
+    // Load latest technical content
+    const tr = technicalReports.value[0]
+    if (tr) {
+      const d = await api.stocks.getReport(code, tr.id)
+      techVersionContents.value[tr.id] = d.content || ''
+    }
+
     // Briefs
     briefs.value = (data.daily_briefs || [])
       .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 3)
+
     // Notes
     const n = await api.stocks.getNotes(code)
-    notes.value = (n.notes || []).slice(0, 5)
+    notes.value = (n.notes || [])
   } catch (e) {
     console.error('加载详情失败', e)
   } finally {
@@ -176,20 +325,29 @@ watch(() => props.show, async (visible) => {
   }
 })
 
-async function loadReportContent(code, id) {
-  if (reportContents.value[id]) return
-  try {
-    const data = await api.stocks.getReport(code, id)
-    reportContents.value[id] = data.content || ''
-  } catch (e) {
-    reportContents.value[id] = '加载失败'
+async function toggleFundVersion(idx) {
+  fundExpandedIndex.value = fundExpandedIndex.value === idx ? -1 : idx
+  const r = fundamentalReports.value[idx]
+  if (r && !fundVersionContents.value[r.id]) {
+    try {
+      const d = await api.stocks.getReport(props.stock.code, r.id)
+      fundVersionContents.value[r.id] = d.content || ''
+    } catch (e) {
+      fundVersionContents.value[r.id] = '加载失败'
+    }
   }
 }
 
-async function toggleReport(idx) {
-  expanded.value[idx] = !expanded.value[idx]
-  if (expanded.value[idx] && reports.value[idx]) {
-    await loadReportContent(props.stock.code, reports.value[idx].id)
+async function toggleTechVersion(idx) {
+  techExpandedIndex.value = techExpandedIndex.value === idx ? -1 : idx
+  const r = technicalReports.value[idx]
+  if (r && !techVersionContents.value[r.id]) {
+    try {
+      const d = await api.stocks.getReport(props.stock.code, r.id)
+      techVersionContents.value[r.id] = d.content || ''
+    } catch (e) {
+      techVersionContents.value[r.id] = '加载失败'
+    }
   }
 }
 
@@ -222,11 +380,8 @@ const verdictLabel = computed(() => {
   return map[v] || '-'
 })
 
-const displayBriefs = computed(() => briefs.value.slice(0, 3))
-
-function badgeText(type) {
-  const map = { full: '综合', fundamental: '基本面', technical: '技术面' }
-  return map[type] || type
+function isExpired(iso) {
+  return iso && (Date.now() - new Date(iso).getTime()) > 7 * 86400000
 }
 
 function fmtDateTime(iso) {
@@ -260,8 +415,8 @@ function renderMarkdown(md) {
   padding: 16px;
 }
 .modal-content {
-  background: #151e2e; border: 1px solid #334155; border-radius: 12px;
-  width: 100%; max-width: 720px; max-height: 90vh;
+  background: #0f172a; border: 1px solid #334155; border-radius: 12px;
+  width: 100%; max-width: 760px; max-height: 92vh;
   display: flex; flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
@@ -283,55 +438,103 @@ function renderMarkdown(md) {
 .modal-close:hover { color: #e2e8f0; }
 
 .modal-body {
-  padding: 16px 18px;
+  padding: 14px 18px;
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Top bar */
-.top-bar {
+/* Info bar */
+.info-bar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  padding: 12px 14px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #334155;
 }
-.price-block { display: flex; align-items: baseline; gap: 8px; }
-.modal-price { font-size: 26px; font-weight: 700; }
-.price-pct { font-size: 14px; font-weight: 500; }
-.status-block { display: flex; gap: 6px; align-items: center; }
-.status-badge {
-  display: inline-block; padding: 3px 10px; border-radius: 4px;
-  font-size: 12px; font-weight: 500;
-}
+.info-main { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.info-price { font-size: 24px; font-weight: 700; }
+.info-pct { font-size: 13px; font-weight: 500; }
+.status-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
 .status-tracking { background: #1e3a5f; color: #60a5fa; }
 .status-bullish { background: #064e3b; color: #34d399; }
 .status-neutral { background: #713f12; color: #fbbf24; }
 .status-avoid { background: #7f1d1d; color: #f87171; }
 .status-archive { background: #334155; color: #94a3b8; }
-.watch-badge {
-  display: inline-block; padding: 2px 8px; border-radius: 4px;
-  background: #fbbf24; color: #1e293b; font-size: 11px; font-weight: 600;
+.watch-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #fbbf24; color: #1e293b; font-size: 10px; font-weight: 600; }
+.info-dims { display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* Analysis cards */
+.analysis-card { overflow: hidden; }
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
-.modal-dims { display: flex; gap: 5px; margin-left: auto; flex-wrap: wrap; }
+.analysis-header:hover { background: #1e293b; }
+.analysis-title { display: flex; align-items: center; gap: 10px; }
+.analysis-title h3 { font-size: 14px; font-weight: 600; margin: 0; color: #e2e8f0; }
+.analysis-icon { font-size: 16px; }
+.analysis-status { font-size: 11px; color: #64748b; margin: 2px 0 0; }
+.analysis-status.expired { color: #f87171; }
+.collapse-btn { font-size: 12px; color: #64748b; }
+.analysis-content { padding: 0 14px 14px; }
+
+/* Dim badges */
 .dim-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 .dim-green { background: #064e3b; color: #34d399; }
 .dim-yellow { background: #713f12; color: #fbbf24; }
 .dim-red { background: #7f1d1d; color: #f87171; }
 .dim-none { background: #334155; color: #64748b; }
-.verdict-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.verdict-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 .verdict-green { background: #064e3b; color: #34d399; }
 .verdict-yellow { background: #713f12; color: #fbbf24; }
 .verdict-red { background: #7f1d1d; color: #f87171; }
 .verdict-none { background: #334155; color: #64748b; }
 
-/* Sections */
-.section { margin-bottom: 16px; }
-.section-title { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 8px; }
+/* Report body */
+.report-latest { margin-bottom: 10px; }
+.report-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.timeline-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.badge-full { background: #14532d; color: #34d399; }
+.badge-fund { background: #1e3a5f; color: #60a5fa; }
+.badge-tech { background: #3f2c1d; color: #fbbf24; }
+.report-time { font-size: 11px; color: #94a3b8; }
+.timeline-latest { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: #3b82f6; color: white; font-weight: 500; }
+
+.report-body {
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+}
+.report-body h1 { font-size: 16px; font-weight: 700; margin: 12px 0 8px; color: #e2e8f0; }
+.report-body h2 { font-size: 13px; font-weight: 600; margin: 10px 0 6px; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 3px; }
+.report-body h3 { font-size: 12px; font-weight: 600; margin: 8px 0 4px; color: #60a5fa; }
+.report-body strong { color: #e2e8f0; }
+.report-body table { width: 100%; margin: 8px 0; font-size: 11px; table-layout: fixed; display: block; overflow-x: auto; }
+.report-body td { padding: 4px 6px; border: 1px solid #334155; word-break: break-all; }
+.report-body tr:first-child td { background: #1e293b; font-weight: 600; }
+
+/* Older versions */
+.older-versions { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #334155; }
+.older-toggle { font-size: 12px; color: #64748b; cursor: pointer; padding: 6px 0; }
+.older-toggle:hover { color: #94a3b8; }
+.timeline-collapsed { display: flex; flex-direction: column; gap: 8px; }
+.timeline-collapsed-item { padding: 8px 10px; background: #0f172a; border-radius: 6px; cursor: pointer; }
+.tci-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tci-dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; }
+.tci-time { font-size: 12px; color: #94a3b8; }
+.tci-body { margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155; }
 
 /* Price marks */
 .marks-list { display: flex; flex-direction: column; gap: 6px; }
@@ -350,51 +553,6 @@ function renderMarkdown(md) {
 .mark-price { font-weight: 600; }
 .mark-diff { font-size: 12px; }
 
-/* Loading / Empty */
-.loading { text-align: center; color: #64748b; font-size: 13px; padding: 20px 0; }
-
-/* Reports */
-.report-list { display: flex; flex-direction: column; gap: 8px; }
-.report-section {
-  border: 1px solid #334155;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.report-header-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: #0f172a;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.report-header-bar:hover { background: #1e293b; }
-.report-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.report-badge { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
-.badge-full { background: #14532d; color: #34d399; }
-.badge-fundamental { background: #1e3a5f; color: #60a5fa; }
-.badge-technical { background: #3f2c1d; color: #fbbf24; }
-.report-time { font-size: 11px; color: #94a3b8; }
-.report-latest-tag { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: #3b82f6; color: white; font-weight: 500; }
-.collapse-btn { font-size: 12px; color: #64748b; }
-.report-body {
-  padding: 12px 14px;
-  font-size: 13px;
-  line-height: 1.7;
-  background: #0b1220;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  min-width: 0;
-}
-.report-body h1 { font-size: 16px; font-weight: 700; margin: 12px 0 8px; color: #e2e8f0; }
-.report-body h2 { font-size: 13px; font-weight: 600; margin: 10px 0 6px; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 3px; }
-.report-body h3 { font-size: 12px; font-weight: 600; margin: 8px 0 4px; color: #60a5fa; }
-.report-body strong { color: #e2e8f0; }
-.report-body table { width: 100%; margin: 8px 0; font-size: 11px; table-layout: fixed; display: block; overflow-x: auto; }
-.report-body td { padding: 4px 6px; border: 1px solid #334155; word-break: break-all; }
-.report-body tr:first-child td { background: #1e293b; font-weight: 600; }
-
 /* Briefs */
 .briefs-list { display: flex; flex-direction: column; gap: 8px; }
 .brief-item {
@@ -409,18 +567,12 @@ function renderMarkdown(md) {
 
 /* Notes */
 .notes-list { display: flex; flex-direction: column; gap: 8px; }
-.note-item {
-  padding: 10px 12px; background: #0f172a; border-radius: 6px;
-}
+.note-item { padding: 10px 12px; background: #0f172a; border-radius: 6px; }
 .note-time { font-size: 11px; color: #64748b; margin-bottom: 3px; }
 .note-content { font-size: 13px; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap; }
 
-/* Actions */
-.modal-actions {
-  padding-top: 14px;
-  border-top: 1px solid #334155;
-  text-align: center;
-}
+/* Footer */
+.modal-footer { text-align: center; padding: 14px 0 4px; }
 .btn-primary {
   display: inline-block;
   padding: 8px 20px;
@@ -430,30 +582,31 @@ function renderMarkdown(md) {
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  transition: background 0.15s;
 }
 .btn-primary:hover { background: #2563eb; color: white; }
 
 /* Common */
 .up { color: #f87171; }
 .down { color: #34d399; }
+.empty { text-align: center; color: #475569; font-size: 13px; padding: 12px 0; }
+.loading { text-align: center; color: #64748b; font-size: 13px; padding: 20px 0; }
 
 /* Mobile */
 @media (max-width: 640px) {
   .modal-overlay { padding: 0; }
   .modal-content { border-radius: 0; max-height: 100vh; max-width: 100vw; }
-  .modal-body { padding: 12px 14px; }
+  .modal-body { padding: 10px 12px; gap: 10px; }
   .modal-header { padding: 12px 14px; }
-  .top-bar { gap: 8px; margin-bottom: 12px; padding-bottom: 10px; }
-  .modal-price { font-size: 22px; }
-  .modal-dims { margin-left: 0; }
-  .section { margin-bottom: 12px; }
-  .report-body { padding: 10px 12px; font-size: 12px; }
+  .info-bar { padding: 10px 12px; }
+  .info-price { font-size: 20px; }
+  .analysis-content { padding: 0 12px 12px; }
+  .analysis-header { padding: 10px 12px; }
+  .report-body { font-size: 12px; }
   .report-body h1 { font-size: 14px; }
   .report-body h2 { font-size: 12px; }
   .report-body table { font-size: 10px; }
-  .report-header-bar { padding: 8px 10px; }
   .brief-text { font-size: 12px; }
   .note-content { font-size: 12px; }
+  .modal-footer { padding: 10px 0 0; }
 }
 </style>
