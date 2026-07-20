@@ -6,6 +6,12 @@
         <div>
           <h1>{{ meta.code }}</h1>
           <p class="subtitle">{{ meta.name }} <span v-if="meta.sector">· {{ meta.sector }}</span></p>
+          <div class="dim-row">
+            <span :class="['dim-badge', 'dim-' + dim('quality')]">质</span>
+            <span :class="['dim-badge', 'dim-' + dim('valuation')]">估</span>
+            <span :class="['dim-badge', 'dim-' + dim('timing')]">时</span>
+            <span :class="['dim-badge', 'dim-' + dim('risk')]">险</span>
+          </div>
           <!--
           <div class="header-info-row">
             <span v-if="meta.last_price != null" class="header-price" :class="priceClass(meta.change_pct)">
@@ -341,6 +347,11 @@ const holdingsPnl = computed(() => {
   return ((meta.value.last_price - h.cost) / h.cost) * 100
 })
 
+function dim(key) {
+  const dims = meta.value.dimensions || meta.value.tags || {}
+  return dims[key] || 'none'
+}
+
 async function load() {
   const data = await api.stocks.get(props.code)
   meta.value = data
@@ -538,6 +549,12 @@ onMounted(load)
 .title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
 .title-row h1 { font-size: 24px; font-weight: 700; }
 .subtitle { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+.dim-row { display: flex; gap: 6px; margin-top: 8px; }
+.dim-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.dim-green { background: #064e3b; color: #34d399; }
+.dim-yellow { background: #713f12; color: #fbbf24; }
+.dim-red { background: #7f1d1d; color: #f87171; }
+.dim-none { background: #334155; color: #64748b; }
 .actions { display: flex; gap: 10px; align-items: center; }
 .tag-toggle { padding: 6px 14px; border-radius: 6px; border: 1px solid #475569; background: transparent; color: #94a3b8; font-size: 13px; cursor: pointer; }
 .tag-toggle.active { background: #fbbf24; color: #1e293b; border-color: #fbbf24; }
