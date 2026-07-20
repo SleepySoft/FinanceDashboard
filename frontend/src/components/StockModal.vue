@@ -35,10 +35,32 @@
             </span>
           </div>
         </div>
+
+        <!-- Reports -->
+        <div v-if="loading" class="loading">加载中...</div>
+        <div v-else-if="reports.length > 0" class="modal-reports">
+          <div
+            v-for="(r, idx) in reports"
+            :key="r.id"
+            class="report-section"
+          >
+            <div class="report-header-bar" @click="toggleReport(idx)">
+              <div class="report-meta">
+                <span :class="['report-badge', 'badge-' + r.type]">{{ badgeText(r.type) }}</span>
+                <span class="report-time">{{ fmtDateTime(r.created_at) }}</span>
+                <span v-if="idx === 0" class="report-latest-tag">最新</span>
+              </div>
+              <span class="collapse-btn">{{ expanded[idx] ? '▼' : '▶' }}</span>
+            </div>
+            <div v-show="expanded[idx]" class="report-body" v-html="renderMarkdown(reportContents[r.id])"></div>
+          </div>
+        </div>
+        <div v-else class="empty">暂无分析报告</div>
+
         <!-- Link to full detail -->
         <div class="modal-footer">
-          <router-link :to="'/stock/' + stock.code" class="modal-full-link">
-            查看完整详情 →
+          <router-link :to="'/stock/' + stock.code" class="modal-full-link" @click="close">
+            打开完整页面 →
           </router-link>
         </div>
       </div>
@@ -47,7 +69,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import api from '../api.js'
 
 const props = defineProps({
   show: Boolean,
@@ -56,6 +79,59 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const isMobile = computed(() => window.innerWidth <= 768)
+
+const loading = ref(false)
+const reports = ref([])
+const reportContents = ref({})
+const expanded = ref([])
+
+watch(() => props.show, async (visible) => {
+  if (!visible) {
+    reports.value = []
+    reportContents.value = {}
+    expanded.value = []
+    return
+  }
+  const code = props.stock.code
+  if (!code) return
+  loading.value = true
+  try {
+    // Get full stock data which includes reports
+    const data = await api.stocks.get(code)
+    const reps = (data.reports || [])
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 3) // Show latest 3 reports in modal
+    reports.value = reps
+    expanded.value = reps.map((_, i) => i === 0) // Expand first by default
+    // Load content for expanded reports
+    for (let i = 0; i < reps.length; i++) {
+      if (expanded.value[i]) {
+        await loadReportContent(reps[i].id)
+      }
+    }
+  } catch (e) {
+    console.error('加载报告失败', e)
+  } finally {
+    loading.value = false
+  }
+})
+
+async function loadReportContent(id) {
+  if (reportContents.value[id]) return
+  try {
+    const data = await api.stocks.getReport(props.stock.code, id)
+    reportContents.value[id] = data.content || ''
+  } catch (e) {
+    reportContents.value[id] = '加载失败'
+  }
+}
+
+async function toggleReport(idx) {
+  expanded.value[idx] = !expanded.value[idx]
+  if (expanded.value[idx] && reports.value[idx]) {
+    await loadReportContent(reports.value[idx].id)
+  }
+}
 
 function close() {
   emit('close')
@@ -70,6 +146,33 @@ function dim(key) {
   const d = props.stock.dimensions || props.stock.tags || {}
   return d[key] || 'none'
 }
+
+function badgeText(type) {
+  const map = { full: '综合', fundamental: '基本面', technical: '技术面' }
+  return map[type] || type
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '-'
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+
+function renderMarkdown(md) {
+  if (!md) return ''
+  return md
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^\|(.+)\|$/gim, (match) => {
+      const cells = match.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('')
+      return `<tr>${cells}</tr>`
+    })
+    .replace(/(<tr>.*<\/tr>\n?)+/g, '<table style="border-collapse:collapse;margin:10px 0;width:100%">$&</table>')
+    .replace(/\n/g, '<br>')
+}
 </script>
 
 <style scoped>
@@ -81,7 +184,7 @@ function dim(key) {
 }
 .modal-content {
   background: #151e2e; border: 1px solid #334155; border-radius: 12px;
-  width: 100%; max-width: 480px; max-height: 80vh;
+  width: 100%; max-width: 680px; max-height: 85vh;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
@@ -91,6 +194,7 @@ function dim(key) {
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 16px 20px; border-bottom: 1px solid #334155;
+  flex-shrink: 0;
 }
 .modal-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .modal-code { font-size: 14px; font-weight: 600; color: #60a5fa; }
@@ -101,7 +205,7 @@ function dim(key) {
   font-size: 20px; padding: 4px 8px; cursor: pointer;
 }
 .modal-close:hover { color: #e2e8f0; }
-.modal-body { padding: 16px 20px; overflow-y: auto; }
+.modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
 .modal-price-row {
   display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;
 }
@@ -123,6 +227,49 @@ function dim(key) {
 .mark-mark { background: #334155; color: #94a3b8; }
 .up { color: #f87171; }
 .down { color: #34d399; }
+
+/* Reports */
+.loading { text-align: center; color: #64748b; font-size: 13px; padding: 20px 0; }
+.empty { text-align: center; color: #475569; font-size: 13px; padding: 20px 0; }
+.modal-reports { margin-bottom: 16px; }
+.report-section {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.report-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #0f172a;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.report-header-bar:hover { background: #1e293b; }
+.report-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.report-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+.badge-full { background: #14532d; color: #34d399; }
+.badge-fundamental { background: #1e3a5f; color: #60a5fa; }
+.badge-technical { background: #3f2c1d; color: #fbbf24; }
+.report-time { font-size: 12px; color: #94a3b8; }
+.report-latest-tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: #3b82f6; color: white; font-weight: 500; }
+.collapse-btn { font-size: 13px; color: #64748b; }
+.report-body {
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.8;
+  background: #0b1220;
+}
+.report-body h1 { font-size: 17px; font-weight: 700; margin: 14px 0 10px; color: #e2e8f0; }
+.report-body h2 { font-size: 14px; font-weight: 600; margin: 12px 0 8px; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+.report-body h3 { font-size: 13px; font-weight: 600; margin: 10px 0 6px; color: #60a5fa; }
+.report-body strong { color: #e2e8f0; }
+.report-body table { width: 100%; margin: 10px 0; font-size: 12px; }
+.report-body td { padding: 5px 8px; border: 1px solid #334155; }
+.report-body tr:first-child td { background: #1e293b; font-weight: 600; }
+
 .modal-footer { text-align: center; padding-top: 12px; border-top: 1px solid #334155; }
 .modal-full-link {
   color: #60a5fa; text-decoration: none; font-size: 14px;
