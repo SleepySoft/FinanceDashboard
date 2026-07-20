@@ -48,5 +48,6 @@
       "expired": true
     }
   },
-  "daily_briefs": []
+  "daily_briefs": [],
+  "status": "tracking"
 }
