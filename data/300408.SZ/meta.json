@@ -3,8 +3,13 @@
   "name": "三环集团",
   "sector": "电子陶瓷/MLCC",
   "tags": {
-    "overall": "green",
-    "watchlist": ""
+    "overall": "yellow",
+    "watchlist": "",
+    "quality": "green",
+    "valuation": "yellow",
+    "timing": "none",
+    "risk": "green",
+    "verdict": "yellow"
   },
   "price_marks": [],
   "cache": {

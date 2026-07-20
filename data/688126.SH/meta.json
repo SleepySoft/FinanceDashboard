@@ -3,8 +3,13 @@
   "name": "沪硅产业",
   "sector": "半导体",
   "tags": {
-    "overall": "red",
-    "watchlist": ""
+    "overall": "yellow",
+    "watchlist": "",
+    "quality": "yellow",
+    "valuation": "red",
+    "timing": "none",
+    "risk": "red",
+    "verdict": "yellow"
   },
   "price_marks": [
     {

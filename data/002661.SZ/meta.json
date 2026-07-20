@@ -3,8 +3,13 @@
   "name": "克明面业",
   "sector": "食品",
   "tags": {
-    "overall": "red",
-    "watchlist": ""
+    "overall": "yellow",
+    "watchlist": "",
+    "quality": "yellow",
+    "valuation": "yellow",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "yellow"
   },
   "price_marks": [],
   "cache": {

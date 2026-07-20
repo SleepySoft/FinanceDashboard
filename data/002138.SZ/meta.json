@@ -4,7 +4,12 @@
   "sector": "片式电感",
   "tags": {
     "overall": "green",
-    "watchlist": ""
+    "watchlist": "",
+    "quality": "green",
+    "valuation": "green",
+    "timing": "none",
+    "risk": "green",
+    "verdict": "green"
   },
   "price_marks": [],
   "cache": {

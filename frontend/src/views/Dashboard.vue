@@ -174,6 +174,26 @@
 
     <!-- VIEW 2: Matrix (Quality × Valuation) -->
     <template v-if="viewMode === 'matrix'">
+      <!-- Unassessed stocks -->
+      <div v-if="unassessedStocks.length > 0" class="unassessed-banner card">
+        <div class="ua-title">⚪ 未评估（{{ unassessedStocks.length }} 只）— 建议补充分析</div>
+        <div class="ua-stocks">
+          <div
+            v-for="s in unassessedStocks"
+            :key="s.code"
+            class="matrix-stock"
+            @click="$router.push('/stock/' + s.code)"
+          >
+            <div class="ms-code">{{ s.code }}</div>
+            <div class="ms-name">{{ s.name }}</div>
+            <div class="ms-price" :class="priceClass(s.change_pct)">
+              {{ s.last_price != null ? '¥' + s.last_price.toFixed(1) : '--' }}
+              <span v-if="s.change_pct != null">{{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(1) }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="matrix-container">
         <div class="matrix-labels">
           <div class="matrix-y-label">质量好 ↑</div>
@@ -425,6 +445,11 @@ const sectorGroups = computed(() => {
 })
 
 // ── Matrix view ──
+function isAssessed(s) {
+  const q = s.dimensions?.quality || s.tags?.moat || s.tags?.fundamental || 'none'
+  const v = s.dimensions?.valuation || s.tags?.valuation || 'none'
+  return q !== 'none' && v !== 'none'
+}
 function isGoodQuality(s) {
   const q = s.dimensions?.quality || s.tags?.moat || s.tags?.fundamental || 'none'
   return q === 'green'
@@ -438,10 +463,11 @@ function isExpensive(s) {
   return v === 'red'
 }
 
-const matrixQ1 = computed(() => filteredStocks.value.filter(s => isGoodQuality(s) && isCheap(s)))
-const matrixQ2 = computed(() => filteredStocks.value.filter(s => isGoodQuality(s) && !isCheap(s)))
-const matrixQ3 = computed(() => filteredStocks.value.filter(s => !isGoodQuality(s) && isCheap(s)))
-const matrixQ4 = computed(() => filteredStocks.value.filter(s => !isGoodQuality(s) && !isCheap(s)))
+const matrixQ1 = computed(() => filteredStocks.value.filter(s => isAssessed(s) && isGoodQuality(s) && isCheap(s)))
+const matrixQ2 = computed(() => filteredStocks.value.filter(s => isAssessed(s) && isGoodQuality(s) && !isCheap(s)))
+const matrixQ3 = computed(() => filteredStocks.value.filter(s => isAssessed(s) && !isGoodQuality(s) && isCheap(s)))
+const matrixQ4 = computed(() => filteredStocks.value.filter(s => isAssessed(s) && !isGoodQuality(s) && !isCheap(s)))
+const unassessedStocks = computed(() => filteredStocks.value.filter(s => !isAssessed(s)))
 
 // ── List view ──
 function sortBy(key) {
@@ -572,6 +598,10 @@ onUnmounted(stopAutoRefresh)
 
 .stock-footer { display: flex; gap: 12px; font-size: 11px; color: #64748b; border-top: 1px solid #334155; padding-top: 8px; }
 .stock-footer .expired { color: #f87171; }
+
+.unassessed-banner { margin-bottom: 16px; padding: 12px 16px; border: 1px dashed #475569; }
+.ua-title { font-size: 14px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }
+.ua-stocks { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* ── Matrix view ── */
 .matrix-container { display: flex; gap: 12px; }

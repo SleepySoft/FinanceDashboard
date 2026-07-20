@@ -3,14 +3,17 @@
   "name": "南大光电",
   "sector": "半导体材料",
   "tags": {
-    "overall": "green",
+    "overall": "yellow",
     "fundamental": "yellow",
     "technical": "none",
     "moat": "green",
     "valuation": "red",
     "growth": "green",
     "risk": "yellow",
-    "watchlist": true
+    "watchlist": true,
+    "quality": "green",
+    "timing": "none",
+    "verdict": "yellow"
   },
   "watchlist": true,
   "overall": "yellow",

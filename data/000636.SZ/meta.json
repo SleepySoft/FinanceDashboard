@@ -3,8 +3,13 @@
   "name": "风华高科",
   "sector": "电子元件/MLCC",
   "tags": {
-    "overall": "red",
-    "watchlist": ""
+    "overall": "yellow",
+    "watchlist": "",
+    "quality": "yellow",
+    "valuation": "red",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "yellow"
   },
   "price_marks": [],
   "cache": {
