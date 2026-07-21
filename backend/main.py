@@ -7,6 +7,8 @@ import json
 import os
 import uuid
 import subprocess
+import urllib.request
+import re
 from datetime import datetime, timezone, timedelta
 
 app = FastAPI(title="Stock Analyst API")
@@ -324,13 +326,39 @@ def _load_dashboard() -> dict:
     with open(DASHBOARD_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def _fetch_stock_name(code: str) -> str:
+    """Fetch stock name from Sina API."""
+    try:
+        num = code.split(".")[0]
+        exchange = code.split(".")[1].upper()
+        if exchange == "SZ":
+            sina_code = "sz" + num
+        elif exchange == "SH":
+            sina_code = "sh" + num
+        elif exchange == "BJ":
+            sina_code = "bj" + num
+        else:
+            return code
+        url = f"https://hq.sinajs.cn/list={sina_code}"
+        req = urllib.request.Request(url, headers={"Referer": "https://finance.sina.com.cn"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = resp.read().decode("gb2312", errors="ignore")
+        match = re.search(r'"([^,]+),', data)
+        if match:
+            return match.group(1)
+    except Exception:
+        pass
+    return code
+
 def _init_stock(code: str, name: str = "", sector: str = "") -> dict:
+    if not name:
+        name = _fetch_stock_name(code)
     d = _stock_dir(code)
     os.makedirs(os.path.join(d, "reports"), exist_ok=True)
 
     static = {
         "code": code,
-        "name": name or code,
+        "name": name,
         "sector": sector,
         "added_at": _now(),
     }
