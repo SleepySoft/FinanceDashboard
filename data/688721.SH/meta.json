@@ -4,14 +4,22 @@
   "sector": "半导体设备",
   "tags": {
     "overall": "yellow",
-    "watchlist": "",
+    "watchlist": true,
     "quality": "green",
     "valuation": "red",
     "timing": "yellow",
     "risk": "yellow",
     "verdict": "yellow"
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "a0680d6e",
+      "label": "标记",
+      "price": 36.63,
+      "type": "mark",
+      "created_at": "2026-07-21T01:57:25.545885+00:00"
+    }
+  ],
   "cache": {
     "fundamental": {
       "last": "2026-07-21",
@@ -40,5 +48,5 @@
   ],
   "created_at": "2026-07-21",
   "daily_briefs": [],
-  "status": "watch"
+  "status": "bullish"
 }

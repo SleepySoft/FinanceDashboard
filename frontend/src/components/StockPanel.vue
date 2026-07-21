@@ -203,14 +203,6 @@
             <button class="ghost price-shortcut" @click="fillPrice(0.1)">+10%</button>
             <input v-model.number="newMark.price" placeholder="价格" type="number" step="0.01" style="width:100px" />
           </div>
-          <select v-model="newMark.type" style="width:100px">
-            <option value="target_buy">目标买入</option>
-            <option value="stop_loss">止损</option>
-            <option value="take_profit">止盈</option>
-            <option value="add">加仓</option>
-            <option value="reduce">减仓</option>
-            <option value="mark">标记</option>
-          </select>
           <button class="primary" @click="addMark" :disabled="!newMark.label || !newMark.price">添加</button>
         </div>
       </div>
