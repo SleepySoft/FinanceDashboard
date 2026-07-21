@@ -1,12 +1,42 @@
 {
-  "trades": [],
+  "trades": [
+    {
+      "date": "2025-08-28",
+      "time": "13:30:51",
+      "type": "buy",
+      "price": 0.538,
+      "quantity": 7200,
+      "fee": 5.0,
+      "note": "",
+      "idempotent_key": "2025-08-28_13:30:51_0.538_7200_buy",
+      "id": "t_45142a2f"
+    },
+    {
+      "date": "2026-01-13",
+      "time": "14:16:11",
+      "type": "buy",
+      "price": 0.551,
+      "quantity": 3900,
+      "fee": 5.0,
+      "note": "",
+      "idempotent_key": "2026-01-13_14:16:11_0.551_3900_buy",
+      "id": "t_d39b3795"
+    }
+  ],
   "adj_events": [],
   "summary": {
-    "total_quantity": 0,
-    "avg_cost": 0,
-    "total_cost": 0,
-    "realized_pnl": 0,
+    "total_quantity": 11100,
+    "avg_cost": 0.543,
+    "total_cost": 6022.5,
+    "realized_pnl": 0.0,
     "open_short": 0,
-    "last_trade": null
-  }
+    "last_trade": {
+      "date": "2026-01-13",
+      "time": "14:16:11",
+      "type": "buy",
+      "price": 0.551,
+      "quantity": 3900
+    }
+  },
+  "t_trades": []
 }

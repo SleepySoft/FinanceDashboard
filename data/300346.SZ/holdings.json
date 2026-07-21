@@ -1,12 +1,56 @@
 {
-  "trades": [],
+  "trades": [
+    {
+      "date": "2026-05-28",
+      "time": "10:41:07",
+      "type": "buy",
+      "price": 57.03,
+      "quantity": 100,
+      "fee": 5.0,
+      "note": "",
+      "idempotent_key": "2026-05-28_10:41:07_57.030_100_buy",
+      "id": "t_739ffbf7"
+    },
+    {
+      "date": "2026-07-17",
+      "time": "13:38:32",
+      "type": "sell",
+      "price": 58.11,
+      "quantity": 100,
+      "fee": 5.0,
+      "note": "",
+      "idempotent_key": "2026-07-17_13:38:32_58.110_100_sell",
+      "id": "t_a61d4d7b"
+    }
+  ],
   "adj_events": [],
   "summary": {
     "total_quantity": 0,
     "avg_cost": 0,
-    "total_cost": 0,
-    "realized_pnl": 0,
+    "total_cost": 0.0,
+    "realized_pnl": 108.0,
     "open_short": 0,
-    "last_trade": null
-  }
+    "last_trade": {
+      "date": "2026-07-17",
+      "time": "13:38:32",
+      "type": "sell",
+      "price": 58.11,
+      "quantity": 100
+    }
+  },
+  "t_trades": [
+    {
+      "id": "tt_a2355e29",
+      "type": "底仓卖出",
+      "buy_date": "2026-05-28",
+      "buy_price": 57.03,
+      "sell_date": "2026-07-17",
+      "sell_time": "13:38:32",
+      "sell_price": 58.11,
+      "quantity": 100,
+      "profit": 108.0,
+      "buy_trade_id": "t_739ffbf7",
+      "sell_trade_id": "t_a61d4d7b"
+    }
+  ]
 }
