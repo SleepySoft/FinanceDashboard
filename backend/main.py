@@ -849,6 +849,7 @@ def get_dashboard():
                 "name": meta["name"],
                 "sector": meta.get("sector", ""),
                 "tags": meta["tags"],
+                "status": meta.get("status", "neutral"),
                 "dimensions": _normalize_dimensions(meta),
                 "watchlist": meta["tags"].get("watchlist", False),
                 "overall": meta["tags"].get("overall", "none"),
