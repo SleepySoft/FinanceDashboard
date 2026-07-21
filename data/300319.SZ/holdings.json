@@ -1,0 +1,31 @@
+{
+  "trades": [
+    {
+      "date": "2026-07-21",
+      "time": "09:37:50",
+      "type": "buy",
+      "price": 14.38,
+      "quantity": 200,
+      "fee": 5.0,
+      "note": "",
+      "idempotent_key": "2026-07-21_09:37:50_14.380_200_buy",
+      "id": "t_08aff37f"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 200,
+    "avg_cost": 14.38,
+    "total_cost": 2876.0,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2026-07-21",
+      "time": "09:37:50",
+      "type": "buy",
+      "price": 14.38,
+      "quantity": 200
+    }
+  }
+}
