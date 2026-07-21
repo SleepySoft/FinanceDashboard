@@ -7,7 +7,7 @@ import Home from './views/Home.vue'
 
 const routes = [
   { path: '/', component: Dashboard },
-  { path: '/stock/:code', component: Dashboard },
+  { path: '/stock/:code', component: StockDetail },
   { path: '/requests', component: Home },
 ]
 
