@@ -2,5 +2,29 @@
   "code": "300433.SZ",
   "name": "蓝思科技",
   "sector": "消费电子",
-  "added_at": "2026-07-21T06:52:17.027546+00:00"
+  "added_at": "2026-07-21T06:52:17.027546+00:00",
+  "reports": [
+    {
+      "id": "fundamental_20260721",
+      "filename": "fundamental_20260721.md",
+      "type": "fundamental",
+      "created_at": "2026-07-21"
+    },
+    {
+      "id": "technical_20260721",
+      "filename": "technical_20260721.md",
+      "type": "technical",
+      "created_at": "2026-07-21"
+    }
+  ],
+  "cache": {
+    "fundamental": {
+      "last": "2026-07-21",
+      "valid_until": null
+    },
+    "technical": {
+      "last": "2026-07-21",
+      "valid_until": null
+    }
+  }
 }

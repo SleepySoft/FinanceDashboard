@@ -1,5 +1,20 @@
 {
   "code": "300408.SZ",
   "name": "三环集团",
-  "sector": "电子陶瓷/MLCC"
+  "sector": "电子陶瓷/MLCC",
+  "reports": [
+    {
+      "id": "fundamental_20260719",
+      "filename": "fundamental_20260719.md",
+      "type": "fundamental",
+      "created_at": "2026-07-19"
+    }
+  ],
+  "cache": {
+    "fundamental": {
+      "last": "2026-07-19",
+      "valid_until": null
+    },
+    "technical": {}
+  }
 }

@@ -158,6 +158,37 @@ def _state_path(code: str) -> str:
 def _reports_dir(code: str) -> str:
     return os.path.join(_stock_dir(code), "reports")
 
+def _scan_reports(code: str) -> list:
+    """Scan reports directory for report files. First source of truth."""
+    d = _reports_dir(code)
+    if not os.path.exists(d):
+        return []
+    reports = []
+    for fname in sorted(os.listdir(d)):
+        if not fname.endswith(".md"):
+            continue
+        parts = fname.replace(".md", "").split("_")
+        if len(parts) >= 2:
+            rtype = parts[0]
+            rdate = parts[1]
+            if len(rdate) == 8:
+                rdate = f"{rdate[:4]}-{rdate[4:6]}-{rdate[6:]}"
+        else:
+            rtype = "full"
+            rdate = ""
+        reports.append({
+            "id": f"{rtype}_{parts[1]}",
+            "filename": fname,
+            "type": rtype,
+            "created_at": rdate
+        })
+    return reports
+
+def _last_analysis(reports: list) -> str:
+    """Get last fundamental analysis date from scanned reports."""
+    dates = [r["created_at"] for r in reports if r["type"] in ("fundamental", "full")]
+    return max(dates) if dates else None
+
 def _notes_path(code: str) -> str:
     return os.path.join(_stock_dir(code), "notes.md")
 
@@ -266,10 +297,13 @@ def _load_meta(code: str) -> dict:
     return {**static, **mutable}
 
 def _save_meta(code: str, meta: dict):
-    """Split fields into meta.json (static) and state.json (mutable)."""
+    """Split fields into meta.json (static) and state.json (mutable).
+    Reports and cache are derived from disk scans - never saved here."""
     static_fields = {"code", "name", "sector", "type", "added_at"}
+    # Never save reports/cache to state - they are derived from disk
+    derive_fields = {"reports", "cache"}
     static = {k: v for k, v in meta.items() if k in static_fields}
-    mutable = {k: v for k, v in meta.items() if k not in static_fields}
+    mutable = {k: v for k, v in meta.items() if k not in static_fields and k not in derive_fields}
 
     meta_path = _meta_path(code)
     os.makedirs(os.path.dirname(meta_path), exist_ok=True)
@@ -617,6 +651,8 @@ def list_stocks():
                 continue
             code = meta["code"]
             p = prices.get(code, {})
+            # Derive reports from disk scan (first source of truth)
+            reports = _scan_reports(code)
             stocks.append({
                 "code": code,
                 "name": meta["name"],
@@ -628,8 +664,8 @@ def list_stocks():
                 "watchlist": meta["tags"].get("watchlist", False),
                 "overall": meta["tags"].get("overall", "none"),
                 "price_marks": meta.get("price_marks", []),
-                "report_count": len(meta.get("reports", [])),
-                "last_analysis": meta["cache"]["fundamental"].get("last") or meta["cache"]["fundamental"].get("date"),
+                "report_count": len(reports),
+                "last_analysis": _last_analysis(reports),
                 "last_price": p.get("price"),
                 "change_pct": p.get("change_pct"),
                 "price_updated": p.get("updated_at")
@@ -639,6 +675,20 @@ def list_stocks():
 @app.get("/api/stocks/{code}")
 def get_stock(code: str):
     meta = _load_meta(code)
+    # Derive reports from disk scan (first source of truth)
+    reports = _scan_reports(code)
+    meta["reports"] = reports
+    # Build cache from scanned reports
+    last_fund = _last_analysis(reports)
+    last_tech = None
+    tech_dates = [r["created_at"] for r in reports if r["type"] in ("technical", "full")]
+    if tech_dates:
+        last_tech = max(tech_dates)
+    meta["cache"] = {
+        "fundamental": {"last": last_fund, "valid_until": None},
+        "technical": {"last": last_tech, "valid_until": None}
+    }
+    # Compute expired
     now = datetime.now(timezone.utc)
     for key in ["fundamental", "technical"]:
         vu = meta["cache"][key]["valid_until"]
@@ -650,8 +700,8 @@ def get_stock(code: str):
                 vu_dt = vu_dt.replace(tzinfo=timezone.utc)
             meta["cache"][key]["expired"] = vu_dt < now
     latest = None
-    if meta["reports"]:
-        latest = meta["reports"][-1]
+    if reports:
+        latest = reports[-1]
     # Inject current price
     dashboard = _load_dashboard()
     prices = dashboard.get("prices", {})
@@ -711,13 +761,12 @@ def delete_price_mark(code: str, mark_id: str):
 
 @app.get("/api/stocks/{code}/reports")
 def list_reports(code: str):
-    meta = _load_meta(code)
-    return meta.get("reports", [])
+    return _scan_reports(code)
 
 @app.get("/api/stocks/{code}/reports/{report_id}")
 def get_report(code: str, report_id: str):
-    meta = _load_meta(code)
-    rpt = next((r for r in meta["reports"] if r["id"] == report_id), None)
+    reports = _scan_reports(code)
+    rpt = next((r for r in reports if r["id"] == report_id), None)
     if not rpt:
         raise HTTPException(404, "Report not found")
     filename = rpt.get("filename", report_id + ".md")
@@ -731,8 +780,8 @@ def get_report(code: str, report_id: str):
 @app.get("/api/stocks/{code}/reports/{report_id}/raw")
 def get_report_raw(code: str, report_id: str):
     from fastapi.responses import FileResponse
-    meta = _load_meta(code)
-    rpt = next((r for r in meta["reports"] if r["id"] == report_id), None)
+    reports = _scan_reports(code)
+    rpt = next((r for r in reports if r["id"] == report_id), None)
     if not rpt:
         raise HTTPException(404, "Report not found")
     path = os.path.join(_reports_dir(code), rpt["filename"])
@@ -824,55 +873,7 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
     if not os.path.exists(_meta_path(code)) and not os.path.exists(_state_path(code)):
         _init_stock(code, task.get("name", code), task.get("sector", ""))
     
-    meta = _load_meta(code)
-    now = _now()
-    
-    # Handle multiple reports (new format)
-    if req.reports:
-        for r in req.reports:
-            report_entry = {
-                "id": str(uuid.uuid4())[:8],
-                "filename": os.path.basename(r["path"]) if r.get("path") else None,
-                "type": r.get("type", "full"),
-                "created_at": now,
-                "task_id": task_id
-            }
-            meta["reports"].append(report_entry)
-        # Update cache based on report types
-        has_fund = any(r.get("type") in ("fundamental", "full") for r in req.reports)
-        has_tech = any(r.get("type") in ("technical", "full") for r in req.reports)
-        if has_fund:
-            meta["cache"]["fundamental"] = {
-                "last": now,
-                "valid_until": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-            }
-        if has_tech:
-            meta["cache"]["technical"] = {
-                "last": now,
-                "valid_until": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
-            }
-    # Handle single report (backward compatible)
-    elif req.report_path:
-        report_entry = {
-            "id": str(uuid.uuid4())[:8],
-            "filename": os.path.basename(req.report_path),
-            "type": req.report_type,
-            "created_at": now,
-            "task_id": task_id
-        }
-        meta["reports"].append(report_entry)
-        if req.report_type in ("fundamental", "full"):
-            meta["cache"]["fundamental"] = {
-                "last": now,
-                "valid_until": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-            }
-        if req.report_type in ("technical", "full"):
-            meta["cache"]["technical"] = {
-                "last": now,
-                "valid_until": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
-            }
-    
-    _save_meta(code, meta)
+    # Reports are discovered from disk scan - no need to update JSON state
     return task
 
 @app.post("/api/agent/tasks/{task_id}/fail")
@@ -924,6 +925,8 @@ def get_dashboard():
                     "diff_pct": diff_pct
                 })
             
+            # Derive reports from disk scan (first source of truth)
+            reports = _scan_reports(code)
             stocks.append({
                 "code": code,
                 "name": meta["name"],
@@ -934,8 +937,8 @@ def get_dashboard():
                 "watchlist": meta["tags"].get("watchlist", False),
                 "overall": meta["tags"].get("overall", "none"),
                 "price_marks": marks_with_diff,
-                "report_count": len(meta.get("reports", [])),
-                "last_analysis": meta["cache"]["fundamental"].get("last") or meta["cache"]["fundamental"].get("date"),
+                "report_count": len(reports),
+                "last_analysis": _last_analysis(reports),
                 "last_price": current_price,
                 "change_pct": p.get("change_pct"),
                 "price_updated": p.get("updated_at")

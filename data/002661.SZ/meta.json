@@ -2,5 +2,26 @@
   "code": "002661.SZ",
   "name": "克明食品",
   "sector": "食品制造",
-  "added_at": "2026-07-21T06:52:17.016376+00:00"
+  "added_at": "2026-07-21T06:52:17.016376+00:00",
+  "reports": [
+    {
+      "id": "fundamental_20260719",
+      "filename": "fundamental_20260719.md",
+      "type": "fundamental",
+      "created_at": "2026-07-19"
+    },
+    {
+      "id": "fundamental_20260721",
+      "filename": "fundamental_20260721.md",
+      "type": "fundamental",
+      "created_at": "2026-07-21"
+    }
+  ],
+  "cache": {
+    "fundamental": {
+      "last": "2026-07-21",
+      "valid_until": null
+    },
+    "technical": {}
+  }
 }

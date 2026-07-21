@@ -1,1 +1,306 @@
-[]
+[
+  {
+    "id": "2ea363d9-f73",
+    "code": "000636.SZ",
+    "name": "风华高科",
+    "sector": "电子元件",
+    "note": "",
+    "type": "full",
+    "status": "failed",
+    "created_at": "2026-07-21T08:47:32.743620+00:00",
+    "claimed_at": null,
+    "completed_at": "2026-07-21T08:54:30.828355+00:00",
+    "result": null,
+    "error": "已存在分析报告，跳过"
+  },
+  {
+    "id": "37e6f99a-59d",
+    "code": "002138.SZ",
+    "name": "顺络电子",
+    "sector": "电子元件",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.746564+00:00",
+    "claimed_at": "2026-07-21T09:48:21.675688+00:00",
+    "completed_at": "2026-07-21T09:51:21.130099+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "bc894320-c09",
+    "code": "002282.SZ",
+    "name": "博深股份",
+    "sector": "通用设备",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.748821+00:00",
+    "claimed_at": "2026-07-21T09:51:21.149472+00:00",
+    "completed_at": "2026-07-21T09:53:57.199044+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "5f8d3f85-38b",
+    "code": "002430.SZ",
+    "name": "杭氧股份",
+    "sector": "机械设备",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.750926+00:00",
+    "claimed_at": "2026-07-21T09:51:21.185268+00:00",
+    "completed_at": "2026-07-21T09:53:57.229173+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "2dfe6e28-f4d",
+    "code": "002661.SZ",
+    "name": "克明食品",
+    "sector": "食品制造",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.752982+00:00",
+    "claimed_at": "2026-07-21T09:51:21.197185+00:00",
+    "completed_at": "2026-07-21T09:53:57.231241+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "a6a42e99-7ed",
+    "code": "159883.SZ",
+    "name": "医疗器械ETF",
+    "sector": "ETF",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.755111+00:00",
+    "claimed_at": "2026-07-21T09:53:57.272140+00:00",
+    "completed_at": "2026-07-21T09:59:00.411243+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "91f8d6f1-da8",
+    "code": "300319.SZ",
+    "name": "麦捷科技",
+    "sector": "电子元件",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.757207+00:00",
+    "claimed_at": "2026-07-21T09:53:57.292151+00:00",
+    "completed_at": "2026-07-21T09:59:00.445207+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "e953887b-b31",
+    "code": "300346.SZ",
+    "name": "南大光电",
+    "sector": "电子化学品",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.759427+00:00",
+    "claimed_at": "2026-07-21T09:53:57.310531+00:00",
+    "completed_at": "2026-07-21T09:59:00.467628+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "ad355de6-bfb",
+    "code": "300408.SZ",
+    "name": "三环集团",
+    "sector": "电子元件",
+    "note": "",
+    "type": "full",
+    "status": "failed",
+    "created_at": "2026-07-21T08:47:32.761615+00:00",
+    "claimed_at": null,
+    "completed_at": "2026-07-21T08:54:30.834028+00:00",
+    "result": null,
+    "error": "已存在分析报告，跳过"
+  },
+  {
+    "id": "cab4dc25-a2c",
+    "code": "300433.SZ",
+    "name": "蓝思科技",
+    "sector": "消费电子",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.763731+00:00",
+    "claimed_at": "2026-07-21T09:55:44.139439+00:00",
+    "completed_at": "2026-07-21T09:58:09.978566+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "674f02de-827",
+    "code": "300628.SZ",
+    "name": "亿联网络",
+    "sector": "通信设备",
+    "note": "",
+    "type": "full",
+    "status": "failed",
+    "created_at": "2026-07-21T08:47:32.765869+00:00",
+    "claimed_at": null,
+    "completed_at": "2026-07-21T08:54:30.831501+00:00",
+    "result": null,
+    "error": "已存在分析报告，跳过"
+  },
+  {
+    "id": "96a6540d-7e3",
+    "code": "300832.SZ",
+    "name": "新产业",
+    "sector": "医疗器械",
+    "note": "",
+    "type": "full",
+    "status": "failed",
+    "created_at": "2026-07-21T08:47:32.768096+00:00",
+    "claimed_at": null,
+    "completed_at": "2026-07-21T08:54:30.840624+00:00",
+    "result": null,
+    "error": "已存在分析报告，跳过"
+  },
+  {
+    "id": "229bcf50-893",
+    "code": "600109.SH",
+    "name": "国金证券",
+    "sector": "证券",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.770307+00:00",
+    "claimed_at": "2026-07-21T09:58:20.423689+00:00",
+    "completed_at": "2026-07-21T10:06:48.388497+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "00dc1183-af7",
+    "code": "601006.SH",
+    "name": "大秦铁路",
+    "sector": "交通运输",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.772678+00:00",
+    "claimed_at": "2026-07-21T09:59:23.163869+00:00",
+    "completed_at": "2026-07-21T10:10:30.067442+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "0d5949fc-171",
+    "code": "605117.SH",
+    "name": "德业股份",
+    "sector": "电力设备",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.774836+00:00",
+    "claimed_at": "2026-07-21T09:59:23.184264+00:00",
+    "completed_at": "2026-07-21T10:10:30.087628+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "d5f6e892-df5",
+    "code": "688126.SH",
+    "name": "沪硅产业",
+    "sector": "半导体材料",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.777035+00:00",
+    "claimed_at": "2026-07-21T09:59:42.273520+00:00",
+    "completed_at": "2026-07-21T10:10:30.099078+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "36d1e325-118",
+    "code": "688278.SH",
+    "name": "特宝生物",
+    "sector": "生物制品",
+    "note": "",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-21T08:47:32.780207+00:00",
+    "claimed_at": "2026-07-21T09:59:23.218750+00:00",
+    "completed_at": "2026-07-21T10:10:30.126570+00:00",
+    "result": {
+      "report_path": null,
+      "summary": null,
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "bacb7c33-19a",
+    "code": "688721.SH",
+    "name": "龙图光罩",
+    "sector": "半导体材料",
+    "note": "",
+    "type": "full",
+    "status": "failed",
+    "created_at": "2026-07-21T08:47:32.782462+00:00",
+    "claimed_at": null,
+    "completed_at": "2026-07-21T08:54:30.836872+00:00",
+    "result": null,
+    "error": "已存在分析报告，跳过"
+  }
+]
