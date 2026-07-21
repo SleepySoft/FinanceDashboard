@@ -410,18 +410,16 @@ watch(viewMode, (v) => {
 })
 
 const groupMode = ref('status')
-const groupModes = [
-  { key: 'status', label: '按投资状态' },
-  { key: 'sector', label: '按行业' },
-  { key: 'rating', label: '按综合评级' }
+const views = [
+  { key: 'grouped', label: '分组' },
+  { key: 'matrix', label: '矩阵' },
+  { key: 'list', label: '列表' }
 ]
 
-let autoTimer = null
-
-const views = [
-  { key: 'grouped', label: '🏭 行业分组' },
-  { key: 'matrix', label: '📊 质量估值矩阵' },
-  { key: 'list', label: '📋 紧凑列表' }
+const groupModes = [
+  { key: 'status', label: '状态' },
+  { key: 'sector', label: '行业' },
+  { key: 'rating', label: '评级' }
 ]
 
 async function load() {
@@ -629,26 +627,21 @@ onUnmounted(stopAutoRefresh)
 </script>
 
 <style scoped>
-.dash-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.dash-title { font-size: 15px; font-weight: 600; flex-shrink: 0; }
+.dash-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
 
 .view-tabs { display: flex; gap: 2px; background: #0f172a; padding: 3px; border-radius: 6px; flex-shrink: 0; }
 .view-tabs.mini .tab { padding: 3px 10px; border-radius: 4px; font-size: 12px; }
 .tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; background: transparent; color: #94a3b8; border: none; }
 .tab.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
 
-.toolbar-inline { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.toolbar-inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-.toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-
-.filters { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.filter-select { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 5px; padding: 3px 8px; font-size: 12px; }
-.filter-check { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #94a3b8; cursor: pointer; }
-.filter-check input { accent-color: #3b82f6; width: 14px; height: 14px; }
-
-.group-tabs { display: flex; gap: 2px; background: #0f172a; padding: 2px; border-radius: 5px; }
-.group-tab { padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; }
+.group-tabs { display: flex; gap: 2px; background: #0f172a; padding: 2px; border-radius: 5px; flex-shrink: 0; }
+.group-tab { padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; white-space: nowrap; }
 .group-tab.active { background: #1e3a5f; color: #60a5fa; border-color: #1e3a5f; font-weight: 600; }
+
+.filter-check { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #94a3b8; cursor: pointer; white-space: nowrap; }
+.filter-check input { accent-color: #3b82f6; width: 14px; height: 14px; }
 
 /* ── Grouped view ── */
 .sector-group { margin-bottom: 20px; }
@@ -760,10 +753,10 @@ onUnmounted(stopAutoRefresh)
 /* Mobile */
 @media (max-width: 768px) {
   .dash-header { gap: 6px; }
+  .toolbar-inline { gap: 4px; width: 100%; justify-content: flex-end; }
   .view-tabs.mini .tab { padding: 3px 8px; font-size: 11px; }
-  .toolbar { gap: 6px; }
-  .filter-select { padding: 3px 6px; font-size: 11px; }
   .group-tab { padding: 2px 6px; font-size: 10px; }
+  .filter-check { font-size: 11px; }
   .stock-grid { grid-template-columns: 1fr; gap: 10px; }
   .stock-card { padding: 14px; }
   .stock-title-row { gap: 6px; }
