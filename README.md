@@ -32,7 +32,7 @@
 - **Backend**: FastAPI + Python
 - **Frontend**: Vue 3 + Vite
 - **数据源**: Sina实时行情、kimi_finance（同花顺）、Tushare
-- **部署**: 单VM，端口80/8000
+- **部署**: 单VM，Uvicorn 直接 serve 前端静态文件，端口 80
 
 ## 目录结构
 
@@ -56,14 +56,14 @@ FinanceDashboard/
 ## 快速开始
 
 ```bash
-# 启动后端
+# 构建前端（如有代码改动）
+cd frontend
+npm run build
+
+# 启动后端（同时 serve API + 前端静态文件）
 cd backend
 source venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 80
-
-# 构建前端
-cd frontend
-npm run build  # 输出到 dist/，由后端静态服务
 ```
 
 ## AI Agent 使用

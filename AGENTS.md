@@ -13,14 +13,15 @@ This file captures the living state of the project so any AI (or future-you) can
 ## Architecture
 
 ```
-Frontend (Vue3 + Vite)          Backend (FastAPI)               Data (File-based)
-    Port 80  ────────────►    Port 8000  ────────────►    /root/data/FinanceDashboard/data/
+Uvicorn (FastAPI + StaticFiles)          Data (File-based)
+    Port 80  ──────────────────────►    /root/data/FinanceDashboard/data/
+            ├── /api/*  → FastAPI routes
+            └── /*      → Vue3 SPA (frontend/dist)
 ```
 
 | Layer | Tech | Port | Notes |
 |-------|------|------|-------|
-| Frontend | Vue 3 + Vite | 80 | Hash routing (`/#/stock/002430.SZ`), no auth |
-| Backend | Python FastAPI | 8000 | CORS open, no auth (user request) |
+| App Server | Uvicorn + FastAPI + StaticFiles | 80 | 同时 serve API 和前端静态文件 |
 | Data | JSON + Markdown | — | One dir per stock, `_dashboard.json` for prices |
 | Gateway | OpenClaw | 18789 | localhost only, not exposed |
 
@@ -91,11 +92,10 @@ data/
 ```bash
 cd /root/data/FinanceDashboard/backend
 source venv/bin/activate
-nohup uvicorn main:app --host 0.0.0.0 --port 8000 > /tmp/uvicorn.log 2>&1 &
-
-cd /root/data/FinanceDashboard/frontend
-nohup npx vite --host 0.0.0.0 --port 80 > /tmp/vite.log 2>&1 &
+nohup uvicorn main:app --host 0.0.0.0 --port 80 > /tmp/uvicorn.log 2>&1 &
 ```
+- 后端同时 serve API 和前端静态文件（`frontend/dist/`）
+- 前端改动后需要 `npm run build` 重新构建
 
 ### Adding a New Stock for Analysis
 1. User submits via frontend (`/requests`) or tells agent directly
@@ -128,8 +128,8 @@ nohup npx vite --host 0.0.0.0 --port 80 > /tmp/vite.log 2>&1 &
 
 ## Known Issues
 
-- **Tencent Cloud firewall** may block ports 80/8000 from public internet. ufw rules are set, but security group needs manual config in Tencent console.
-- **Non-trading hours:** Sina API returns last close price (not stale, just not updating).
+- **Tencent Cloud firewall** may block port 80 from public internet. ufw rules are set, but security group needs manual config in Tencent console.
+- **Nginx removed**: 2025-07-21 起，前端静态文件由 FastAPI `StaticFiles` 直接 serve，不再使用 Nginx 或 Vite dev server。
 
 ## Open TODOs
 

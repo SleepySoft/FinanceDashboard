@@ -189,22 +189,20 @@ Holdings stored in `data/{code}/holdings.json`:
 
 ```
 Tencent Cloud VM (VM-47-161-ubuntu)
-├── Port 80  → Vite dev server (frontend)
-├── Port 8000 → FastAPI (backend)
+├── Port 80  → Uvicorn (FastAPI + StaticFiles, 同时 serve API 和前端)
 └── Port 22  → SSH
 ```
 
-**Start/Stop:**
+**Start:**
 ```bash
-# Backend
 cd /root/data/FinanceDashboard/backend
 source venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 8000
-
-# Frontend
-cd /root/data/FinanceDashboard/frontend
-npx vite --host 0.0.0.0 --port 80
+uvicorn main:app --host 0.0.0.0 --port 80
 ```
+
+- 前端代码改动后需要重新构建：`cd frontend && npm run build`
+- 后端使用 `StaticFiles(directory="../frontend/dist", html=True)` 直接 serve 前端
+- 已移除 Nginx，不再使用 Vite dev server 或双端口架构
 
 ### Data Persistence
 
@@ -226,8 +224,7 @@ All data lives in `/root/data/FinanceDashboard/data/`:
 
 If public IP is blocked by Tencent firewall:
 ```
-User → Tailscale network → 100.105.210.96:80 (frontend)
-                              100.105.210.96:8000 (backend API)
+User → Tailscale network → 100.105.210.96:80 (API + frontend)
 ```
 
 ## Agent Workflow File
