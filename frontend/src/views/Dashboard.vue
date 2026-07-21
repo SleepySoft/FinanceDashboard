@@ -459,13 +459,11 @@ function openStock(code) {
   if (stock) {
     selectedStock.value = stock
     showModal.value = true
-    router.push({ path: '/stock/' + code, query: { view: viewMode.value } })
   }
 }
 function closeModal() {
   showModal.value = false
   selectedStock.value = null
-  router.push({ path: '/', query: { view: viewMode.value } })
 }
 
 // ── Filtered stocks ──
