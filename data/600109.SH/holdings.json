@@ -1,0 +1,42 @@
+{
+  "trades": [
+    {
+      "date": "2025-08-19",
+      "time": "09:25:00",
+      "type": "buy",
+      "price": 10.05,
+      "quantity": 200,
+      "fee": 5.0,
+      "note": "国金证券",
+      "idempotent_key": "2025-08-19_09:25:00_10.050_200_buy",
+      "id": "t_8c1d7c71"
+    },
+    {
+      "date": "2026-01-13",
+      "time": "09:06:00",
+      "type": "buy",
+      "price": 9.6,
+      "quantity": 200,
+      "fee": 5.0,
+      "note": "国金证券",
+      "idempotent_key": "2026-01-13_09:06:00_9.600_200_buy",
+      "id": "t_a695da14"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 400,
+    "avg_cost": 9.825,
+    "total_cost": 3930.0,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2026-01-13",
+      "time": "09:06:00",
+      "type": "buy",
+      "price": 9.6,
+      "quantity": 200
+    }
+  }
+}

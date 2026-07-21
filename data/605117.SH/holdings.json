@@ -1,0 +1,31 @@
+{
+  "trades": [
+    {
+      "date": "2026-07-03",
+      "time": "09:39:50",
+      "type": "buy",
+      "price": 95.31,
+      "quantity": 100,
+      "fee": 5.0,
+      "note": "德业股份",
+      "idempotent_key": "2026-07-03_09:39:50_95.310_100_buy",
+      "id": "t_6f9795f4"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 100,
+    "avg_cost": 95.31,
+    "total_cost": 9531.0,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2026-07-03",
+      "time": "09:39:50",
+      "type": "buy",
+      "price": 95.31,
+      "quantity": 100
+    }
+  }
+}

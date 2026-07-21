@@ -1,46 +1,24 @@
 {
   "code": "605117.SH",
-  "name": "德业股份",
-  "sector": "家电/新能源",
+  "name": "605117.SH",
+  "sector": "",
+  "added_at": "2026-07-21T04:27:33.019372+00:00",
   "tags": {
-    "overall": "yellow",
-    "watchlist": "",
-    "quality": "green",
-    "valuation": "yellow",
-    "timing": "none",
-    "risk": "yellow",
-    "verdict": "yellow"
+    "overall": "none",
+    "watchlist": false
   },
   "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
   "cache": {
     "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": "2026-08-18"
+      "last": null,
+      "valid_until": null
     },
     "technical": {
-      "last": "2026-07-19",
-      "valid_until": "2026-07-26"
+      "last": null,
+      "valid_until": null
     }
   },
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "type": "fundamental",
-      "date": "2026-07-19",
-      "title": "德业股份基本面分析"
-    }
-  ],
-  "created_at": "2026-07-19",
-  "daily_briefs": [
-    {
-      "id": "5ce86565",
-      "date": "2026-07-20",
-      "content": "平开后震荡走高，收跌3.0%",
-      "has_value": true,
-      "price": 80.15,
-      "change_pct": -2.99,
-      "amplitude": null,
-      "created_at": "2026-07-20T00:14:18.478190+00:00"
-    }
-  ]
+  "reports": []
 }

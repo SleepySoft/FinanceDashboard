@@ -1,35 +1,24 @@
 {
   "code": "601006.SH",
-  "name": "大秦铁路",
-  "sector": "交通运输",
+  "name": "601006.SH",
+  "sector": "",
+  "added_at": "2026-07-21T04:27:32.981812+00:00",
   "tags": {
-    "overall": "green",
-    "watchlist": "",
-    "quality": "green",
-    "valuation": "green",
-    "timing": "none",
-    "risk": "green",
-    "verdict": "green"
+    "overall": "none",
+    "watchlist": false
   },
   "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
   "cache": {
     "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": "2026-08-18"
+      "last": null,
+      "valid_until": null
     },
     "technical": {
-      "last": "2026-07-19",
-      "valid_until": "2026-07-26"
+      "last": null,
+      "valid_until": null
     }
   },
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "type": "fundamental",
-      "date": "2026-07-19",
-      "title": "大秦铁路基本面分析"
-    }
-  ],
-  "created_at": "2026-07-19",
-  "status": "bullish"
+  "reports": []
 }

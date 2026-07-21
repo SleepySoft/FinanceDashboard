@@ -1,0 +1,31 @@
+{
+  "trades": [
+    {
+      "date": "2025-09-11",
+      "time": "13:34:08",
+      "type": "buy",
+      "price": 6.1,
+      "quantity": 800,
+      "fee": 5.0,
+      "note": "大秦铁路",
+      "idempotent_key": "2025-09-11_13:34:08_6.100_800_buy",
+      "id": "t_b461b753"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 800,
+    "avg_cost": 6.1,
+    "total_cost": 4880.0,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2025-09-11",
+      "time": "13:34:08",
+      "type": "buy",
+      "price": 6.1,
+      "quantity": 800
+    }
+  }
+}

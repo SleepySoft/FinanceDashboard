@@ -1,0 +1,31 @@
+{
+  "trades": [
+    {
+      "date": "2025-09-08",
+      "time": "07:25:00",
+      "type": "buy",
+      "price": 7.25,
+      "quantity": 700,
+      "fee": 5.0,
+      "note": "博深股份",
+      "idempotent_key": "2025-09-08_07:25:00_7.250_700_buy",
+      "id": "t_23f2bec2"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 700,
+    "avg_cost": 7.25,
+    "total_cost": 5075.0,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2025-09-08",
+      "time": "07:25:00",
+      "type": "buy",
+      "price": 7.25,
+      "quantity": 700
+    }
+  }
+}

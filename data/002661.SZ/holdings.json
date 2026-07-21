@@ -1,0 +1,31 @@
+{
+  "trades": [
+    {
+      "date": "2025-08-27",
+      "time": "10:09:30",
+      "type": "buy",
+      "price": 10.62,
+      "quantity": 300,
+      "fee": 5.0,
+      "note": "克明食品",
+      "idempotent_key": "2025-08-27_10:09:30_10.620_300_buy",
+      "id": "t_181419bc"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 300,
+    "avg_cost": 10.62,
+    "total_cost": 3186.0,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2025-08-27",
+      "time": "10:09:30",
+      "type": "buy",
+      "price": 10.62,
+      "quantity": 300
+    }
+  }
+}

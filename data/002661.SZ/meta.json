@@ -1,55 +1,24 @@
 {
   "code": "002661.SZ",
-  "name": "克明面业",
-  "sector": "食品",
+  "name": "002661.SZ",
+  "sector": "",
+  "added_at": "2026-07-21T04:27:32.973130+00:00",
   "tags": {
-    "overall": "yellow",
-    "watchlist": false,
-    "quality": "yellow",
-    "valuation": "yellow",
-    "timing": "none",
-    "risk": "yellow",
-    "verdict": "yellow"
+    "overall": "none",
+    "watchlist": false
   },
-  "price_marks": [
-    {
-      "id": "9d82b849",
-      "label": "标记",
-      "price": 7.08,
-      "type": "mark",
-      "created_at": "2026-07-21T02:31:35.350782+00:00"
-    }
-  ],
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
   "cache": {
     "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": "2026-08-18"
+      "last": null,
+      "valid_until": null
     },
     "technical": {
-      "last": "2026-07-19",
-      "valid_until": "2026-07-26"
+      "last": null,
+      "valid_until": null
     }
   },
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "type": "fundamental",
-      "date": "2026-07-19",
-      "title": "克明面业基本面分析"
-    }
-  ],
-  "created_at": "2026-07-19",
-  "daily_briefs": [
-    {
-      "id": "af88331e",
-      "date": "2026-07-20",
-      "content": "小幅低开后震荡走低，收跌2.1%",
-      "has_value": true,
-      "price": 7.38,
-      "change_pct": -2.12,
-      "amplitude": 4.64,
-      "created_at": "2026-07-20T00:20:21.428210+00:00"
-    }
-  ],
-  "status": "avoid"
+  "reports": []
 }

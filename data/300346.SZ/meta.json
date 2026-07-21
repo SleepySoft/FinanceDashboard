@@ -1,53 +1,24 @@
 {
   "code": "300346.SZ",
-  "name": "南大光电",
-  "sector": "半导体材料",
+  "name": "300346.SZ",
+  "sector": "",
+  "added_at": "2026-07-21T04:27:33.028911+00:00",
   "tags": {
-    "overall": "yellow",
-    "fundamental": "yellow",
-    "technical": "none",
-    "moat": "green",
-    "valuation": "red",
-    "growth": "green",
-    "risk": "yellow",
-    "watchlist": true,
-    "quality": "green",
-    "timing": "none",
-    "verdict": "yellow"
+    "overall": "none",
+    "watchlist": false
   },
-  "watchlist": true,
-  "overall": "yellow",
-  "price_marks": [
-    {
-      "id": "cf9368f7",
-      "label": "卖出",
-      "price": 58.11,
-      "type": "sell",
-      "created_at": "2026-07-20T05:29:34.094605+00:00"
-    }
-  ],
-  "reports": [
-    {
-      "id": "fundamental_20260720",
-      "type": "fundamental",
-      "date": "2026-07-20",
-      "title": "南大光电基本面分析",
-      "filename": "fundamental_20260720.md"
-    }
-  ],
+  "price_marks": [],
+  "daily_briefs": [],
   "notes": [],
   "cache": {
     "fundamental": {
-      "date": "2026-07-20",
-      "valid_until": "2026-08-20",
-      "expired": false
+      "last": null,
+      "valid_until": null
     },
     "technical": {
-      "date": null,
-      "valid_until": null,
-      "expired": true
+      "last": null,
+      "valid_until": null
     }
   },
-  "daily_briefs": [],
-  "status": "tracking"
+  "reports": []
 }

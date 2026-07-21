@@ -1,0 +1,42 @@
+{
+  "trades": [
+    {
+      "date": "2025-08-28",
+      "time": "13:30:51",
+      "type": "buy",
+      "price": 0.538,
+      "quantity": 7200,
+      "fee": 5.0,
+      "note": "医疗器械ETF",
+      "idempotent_key": "2025-08-28_13:30:51_0.538_7200_buy",
+      "id": "t_79e8d36d"
+    },
+    {
+      "date": "2026-01-13",
+      "time": "14:16:11",
+      "type": "buy",
+      "price": 0.551,
+      "quantity": 3900,
+      "fee": 5.0,
+      "note": "医疗器械ETF",
+      "idempotent_key": "2026-01-13_14:16:11_0.551_3900_buy",
+      "id": "t_5d124843"
+    }
+  ],
+  "t_trades": [],
+  "adj_events": [],
+  "summary": {
+    "total_quantity": 11100,
+    "avg_cost": 0.543,
+    "total_cost": 6022.5,
+    "realized_pnl": 0.0,
+    "open_short": 0,
+    "last_trade": {
+      "date": "2026-01-13",
+      "time": "14:16:11",
+      "type": "buy",
+      "price": 0.551,
+      "quantity": 3900
+    }
+  }
+}
