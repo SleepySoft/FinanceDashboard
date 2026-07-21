@@ -22,8 +22,8 @@
   ],
   "cache": {
     "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": "2026-08-18"
+      "last": "2026-07-21",
+      "valid_until": "2026-08-20"
     },
     "technical": {
       "last": "2026-07-19",
@@ -36,6 +36,12 @@
       "type": "fundamental",
       "date": "2026-07-19",
       "title": "沪硅产业基本面分析"
+    },
+    {
+      "id": "fundamental_20260721",
+      "type": "fundamental",
+      "date": "2026-07-21",
+      "title": "沪硅产业深度分析：现实处境与反转信号"
     }
   ],
   "created_at": "2026-07-19",

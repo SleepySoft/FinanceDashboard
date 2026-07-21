@@ -11,7 +11,15 @@
     "risk": "green",
     "verdict": "green"
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "496092c5",
+      "label": "标记",
+      "price": 37.72,
+      "type": "mark",
+      "created_at": "2026-07-21T02:30:12.439158+00:00"
+    }
+  ],
   "cache": {
     "fundamental": {
       "last": "2026-07-19",
