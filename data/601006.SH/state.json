@@ -3,7 +3,15 @@
     "overall": "none",
     "watchlist": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "714c97ef",
+      "label": "买入",
+      "price": 6.1,
+      "type": "mark",
+      "created_at": "2026-07-21T12:23:52.130861+00:00"
+    }
+  ],
   "daily_briefs": [],
   "notes": []
 }

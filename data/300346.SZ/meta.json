@@ -2,26 +2,5 @@
   "code": "300346.SZ",
   "name": "南大光电",
   "sector": "电子化学品",
-  "added_at": "2026-07-21T06:52:17.054593+00:00",
-  "reports": [
-    {
-      "id": "fundamental_20260720",
-      "filename": "fundamental_20260720.md",
-      "type": "fundamental",
-      "created_at": "2026-07-20"
-    },
-    {
-      "id": "fundamental_20260721",
-      "filename": "fundamental_20260721.md",
-      "type": "fundamental",
-      "created_at": "2026-07-21"
-    }
-  ],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-21",
-      "valid_until": null
-    },
-    "technical": {}
-  }
+  "added_at": "2026-07-21T06:52:17.054593+00:00"
 }

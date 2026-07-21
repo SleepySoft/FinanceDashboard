@@ -123,6 +123,14 @@
                   <span class="holdings-label">已落袋</span>
                   <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
+                <div v-if="holdingsMap[s.code].last_buy_price != null" class="holdings-row">
+                  <span class="holdings-label">最后买</span>
+                  <span class="holdings-value price-tag" @click="openTradeModal(s, 'buy', holdingsMap[s.code].last_buy_price)">¥{{ holdingsMap[s.code].last_buy_price.toFixed(2) }}</span>
+                </div>
+                <div v-if="holdingsMap[s.code].last_sell_price != null" class="holdings-row">
+                  <span class="holdings-label">最后卖</span>
+                  <span class="holdings-value price-tag" @click="openTradeModal(s, 'sell', holdingsMap[s.code].last_sell_price)">¥{{ holdingsMap[s.code].last_sell_price.toFixed(2) }}</span>
+                </div>
               </div>
               <div class="stock-footer">
                 <span>报告: {{ s.report_count }}</span>
@@ -195,6 +203,14 @@
                   <span class="holdings-label">已落袋</span>
                   <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
+                <div v-if="holdingsMap[s.code].last_buy_price != null" class="holdings-row">
+                  <span class="holdings-label">最后买</span>
+                  <span class="holdings-value price-tag" @click="openTradeModal(s, 'buy', holdingsMap[s.code].last_buy_price)">¥{{ holdingsMap[s.code].last_buy_price.toFixed(2) }}</span>
+                </div>
+                <div v-if="holdingsMap[s.code].last_sell_price != null" class="holdings-row">
+                  <span class="holdings-label">最后卖</span>
+                  <span class="holdings-value price-tag" @click="openTradeModal(s, 'sell', holdingsMap[s.code].last_sell_price)">¥{{ holdingsMap[s.code].last_sell_price.toFixed(2) }}</span>
+                </div>
               </div>
               <div class="stock-footer">
                 <span>报告: {{ s.report_count }}</span>
@@ -266,6 +282,14 @@
                 <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
                   <span class="holdings-label">已落袋</span>
                   <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
+                </div>
+                <div v-if="holdingsMap[s.code].last_buy_price != null" class="holdings-row">
+                  <span class="holdings-label">最后买</span>
+                  <span class="holdings-value price-tag" @click="openTradeModal(s, 'buy', holdingsMap[s.code].last_buy_price)">¥{{ holdingsMap[s.code].last_buy_price.toFixed(2) }}</span>
+                </div>
+                <div v-if="holdingsMap[s.code].last_sell_price != null" class="holdings-row">
+                  <span class="holdings-label">最后卖</span>
+                  <span class="holdings-value price-tag" @click="openTradeModal(s, 'sell', holdingsMap[s.code].last_sell_price)">¥{{ holdingsMap[s.code].last_sell_price.toFixed(2) }}</span>
                 </div>
               </div>
               <div class="stock-footer">
@@ -495,7 +519,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../api.js'
 import StockModal from '../components/StockModal.vue'
@@ -503,7 +527,7 @@ import StockModal from '../components/StockModal.vue'
 const route = useRoute()
 const router = useRouter()
 
-const stocks = ref([])
+const stocks = shallowRef([])
 const loading = ref(false)
 const lastRefresh = ref(null)
 const viewMode = ref('grouped')
@@ -618,13 +642,13 @@ function closeModal() {
 }
 
 // ── Trade Entry ──
-function openTradeModal(stock) {
+function openTradeModal(stock, presetType = 'buy', presetPrice = null) {
   tradeStock.value = stock
   tradeForm.value = {
     date: new Date().toISOString().slice(0, 10),
     time: new Date().toTimeString().slice(0, 5),
-    type: 'buy',
-    price: stock?.last_price || 0,
+    type: presetType,
+    price: presetPrice ?? stock?.last_price ?? 0,
     quantity: 100,
     note: '',
   }
@@ -694,8 +718,8 @@ const sectors = computed(() => {
 
 // ── Status groups ──
 const statusGroups = computed(() => {
-  const order = ['tracking', 'bullish', 'neutral', 'avoid', 'no_interest', 'blacklist', 'archive']
-  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
+  const order = ['tracking', 'bullish', 'neutral', 'waiting', 'avoid', 'no_interest', 'blacklist', 'archive']
+  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
   return order.map(key => ({
     key,
     label: labels[key],
@@ -833,8 +857,8 @@ function isExpired(iso) {
 onMounted(() => {
   load()
   startAutoRefresh()
-  // Default collapse: 回避, 无兴趣, 黑名单
-  for (const key of ['status-avoid', 'status-no_interest', 'status-blacklist']) {
+  // Default collapse: 回避, 无兴趣, 黑名单, 伺机
+  for (const key of ['status-avoid', 'status-no_interest', 'status-blacklist', 'status-waiting']) {
     collapsedGroups.value.add(key)
   }
 })
@@ -910,6 +934,7 @@ onUnmounted(stopAutoRefresh)
 .tag-avoid { background: #7f1d1d; color: #f87171; }
 .tag-no_interest { background: #334155; color: #94a3b8; }
 .tag-blacklist { background: #000000; color: #f87171; }
+.tag-waiting { background: #3d2c12; color: #fbbf24; }
 .tag-archive { background: #334155; color: #94a3b8; }
 .tag-watch { background: #1e3a5f; color: #60a5fa; font-size: 11px; padding: 1px 8px; }
 
@@ -928,6 +953,8 @@ onUnmounted(stopAutoRefresh)
 .holdings-label { color: #64748b; min-width: 32px; }
 .holdings-value { color: #e2e8f0; }
 .holdings-value.t-profit { color: #22c55e; }
+.holdings-value.price-tag { cursor: pointer; color: #60a5fa; text-decoration: underline; text-decoration-style: dotted; }
+.holdings-value.price-tag:hover { color: #93c5fd; }
 .holdings-pnl { font-size: 11px; margin-left: auto; }
 .holdings-pnl.up { color: #22c55e; }
 .holdings-pnl.down { color: #ef4444; }

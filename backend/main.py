@@ -508,7 +508,7 @@ class PriceMarkReq(BaseModel):
     type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark"] = "mark"
 
 class StatusReq(BaseModel):
-    status: Literal["tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "archive"]
+    status: Literal["tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "waiting", "archive"]
 
 class HoldingsReq(BaseModel):
     cost: Optional[float] = None
@@ -1263,8 +1263,10 @@ def _rebuild_holdings(data: dict) -> dict:
     total_cost = sum(p["price"] * p["remaining"] for p in positions)
     avg_cost = total_cost / total_qty if total_qty > 0 else 0
 
-    # 找last trade
+    # 找last trade / last buy / last sell
     last_trade = None
+    last_buy_price = None
+    last_sell_price = None
     if trades:
         lt = trades[-1]
         last_trade = {
@@ -1274,6 +1276,13 @@ def _rebuild_holdings(data: dict) -> dict:
             "price": lt["price"],
             "quantity": lt["quantity"],
         }
+        # 找最后一笔买入和最后一笔卖出
+        buy_trades = [t for t in trades if t["type"] == "buy"]
+        sell_trades = [t for t in trades if t["type"] == "sell"]
+        if buy_trades:
+            last_buy_price = buy_trades[-1]["price"]
+        if sell_trades:
+            last_sell_price = sell_trades[-1]["price"]
 
     data["t_trades"] = t_trades
     data["summary"] = {
@@ -1283,6 +1292,8 @@ def _rebuild_holdings(data: dict) -> dict:
         "realized_pnl": round(realized_pnl, 2),
         "open_short": sum(t["quantity"] for t in t_trades if t.get("type") == "反T(超卖)" and t.get("status") == "open"),
         "last_trade": last_trade,
+        "last_buy_price": last_buy_price,
+        "last_sell_price": last_sell_price,
     }
 
     return data
@@ -1335,7 +1346,9 @@ def get_holdings(code: str):
         return {"code": code, "has_data": False, "message": "No trades recorded"}
 
     # 确保 summary 是最新的（兼容旧数据）
-    if not data.get("summary"):
+    summary = data.get("summary", {})
+    needs_rebuild = not summary or "last_buy_price" not in summary
+    if needs_rebuild:
         data = _rebuild_holdings(data)
         _save_holdings(code, data)
 

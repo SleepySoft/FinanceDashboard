@@ -26,6 +26,8 @@
       "type": "buy",
       "price": 38.37,
       "quantity": 100
-    }
+    },
+    "last_buy_price": 38.37,
+    "last_sell_price": null
   }
 }

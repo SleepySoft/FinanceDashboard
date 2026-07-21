@@ -25,7 +25,9 @@
       "type": "buy",
       "price": 6.1,
       "quantity": 800
-    }
+    },
+    "last_buy_price": 6.1,
+    "last_sell_price": null
   },
   "t_trades": []
 }
