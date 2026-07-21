@@ -2,23 +2,5 @@
   "code": "600109.SH",
   "name": "国金证券",
   "sector": "非银金融",
-  "added_at": "2026-07-21T04:27:32.984786+00:00",
-  "tags": {
-    "overall": "none",
-    "watchlist": false
-  },
-  "price_marks": [],
-  "daily_briefs": [],
-  "notes": [],
-  "cache": {
-    "fundamental": {
-      "last": null,
-      "valid_until": null
-    },
-    "technical": {
-      "last": null,
-      "valid_until": null
-    }
-  },
-  "reports": []
+  "added_at": "2026-07-21T04:27:32.984786+00:00"
 }

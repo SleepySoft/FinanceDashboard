@@ -1,0 +1,21 @@
+{
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  },
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "last": null,
+      "valid_until": null
+    },
+    "technical": {
+      "last": null,
+      "valid_until": null
+    }
+  },
+  "reports": [],
+  "status": "neutral"
+}

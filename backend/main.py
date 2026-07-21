@@ -36,10 +36,10 @@ def _get_stock_codes() -> list:
         if entry.startswith("_"):
             continue
         meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
-        if os.path.exists(meta_path):
+        state_path = os.path.join(REPORTS_DIR, entry, "state.json")
+        if os.path.exists(meta_path) or os.path.exists(state_path):
             try:
-                with open(meta_path, "r", encoding="utf-8") as f:
-                    meta = json.load(f)
+                meta = _load_meta(entry)
                 codes.append(meta["code"])
             except:
                 pass
@@ -150,6 +150,9 @@ def _stock_dir(code: str) -> str:
 def _meta_path(code: str) -> str:
     return os.path.join(_stock_dir(code), "meta.json")
 
+def _state_path(code: str) -> str:
+    return os.path.join(_stock_dir(code), "state.json")
+
 def _reports_dir(code: str) -> str:
     return os.path.join(_stock_dir(code), "reports")
 
@@ -241,17 +244,39 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 def _load_meta(code: str) -> dict:
-    path = _meta_path(code)
-    if not os.path.exists(path):
+    """Load meta.json (static) + state.json (mutable), merge and return."""
+    meta_path = _meta_path(code)
+    if not os.path.exists(meta_path):
         raise HTTPException(404, f"Stock {code} not found")
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with open(meta_path, "r", encoding="utf-8") as f:
+        static = json.load(f)
+
+    state_path = _state_path(code)
+    mutable = {}
+    if os.path.exists(state_path):
+        with open(state_path, "r", encoding="utf-8") as f:
+            mutable = json.load(f)
+    else:
+        # Legacy: only meta.json exists (pre-migration) – read everything
+        # This branch can be removed once migration is done everywhere
+        pass
+
+    return {**static, **mutable}
 
 def _save_meta(code: str, meta: dict):
-    path = _meta_path(code)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=2)
+    """Split fields into meta.json (static) and state.json (mutable)."""
+    static_fields = {"code", "name", "sector", "type", "added_at"}
+    static = {k: v for k, v in meta.items() if k in static_fields}
+    mutable = {k: v for k, v in meta.items() if k not in static_fields}
+
+    meta_path = _meta_path(code)
+    os.makedirs(os.path.dirname(meta_path), exist_ok=True)
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(static, f, ensure_ascii=False, indent=2)
+
+    state_path = _state_path(code)
+    with open(state_path, "w", encoding="utf-8") as f:
+        json.dump(mutable, f, ensure_ascii=False, indent=2)
 
 
 def _normalize_dimensions(meta: dict) -> dict:
@@ -302,11 +327,15 @@ def _load_dashboard() -> dict:
 def _init_stock(code: str, name: str = "", sector: str = "") -> dict:
     d = _stock_dir(code)
     os.makedirs(os.path.join(d, "reports"), exist_ok=True)
-    meta = {
+
+    static = {
         "code": code,
         "name": name or code,
         "sector": sector,
         "added_at": _now(),
+    }
+    _save_meta(code, {
+        **static,
         "tags": {"overall": "none", "watchlist": False},
         "price_marks": [],
         "daily_briefs": [],
@@ -316,10 +345,9 @@ def _init_stock(code: str, name: str = "", sector: str = "") -> dict:
             "technical": {"last": None, "valid_until": None}
         },
         "reports": []
-    }
-    _save_meta(code, meta)
+    })
     open(os.path.join(d, "notes.md"), "a").close()
-    return meta
+    return static
 
 # ─── Models ───────────────────────────────────────────
 
@@ -535,9 +563,12 @@ def list_stocks():
         if entry.startswith("_"):
             continue
         meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
-        if os.path.exists(meta_path):
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta = json.load(f)
+        state_path = os.path.join(REPORTS_DIR, entry, "state.json")
+        if os.path.exists(meta_path) or os.path.exists(state_path):
+            try:
+                meta = _load_meta(entry)
+            except Exception:
+                continue
             code = meta["code"]
             p = prices.get(code, {})
             stocks.append({
@@ -744,7 +775,7 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
     
     # Create stock entry if not exists
     code = task["code"]
-    if not os.path.exists(_meta_path(code)):
+    if not os.path.exists(_meta_path(code)) and not os.path.exists(_state_path(code)):
         _init_stock(code, task.get("name", code), task.get("sector", ""))
     
     meta = _load_meta(code)
@@ -817,15 +848,18 @@ def get_dashboard():
     """Return dashboard data with current prices and price mark diffs"""
     dashboard = _load_dashboard()
     prices = dashboard.get("prices", {})
-    
+
     stocks = []
     for entry in os.listdir(REPORTS_DIR):
         if entry.startswith("_"):
             continue
         meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
-        if os.path.exists(meta_path):
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta = json.load(f)
+        state_path = os.path.join(REPORTS_DIR, entry, "state.json")
+        if os.path.exists(meta_path) or os.path.exists(state_path):
+            try:
+                meta = _load_meta(entry)
+            except Exception:
+                continue
             code = meta["code"]
             p = prices.get(code, {})
             current_price = p.get("price")

@@ -1,52 +1,5 @@
 {
   "code": "688721.SH",
   "name": "龙图光罩",
-  "sector": "半导体设备",
-  "tags": {
-    "overall": "yellow",
-    "watchlist": true,
-    "quality": "green",
-    "valuation": "red",
-    "timing": "yellow",
-    "risk": "yellow",
-    "verdict": "yellow"
-  },
-  "price_marks": [
-    {
-      "id": "a0680d6e",
-      "label": "标记",
-      "price": 36.63,
-      "type": "mark",
-      "created_at": "2026-07-21T01:57:25.545885+00:00"
-    }
-  ],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-21",
-      "valid_until": "2026-08-20"
-    },
-    "technical": {
-      "last": "2026-07-21",
-      "valid_until": "2026-07-28"
-    }
-  },
-  "reports": [
-    {
-      "id": "fundamental_20260721",
-      "type": "fundamental",
-      "date": "2026-07-21",
-      "created_at": "2026-07-21T09:27:00+08:00",
-      "title": "龙图光罩基本面分析"
-    },
-    {
-      "id": "technical_20260721",
-      "type": "technical",
-      "date": "2026-07-21",
-      "created_at": "2026-07-21T09:52:00+08:00",
-      "title": "龙图光罩技术分析"
-    }
-  ],
-  "created_at": "2026-07-21",
-  "daily_briefs": [],
-  "status": "bullish"
+  "sector": "半导体设备"
 }

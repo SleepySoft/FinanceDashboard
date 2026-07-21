@@ -2,23 +2,5 @@
   "code": "605117.SH",
   "name": "德业股份",
   "sector": "电力设备",
-  "added_at": "2026-07-21T04:27:33.019372+00:00",
-  "tags": {
-    "overall": "none",
-    "watchlist": false
-  },
-  "price_marks": [],
-  "daily_briefs": [],
-  "notes": [],
-  "cache": {
-    "fundamental": {
-      "last": null,
-      "valid_until": null
-    },
-    "technical": {
-      "last": null,
-      "valid_until": null
-    }
-  },
-  "reports": []
+  "added_at": "2026-07-21T04:27:33.019372+00:00"
 }

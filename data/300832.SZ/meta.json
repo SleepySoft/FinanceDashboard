@@ -1,47 +1,5 @@
 {
   "code": "300832.SZ",
   "name": "新产业",
-  "sector": "医疗器械",
-  "tags": {
-    "overall": "green",
-    "watchlist": "",
-    "quality": "green",
-    "valuation": "green",
-    "timing": "none",
-    "risk": "green",
-    "verdict": "green"
-  },
-  "price_marks": [],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": "2026-08-18"
-    },
-    "technical": {
-      "last": "2026-07-19",
-      "valid_until": "2026-07-26"
-    }
-  },
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "type": "fundamental",
-      "date": "2026-07-19",
-      "title": "新产业基本面分析"
-    }
-  ],
-  "created_at": "2026-07-19",
-  "daily_briefs": [
-    {
-      "id": "731afd30",
-      "date": "2026-07-20",
-      "content": "小幅高开后震荡走高，微涨0.4%",
-      "has_value": true,
-      "price": 45.16,
-      "change_pct": 0.36,
-      "amplitude": 3.89,
-      "created_at": "2026-07-20T00:20:21.427727+00:00"
-    }
-  ],
-  "status": "bullish"
+  "sector": "医疗器械"
 }
