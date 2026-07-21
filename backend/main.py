@@ -24,8 +24,68 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPORTS_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 TASKS_FILE = os.path.join(REPORTS_DIR, "_tasks.json")
 DASHBOARD_FILE = os.path.join(REPORTS_DIR, "_dashboard.json")
+REPORTS_CACHE_FILE = os.path.join(REPORTS_DIR, "_reports_cache.json")
 
 os.makedirs(REPORTS_DIR, exist_ok=True)
+
+# ─── Reports Cache (program-managed, no hand-editing) ──
+def _build_reports_cache() -> dict:
+    """Full scan of all stocks' reports directories. Returns {code: {...}}"""
+    cache = {}
+    for entry in os.listdir(REPORTS_DIR):
+        if entry.startswith("_"):
+            continue
+        meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
+        if not os.path.exists(meta_path):
+            continue
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+            code = meta["code"]
+            name = meta.get("name", code)
+        except Exception:
+            continue
+        reports = _scan_reports(code)
+        cache[code] = {
+            "name": name,
+            "report_count": len(reports),
+            "last_analysis": _last_analysis(reports),
+            "reports": reports,
+            "updated_at": _now()
+        }
+    return cache
+
+def _load_reports_cache() -> dict:
+    """Load cached report index. Rebuild from disk if missing."""
+    if os.path.exists(REPORTS_CACHE_FILE):
+        try:
+            with open(REPORTS_CACHE_FILE, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+            if cache:
+                return cache
+        except Exception:
+            pass
+    # Missing or corrupt: rebuild from disk
+    cache = _build_reports_cache()
+    _save_reports_cache(cache)
+    return cache
+
+def _save_reports_cache(cache: dict):
+    with open(REPORTS_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False, indent=2)
+
+def _update_reports_cache(code: str, name: str = ""):
+    """Incrementally update cache for one stock after new report written."""
+    cache = _load_reports_cache()
+    reports = _scan_reports(code)
+    cache[code] = {
+        "name": name or cache.get(code, {}).get("name", code),
+        "report_count": len(reports),
+        "last_analysis": _last_analysis(reports),
+        "reports": reports,
+        "updated_at": _now()
+    }
+    _save_reports_cache(cache)
 
 # ─── Price Refresh Helper ───────────────────────────
 # Real-time prices: backend calls Sina API directly (fast, no agent dependency)
@@ -635,41 +695,41 @@ def delete_brief(code: str, brief_id: str):
 
 @app.get("/api/stocks")
 def list_stocks():
-    """List analyzed stocks only (have meta.json)"""
-    dashboard = _load_dashboard()
-    prices = dashboard.get("prices", {})
+    """List analyzed stocks (reports from cache for performance)."""
+    dashboard_data = _load_dashboard()
+    prices = dashboard_data.get("prices", {})
+    cache = _load_reports_cache()
     stocks = []
     for entry in os.listdir(REPORTS_DIR):
         if entry.startswith("_"):
             continue
         meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
-        state_path = os.path.join(REPORTS_DIR, entry, "state.json")
-        if os.path.exists(meta_path) or os.path.exists(state_path):
-            try:
-                meta = _load_meta(entry)
-            except Exception:
-                continue
-            code = meta["code"]
-            p = prices.get(code, {})
-            # Derive reports from disk scan (first source of truth)
-            reports = _scan_reports(code)
-            stocks.append({
-                "code": code,
-                "name": meta["name"],
-                "sector": meta.get("sector", ""),
-                "tags": meta["tags"],
-                "status": meta.get("status", "neutral"),
-                "holdings": meta.get("holdings"),
-                "dimensions": _normalize_dimensions(meta),
-                "watchlist": meta["tags"].get("watchlist", False),
-                "overall": meta["tags"].get("overall", "none"),
-                "price_marks": meta.get("price_marks", []),
-                "report_count": len(reports),
-                "last_analysis": _last_analysis(reports),
-                "last_price": p.get("price"),
-                "change_pct": p.get("change_pct"),
-                "price_updated": p.get("updated_at")
-            })
+        if not os.path.exists(meta_path):
+            continue
+        try:
+            meta = _load_meta(entry)
+        except Exception:
+            continue
+        code = meta["code"]
+        p = prices.get(code, {})
+        cached = cache.get(code, {})
+        stocks.append({
+            "code": code,
+            "name": meta["name"],
+            "sector": meta.get("sector", ""),
+            "tags": meta["tags"],
+            "status": meta.get("status", "neutral"),
+            "holdings": meta.get("holdings"),
+            "dimensions": _normalize_dimensions(meta),
+            "watchlist": meta["tags"].get("watchlist", False),
+            "overall": meta["tags"].get("overall", "none"),
+            "price_marks": meta.get("price_marks", []),
+            "report_count": cached.get("report_count", 0),
+            "last_analysis": cached.get("last_analysis"),
+            "last_price": p.get("price"),
+            "change_pct": p.get("change_pct"),
+            "price_updated": p.get("updated_at")
+        })
     return stocks
 
 @app.get("/api/stocks/{code}")
@@ -870,10 +930,12 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
     
     # Create stock entry if not exists
     code = task["code"]
+    name = task.get("name", code)
     if not os.path.exists(_meta_path(code)) and not os.path.exists(_state_path(code)):
-        _init_stock(code, task.get("name", code), task.get("sector", ""))
+        _init_stock(code, name, task.get("sector", ""))
     
-    # Reports are discovered from disk scan - no need to update JSON state
+    # Update reports cache (program-managed, no hand-editing)
+    _update_reports_cache(code, name)
     return task
 
 @app.post("/api/agent/tasks/{task_id}/fail")
@@ -892,57 +954,58 @@ def fail_task(task_id: str, req: AgentTaskFailReq):
 
 @app.get("/api/dashboard")
 def get_dashboard():
-    """Return dashboard data with current prices and price mark diffs"""
+    """Return dashboard data with current prices and price mark diffs.
+    Reports info from cache (performance); details scan disk."""
     dashboard = _load_dashboard()
     prices = dashboard.get("prices", {})
+    cache = _load_reports_cache()
 
     stocks = []
     for entry in os.listdir(REPORTS_DIR):
         if entry.startswith("_"):
             continue
         meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
-        state_path = os.path.join(REPORTS_DIR, entry, "state.json")
-        if os.path.exists(meta_path) or os.path.exists(state_path):
-            try:
-                meta = _load_meta(entry)
-            except Exception:
-                continue
-            code = meta["code"]
-            p = prices.get(code, {})
-            current_price = p.get("price")
-            
-            # Calculate diffs for price marks
-            marks_with_diff = []
-            for m in meta.get("price_marks", []):
-                diff = None
-                diff_pct = None
-                if current_price is not None and current_price > 0:
-                    diff = current_price - m["price"]
-                    diff_pct = (diff / m["price"]) * 100
-                marks_with_diff.append({
-                    **m,
-                    "diff": diff,
-                    "diff_pct": diff_pct
-                })
-            
-            # Derive reports from disk scan (first source of truth)
-            reports = _scan_reports(code)
-            stocks.append({
-                "code": code,
-                "name": meta["name"],
-                "sector": meta.get("sector", ""),
-                "tags": meta["tags"],
-                "status": meta.get("status", "neutral"),
-                "dimensions": _normalize_dimensions(meta),
-                "watchlist": meta["tags"].get("watchlist", False),
-                "overall": meta["tags"].get("overall", "none"),
-                "price_marks": marks_with_diff,
-                "report_count": len(reports),
-                "last_analysis": _last_analysis(reports),
-                "last_price": current_price,
-                "change_pct": p.get("change_pct"),
-                "price_updated": p.get("updated_at")
+        if not os.path.exists(meta_path):
+            continue
+        try:
+            meta = _load_meta(entry)
+        except Exception:
+            continue
+        code = meta["code"]
+        p = prices.get(code, {})
+        current_price = p.get("price")
+        cached = cache.get(code, {})
+        
+        # Calculate diffs for price marks
+        marks_with_diff = []
+        for m in meta.get("price_marks", []):
+            diff = None
+            diff_pct = None
+            if current_price is not None and current_price > 0:
+                diff = current_price - m["price"]
+                diff_pct = (diff / m["price"]) * 100
+            marks_with_diff.append({
+                **m,
+                "diff": diff,
+                "diff_pct": diff_pct
             })
+        
+        stocks.append({
+            "code": code,
+            "name": meta["name"],
+            "sector": meta.get("sector", ""),
+            "tags": meta["tags"],
+            "status": meta.get("status", "neutral"),
+            "dimensions": _normalize_dimensions(meta),
+            "watchlist": meta["tags"].get("watchlist", False),
+            "overall": meta["tags"].get("overall", "none"),
+            "price_marks": marks_with_diff,
+            "report_count": cached.get("report_count", 0),
+            "last_analysis": cached.get("last_analysis"),
+            "last_price": current_price,
+            "change_pct": p.get("change_pct"),
+            "price_updated": p.get("updated_at")
+        })
     
     return {
         "stocks": stocks,
