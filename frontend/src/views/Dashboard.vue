@@ -694,8 +694,8 @@ const sectors = computed(() => {
 
 // ── Status groups ──
 const statusGroups = computed(() => {
-  const order = ['tracking', 'bullish', 'neutral', 'avoid', 'archive']
-  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', avoid: '回避', archive: '📁 归档' }
+  const order = ['tracking', 'bullish', 'neutral', 'avoid', 'no_interest', 'blacklist', 'archive']
+  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
   return order.map(key => ({
     key,
     label: labels[key],
@@ -830,7 +830,14 @@ function isExpired(iso) {
   return iso && (Date.now() - new Date(iso).getTime()) > 7 * 86400000
 }
 
-onMounted(() => { load(); startAutoRefresh() })
+onMounted(() => {
+  load()
+  startAutoRefresh()
+  // Default collapse: 回避, 无兴趣, 黑名单
+  for (const key of ['status-avoid', 'status-no_interest', 'status-blacklist']) {
+    collapsedGroups.value.add(key)
+  }
+})
 onUnmounted(stopAutoRefresh)
 </script>
 
@@ -901,6 +908,8 @@ onUnmounted(stopAutoRefresh)
 .tag-bullish { background: #064e3b; color: #34d399; }
 .tag-neutral { background: #713f12; color: #fbbf24; }
 .tag-avoid { background: #7f1d1d; color: #f87171; }
+.tag-no_interest { background: #334155; color: #94a3b8; }
+.tag-blacklist { background: #000000; color: #f87171; }
 .tag-archive { background: #334155; color: #94a3b8; }
 .tag-watch { background: #1e3a5f; color: #60a5fa; font-size: 11px; padding: 1px 8px; }
 

@@ -18,6 +18,8 @@
             <option value="bullish">看好</option>
             <option value="neutral">观望</option>
             <option value="avoid">回避</option>
+            <option value="no_interest">无兴趣</option>
+            <option value="blacklist">黑名单</option>
             <option value="archive">📁 归档</option>
           </select>
           <button :class="['tag-toggle', { active: tagForm.watchlist }]" @click="toggleWatchlist">
@@ -427,7 +429,7 @@ function diffClass(diff) {
 }
 
 function statusLabel(status) {
-  const map = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', avoid: '回避', archive: '📁 归档' }
+  const map = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
   return map[status] || '观望'
 }
 
@@ -629,6 +631,8 @@ onMounted(load)
 .status-bullish { background: #064e3b; color: #34d399; }
 .status-neutral { background: #713f12; color: #fbbf24; }
 .status-avoid { background: #7f1d1d; color: #f87171; }
+.status-no_interest { background: #334155; color: #94a3b8; }
+.status-blacklist { background: #000000; color: #f87171; }
 .status-archive { background: #334155; color: #94a3b8; }
 .watch-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #fbbf24; color: #1e293b; font-size: 10px; font-weight: 600; }
 .info-dims { display: flex; gap: 4px; flex-wrap: wrap; }

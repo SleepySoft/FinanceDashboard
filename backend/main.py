@@ -508,7 +508,7 @@ class PriceMarkReq(BaseModel):
     type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark"] = "mark"
 
 class StatusReq(BaseModel):
-    status: Literal["tracking", "bullish", "neutral", "avoid", "archive"]
+    status: Literal["tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "archive"]
 
 class HoldingsReq(BaseModel):
     cost: Optional[float] = None
