@@ -34,7 +34,6 @@
         <button class="ghost" @click="refreshPrices" :disabled="loading">
           {{ loading ? '...' : '🔄' }}
         </button>
-        <router-link to="/holdings" class="btn-holdings">📦 持仓</router-link>
       </div>
     </div>
 
@@ -56,6 +55,7 @@
       <span :class="['hs-item', (holdingsSummary.pnl + holdingsSummary.realized) >= 0 ? 'up' : 'down']">
         合计 {{ (holdingsSummary.pnl + holdingsSummary.realized) >= 0 ? '+' : '' }}¥{{ (holdingsSummary.pnl + holdingsSummary.realized).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
       </span>
+      <router-link to="/holdings" class="hs-link">📦 持仓管理 →</router-link>
     </div>
 
     <!-- Loading -->
@@ -674,12 +674,13 @@ const holdingsSummary = computed(() => {
   let realized = 0
   for (const s of stocks.value) {
     const h = holdingsMap.value[s.code]
-    if (!h || h.quantity <= 0) continue
+    if (!h) continue
+    realized += h.realized_pnl || 0
+    if (h.quantity <= 0) continue
     count++
     const price = s.last_price || 0
     marketValue += h.quantity * price
     cost += h.quantity * h.avg_cost
-    realized += h.realized_pnl || 0
   }
   const pnl = marketValue - cost
   const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0
@@ -844,6 +845,8 @@ onUnmounted(stopAutoRefresh)
 .toolbar-inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .btn-holdings { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; background: #1e3a5f; color: #60a5fa; font-size: 12px; font-weight: 500; text-decoration: none; transition: background 0.15s; }
 .btn-holdings:hover { background: #2563eb; color: white; }
+.hs-link { margin-left: auto; padding: 3px 10px; border-radius: 5px; background: #1e293b; color: #60a5fa; font-size: 12px; font-weight: 500; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+.hs-link:hover { background: #334155; color: #93c5fd; }
 
 .group-tabs { display: flex; gap: 2px; background: #0f172a; padding: 2px; border-radius: 5px; flex-shrink: 0; }
 .group-tab { padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; white-space: nowrap; }
