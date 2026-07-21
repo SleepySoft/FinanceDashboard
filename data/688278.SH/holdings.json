@@ -1,56 +1,12 @@
 {
-  "trades": [
-    {
-      "date": "2026-07-01",
-      "time": "10:35:51",
-      "type": "buy",
-      "price": 54.71,
-      "quantity": 47,
-      "fee": 5.0,
-      "note": "特宝生物",
-      "idempotent_key": "2026-07-01_10:35:51_54.710_47_buy",
-      "id": "t_5c814e55"
-    },
-    {
-      "date": "2026-07-03",
-      "time": "09:36:46",
-      "type": "sell",
-      "price": 58.26,
-      "quantity": 47,
-      "fee": 5.0,
-      "note": "特宝生物",
-      "idempotent_key": "2026-07-03_09:36:46_58.260_47_sell",
-      "id": "t_3d088530"
-    }
-  ],
-  "t_trades": [
-    {
-      "id": "tt_4518a4ba",
-      "type": "底仓卖出",
-      "buy_date": "2026-07-01",
-      "buy_price": 54.71,
-      "sell_date": "2026-07-03",
-      "sell_time": "09:36:46",
-      "sell_price": 58.26,
-      "quantity": 47,
-      "profit": 166.85,
-      "buy_trade_id": "t_5c814e55",
-      "sell_trade_id": "t_3d088530"
-    }
-  ],
+  "trades": [],
   "adj_events": [],
   "summary": {
     "total_quantity": 0,
     "avg_cost": 0,
-    "total_cost": 0.0,
-    "realized_pnl": 166.85,
+    "total_cost": 0,
+    "realized_pnl": 0,
     "open_short": 0,
-    "last_trade": {
-      "date": "2026-07-03",
-      "time": "09:36:46",
-      "type": "sell",
-      "price": 58.26,
-      "quantity": 47
-    }
+    "last_trade": null
   }
 }

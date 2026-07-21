@@ -1,56 +1,12 @@
 {
-  "trades": [
-    {
-      "date": "2025-08-27",
-      "time": "10:04:36",
-      "type": "buy",
-      "price": 20.52,
-      "quantity": 200,
-      "fee": 5.0,
-      "note": "沪硅产业",
-      "idempotent_key": "2025-08-27_10:04:36_20.520_200_buy",
-      "id": "t_9a7427bf"
-    },
-    {
-      "date": "2026-07-17",
-      "time": "13:38:14",
-      "type": "sell",
-      "price": 26.86,
-      "quantity": 200,
-      "fee": 5.0,
-      "note": "沪硅产业",
-      "idempotent_key": "2026-07-17_13:38:14_26.860_200_sell",
-      "id": "t_e340ba22"
-    }
-  ],
-  "t_trades": [
-    {
-      "id": "tt_1188a141",
-      "type": "底仓卖出",
-      "buy_date": "2025-08-27",
-      "buy_price": 20.52,
-      "sell_date": "2026-07-17",
-      "sell_time": "13:38:14",
-      "sell_price": 26.86,
-      "quantity": 200,
-      "profit": 1268.0,
-      "buy_trade_id": "t_9a7427bf",
-      "sell_trade_id": "t_e340ba22"
-    }
-  ],
+  "trades": [],
   "adj_events": [],
   "summary": {
     "total_quantity": 0,
     "avg_cost": 0,
-    "total_cost": 0.0,
-    "realized_pnl": 1268.0,
+    "total_cost": 0,
+    "realized_pnl": 0,
     "open_short": 0,
-    "last_trade": {
-      "date": "2026-07-17",
-      "time": "13:38:14",
-      "type": "sell",
-      "price": 26.86,
-      "quantity": 200
-    }
+    "last_trade": null
   }
 }

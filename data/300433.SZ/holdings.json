@@ -1,56 +1,12 @@
 {
-  "trades": [
-    {
-      "date": "2025-08-19",
-      "time": "09:30:00",
-      "type": "buy",
-      "price": 25.63,
-      "quantity": 1000,
-      "fee": 6.41,
-      "note": "蓝思科技",
-      "idempotent_key": "2025-08-19_09:30:00_25.630_1000_buy",
-      "id": "t_05a2048d"
-    },
-    {
-      "date": "2026-01-13",
-      "time": "14:15:07",
-      "type": "sell",
-      "price": 39.21,
-      "quantity": 100,
-      "fee": 5.0,
-      "note": "蓝思科技",
-      "idempotent_key": "2026-01-13_14:15:07_39.210_100_sell",
-      "id": "t_eaedee2d"
-    }
-  ],
-  "t_trades": [
-    {
-      "id": "tt_544cc7ee",
-      "type": "底仓卖出",
-      "buy_date": "2025-08-19",
-      "buy_price": 25.63,
-      "sell_date": "2026-01-13",
-      "sell_time": "14:15:07",
-      "sell_price": 39.21,
-      "quantity": 100,
-      "profit": 1358.0,
-      "buy_trade_id": "t_05a2048d",
-      "sell_trade_id": "t_eaedee2d"
-    }
-  ],
+  "trades": [],
   "adj_events": [],
   "summary": {
-    "total_quantity": 900,
-    "avg_cost": 25.63,
-    "total_cost": 23067.0,
-    "realized_pnl": 1358.0,
+    "total_quantity": 0,
+    "avg_cost": 0,
+    "total_cost": 0,
+    "realized_pnl": 0,
     "open_short": 0,
-    "last_trade": {
-      "date": "2026-01-13",
-      "time": "14:15:07",
-      "type": "sell",
-      "price": 39.21,
-      "quantity": 100
-    }
+    "last_trade": null
   }
 }
