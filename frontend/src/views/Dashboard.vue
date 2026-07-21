@@ -41,11 +41,12 @@
       <!-- By Status -->
       <template v-if="groupMode === 'status'">
         <div v-for="group in statusGroups" :key="group.key" class="sector-group">
-          <div class="sector-header">
+          <div class="sector-header" @click="toggleGroup('status-' + group.key)">
             <span :class="['tag-badge', 'tag-' + group.key]">{{ group.label }}</span>
             <span class="sector-count">{{ group.stocks.length }} 只</span>
+            <span class="collapse-icon">{{ collapsedGroups.has('status-' + group.key) ? '▸' : '▾' }}</span>
           </div>
-          <div class="stock-grid">
+          <div v-show="!collapsedGroups.has('status-' + group.key)" class="stock-grid">
             <div
               v-for="s in group.stocks"
               :key="s.code"
@@ -97,11 +98,12 @@
       <!-- By Rating -->
       <template v-if="groupMode === 'rating'">
         <div v-for="group in ratingGroups" :key="group.key" class="sector-group">
-          <div class="sector-header">
+          <div class="sector-header" @click="toggleGroup('rating-' + group.key)">
             <span :class="['tag-badge', 'tag-' + group.key]">{{ group.label }}</span>
             <span class="sector-count">{{ group.stocks.length }} 只</span>
+            <span class="collapse-icon">{{ collapsedGroups.has('rating-' + group.key) ? '▸' : '▾' }}</span>
           </div>
-          <div class="stock-grid">
+          <div v-show="!collapsedGroups.has('rating-' + group.key)" class="stock-grid">
             <div
               v-for="s in group.stocks"
               :key="s.code"
@@ -153,11 +155,12 @@
       <!-- By Sector -->
       <template v-if="groupMode === 'sector'">
         <div v-for="group in sectorGroups" :key="group.sector" class="sector-group">
-          <div class="sector-header">
+          <div class="sector-header" @click="toggleGroup('sector-' + group.sector)">
             <span class="sector-name">{{ group.sector || '未分类' }}</span>
             <span class="sector-count">{{ group.stocks.length }} 只</span>
+            <span class="collapse-icon">{{ collapsedGroups.has('sector-' + group.sector) ? '▸' : '▾' }}</span>
           </div>
-          <div class="stock-grid">
+          <div v-show="!collapsedGroups.has('sector-' + group.sector)" class="stock-grid">
             <div
               v-for="s in group.stocks"
               :key="s.code"
@@ -422,6 +425,15 @@ const groupModes = [
   { key: 'rating', label: '评级' }
 ]
 
+const collapsedGroups = ref(new Set())
+function toggleGroup(key) {
+  if (collapsedGroups.value.has(key)) {
+    collapsedGroups.value.delete(key)
+  } else {
+    collapsedGroups.value.add(key)
+  }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -643,7 +655,8 @@ onUnmounted(stopAutoRefresh)
 
 /* ── Grouped view ── */
 .sector-group { margin-bottom: 20px; }
-.sector-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sector-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; user-select: none; }
+.collapse-icon { font-size: 12px; color: #64748b; margin-left: auto; }
 .sector-name { font-size: 15px; font-weight: 600; color: #e2e8f0; }
 .sector-count { font-size: 12px; color: #64748b; }
 
