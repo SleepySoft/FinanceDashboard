@@ -351,9 +351,27 @@ def _fetch_stock_name(code: str) -> str:
     return code
 
 def _init_stock(code: str, name: str = "", sector: str = "") -> dict:
+    """Initialize stock directory. If already exists, only update name/sector if provided."""
+    d = _stock_dir(code)
+    meta_path = _meta_path(code)
+    
+    # If already initialized, only update name/sector if explicitly provided
+    if os.path.exists(meta_path):
+        existing = _load_meta(code)
+        updated = False
+        if name and existing.get("name") != name:
+            existing["name"] = name
+            updated = True
+        if sector and existing.get("sector") != sector:
+            existing["sector"] = sector
+            updated = True
+        if updated:
+            _save_meta(code, existing)
+        return existing
+    
+    # New stock initialization
     if not name:
         name = _fetch_stock_name(code)
-    d = _stock_dir(code)
     os.makedirs(os.path.join(d, "reports"), exist_ok=True)
 
     static = {
