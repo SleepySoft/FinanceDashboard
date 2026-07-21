@@ -27,7 +27,7 @@
         </span>
       </div>
       <div v-if="summary.realized > 0" class="hp-summary-item">
-        <span class="hp-label">做T利润</span>
+        <span class="hp-label">已落袋利润</span>
         <span class="hp-value t-profit">+¥{{ summary.realized.toLocaleString('zh-CN', {maximumFractionDigits:0}) }}</span>
       </div>
     </div>
@@ -56,7 +56,7 @@
               {{ item.pnl >= 0 ? '+' : '' }}¥{{ item.pnl.toFixed(0) }}
             </span>
             <span v-if="item.realized_pnl > 0" class="hi-realized t-profit">
-              做T +{{ item.realized_pnl.toFixed(0) }}
+              已落袋 +{{ item.realized_pnl.toFixed(0) }}
             </span>
           </div>
           <span class="hi-toggle">{{ expanded.has(item.code) ? '▾' : '▸' }}</span>
@@ -87,7 +87,7 @@
                 </span>
               </div>
               <div v-if="item.realized_pnl > 0" class="hi-detail-row">
-                <span class="hi-dlabel">做T利润</span>
+                <span class="hi-dlabel">已落袋利润</span>
                 <span class="hi-dvalue t-profit">+¥{{ item.realized_pnl.toFixed(0) }}</span>
               </div>
             </div>

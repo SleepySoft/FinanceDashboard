@@ -45,11 +45,11 @@
       <span class="hs-item">市值 ¥{{ holdingsSummary.marketValue.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}</span>
       <span class="hs-item">成本 ¥{{ holdingsSummary.cost.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}</span>
       <span :class="['hs-item', 'hs-pnl', holdingsSummary.pnl >= 0 ? 'up' : 'down']">
-        浮动 {{ holdingsSummary.pnl >= 0 ? '+' : '' }}¥{{ holdingsSummary.pnl.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
+        持仓浮动 {{ holdingsSummary.pnl >= 0 ? '+' : '' }}¥{{ holdingsSummary.pnl.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
         ({{ holdingsSummary.pnlPct >= 0 ? '+' : '' }}{{ holdingsSummary.pnlPct.toFixed(2) }}%)
       </span>
       <span v-if="holdingsSummary.realized > 0" class="hs-item t-profit">
-        做T +¥{{ holdingsSummary.realized.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
+        已落袋 +¥{{ holdingsSummary.realized.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
       </span>
     </div>
 
@@ -115,7 +115,7 @@
                   </span>
                 </div>
                 <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
-                  <span class="holdings-label">做T</span>
+                  <span class="holdings-label">已落袋</span>
                   <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
               </div>
@@ -187,7 +187,7 @@
                   </span>
                 </div>
                 <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
-                  <span class="holdings-label">做T</span>
+                  <span class="holdings-label">已落袋</span>
                   <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
               </div>
@@ -259,7 +259,7 @@
                   </span>
                 </div>
                 <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
-                  <span class="holdings-label">做T</span>
+                  <span class="holdings-label">已落袋</span>
                   <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
               </div>

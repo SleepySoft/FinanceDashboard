@@ -260,7 +260,7 @@
             <h3>持仓记录</h3>
             <p v-if="holdingsData.summary" class="holdings-count">
               {{ holdingsData.summary.total_quantity }}股 @ ¥{{ holdingsData.summary.avg_cost.toFixed(2) }}
-              <span v-if="holdingsData.summary.realized_pnl > 0" class="t-profit">做T +{{ holdingsData.summary.realized_pnl.toFixed(0) }}</span>
+              <span v-if="holdingsData.summary.realized_pnl > 0" class="t-profit">已落袋 +{{ holdingsData.summary.realized_pnl.toFixed(0) }}</span>
             </p>
             <p v-else class="holdings-count">暂无持仓记录</p>
           </div>
@@ -284,7 +284,7 @@
               </span>
             </div>
             <div v-if="holdingsData.summary.realized_pnl > 0" class="hs-row">
-              <span class="hs-label">做T</span>
+              <span class="hs-label">已落袋</span>
               <span class="hs-value t-profit">+{{ holdingsData.summary.realized_pnl.toFixed(0) }}</span>
             </div>
           </div>
