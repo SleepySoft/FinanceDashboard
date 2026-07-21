@@ -1258,3 +1258,8 @@ def list_holdings():
 # ═══════════════════════════════════════════════════════
 #  Static Files (SPA)
 # ═══════════════════════════════════════════════════════
+
+# Serve frontend dist files; API routes above take precedence
+FRONTEND_DIST = os.path.join(os.path.dirname(BASE_DIR), "frontend", "dist")
+if os.path.exists(FRONTEND_DIST):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="static")
