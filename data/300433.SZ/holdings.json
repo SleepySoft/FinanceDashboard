@@ -5,8 +5,8 @@
       "time": "09:30:00",
       "type": "buy",
       "price": 25.63,
-      "quantity": 1000,
-      "fee": 6.41,
+      "quantity": 100,
+      "fee": 5,
       "note": "",
       "idempotent_key": "2025-08-19_09:30:00_25.630_1000_buy",
       "id": "t_931ecd62"
@@ -25,9 +25,9 @@
   ],
   "adj_events": [],
   "summary": {
-    "total_quantity": 900,
-    "avg_cost": 25.63,
-    "total_cost": 23067.0,
+    "total_quantity": 0,
+    "avg_cost": 0,
+    "total_cost": 0,
     "realized_pnl": 1358.0,
     "open_short": 0,
     "last_trade": {
@@ -35,7 +35,11 @@
       "time": "14:15:07",
       "type": "sell",
       "price": 39.21,
-      "quantity": 100
+      "quantity": 100,
+      "fee": 5.0,
+      "note": "",
+      "idempotent_key": "2026-01-13_14:15:07_39.210_100_sell",
+      "id": "t_2eaf214c"
     }
   },
   "t_trades": [
