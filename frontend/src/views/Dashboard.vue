@@ -45,11 +45,16 @@
       <span class="hs-item">市值 ¥{{ holdingsSummary.marketValue.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}</span>
       <span class="hs-item">成本 ¥{{ holdingsSummary.cost.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}</span>
       <span :class="['hs-item', 'hs-pnl', holdingsSummary.pnl >= 0 ? 'up' : 'down']">
-        持仓浮动 {{ holdingsSummary.pnl >= 0 ? '+' : '' }}¥{{ holdingsSummary.pnl.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
+        浮动 {{ holdingsSummary.pnl >= 0 ? '+' : '' }}¥{{ holdingsSummary.pnl.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
         ({{ holdingsSummary.pnlPct >= 0 ? '+' : '' }}{{ holdingsSummary.pnlPct.toFixed(2) }}%)
       </span>
-      <span v-if="holdingsSummary.realized > 0" class="hs-item t-profit">
+      <span class="hs-item" style="color: #94a3b8;">|</span>
+      <span class="hs-item t-profit">
         已落袋 +¥{{ holdingsSummary.realized.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
+      </span>
+      <span class="hs-item" style="color: #94a3b8;">|</span>
+      <span :class="['hs-item', (holdingsSummary.pnl + holdingsSummary.realized) >= 0 ? 'up' : 'down']">
+        合计 {{ (holdingsSummary.pnl + holdingsSummary.realized) >= 0 ? '+' : '' }}¥{{ (holdingsSummary.pnl + holdingsSummary.realized).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
       </span>
     </div>
 
