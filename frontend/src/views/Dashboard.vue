@@ -27,10 +27,29 @@
           <input type="checkbox" v-model="filterWatchlist" />
           仅关注
         </label>
+        <label class="filter-check">
+          <input type="checkbox" v-model="filterHoldings" />
+          只看持仓
+        </label>
         <button class="ghost" @click="refreshPrices" :disabled="loading">
           {{ loading ? '...' : '🔄' }}
         </button>
       </div>
+    </div>
+
+    <!-- Holdings Summary Bar -->
+    <div v-if="holdingsSummary.count > 0" class="holdings-summary-bar">
+      <span class="hs-label">📊 持仓</span>
+      <span class="hs-item">{{ holdingsSummary.count }} 只</span>
+      <span class="hs-item">市值 ¥{{ holdingsSummary.marketValue.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}</span>
+      <span class="hs-item">成本 ¥{{ holdingsSummary.cost.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}</span>
+      <span :class="['hs-item', 'hs-pnl', holdingsSummary.pnl >= 0 ? 'up' : 'down']">
+        浮动 {{ holdingsSummary.pnl >= 0 ? '+' : '' }}¥{{ holdingsSummary.pnl.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
+        ({{ holdingsSummary.pnlPct >= 0 ? '+' : '' }}{{ holdingsSummary.pnlPct.toFixed(2) }}%)
+      </span>
+      <span v-if="holdingsSummary.realized > 0" class="hs-item t-profit">
+        做T +¥{{ holdingsSummary.realized.toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) }}
+      </span>
     </div>
 
     <!-- Loading -->
@@ -485,6 +504,7 @@ const viewMode = ref('grouped')
 const filterSector = ref('')
 const filterVerdict = ref('')
 const filterWatchlist = ref(false)
+const filterHoldings = ref(false)
 const sortKey = ref('code')
 const sortAsc = ref(true)
 const selectedStock = ref(null)
@@ -632,8 +652,32 @@ const filteredStocks = computed(() => {
     const verdict = s.dimensions?.verdict || s.overall
     if (filterVerdict.value && verdict !== filterVerdict.value) return false
     if (filterWatchlist.value && !s.watchlist) return false
+    if (filterHoldings.value) {
+      const h = holdingsMap.value[s.code]
+      if (!h || h.quantity <= 0) return false
+    }
     return true
   })
+})
+
+// ── Holdings Summary ──
+const holdingsSummary = computed(() => {
+  let count = 0
+  let marketValue = 0
+  let cost = 0
+  let realized = 0
+  for (const s of stocks.value) {
+    const h = holdingsMap.value[s.code]
+    if (!h || h.quantity <= 0) continue
+    count++
+    const price = s.last_price || 0
+    marketValue += h.quantity * price
+    cost += h.quantity * h.avg_cost
+    realized += h.realized_pnl || 0
+  }
+  const pnl = marketValue - cost
+  const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0
+  return { count, marketValue, cost, pnl, pnlPct, realized }
 })
 
 const sectors = computed(() => {
@@ -1032,5 +1076,24 @@ onUnmounted(stopAutoRefresh)
   .matrix-grid { grid-template-columns: 1fr; }
   .list-table { font-size: 13px; }
   .list-table th, .list-table td { padding: 8px 10px; }
+  .holdings-summary-bar { font-size: 12px; gap: 8px; padding: 8px 10px; }
 }
+
+/* ── Holdings Summary Bar ── */
+.holdings-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 14px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.holdings-summary-bar .hs-label { font-weight: 600; color: #60a5fa; }
+.holdings-summary-bar .hs-item { color: #94a3b8; white-space: nowrap; }
+.holdings-summary-bar .hs-pnl { font-weight: 600; }
+.holdings-summary-bar .t-profit { color: #fbbf24; font-weight: 600; }
 </style>
