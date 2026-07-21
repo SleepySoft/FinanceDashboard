@@ -1,60 +1,24 @@
 {
   "code": "688126.SH",
-  "name": "沪硅产业",
-  "sector": "半导体",
+  "name": "688126.SH",
+  "sector": "",
+  "added_at": "2026-07-21T04:12:17.441099+00:00",
   "tags": {
-    "overall": "yellow",
-    "watchlist": "",
-    "quality": "yellow",
-    "valuation": "red",
-    "timing": "none",
-    "risk": "red",
-    "verdict": "yellow"
+    "overall": "none",
+    "watchlist": false
   },
-  "price_marks": [
-    {
-      "id": "8a5ca8bd",
-      "label": "卖出",
-      "price": 26.86,
-      "type": "sell",
-      "created_at": "2026-07-20T05:09:32.939645+00:00"
-    }
-  ],
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
   "cache": {
     "fundamental": {
-      "last": "2026-07-21",
-      "valid_until": "2026-08-20"
+      "last": null,
+      "valid_until": null
     },
     "technical": {
-      "last": "2026-07-19",
-      "valid_until": "2026-07-26"
+      "last": null,
+      "valid_until": null
     }
   },
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "type": "fundamental",
-      "date": "2026-07-19",
-      "title": "沪硅产业基本面分析"
-    },
-    {
-      "id": "fundamental_20260721",
-      "type": "fundamental",
-      "date": "2026-07-21",
-      "title": "沪硅产业深度分析：现实处境与反转信号"
-    }
-  ],
-  "created_at": "2026-07-19",
-  "daily_briefs": [
-    {
-      "id": "601e7986",
-      "date": "2026-07-20",
-      "content": "小幅低开后震荡走低，收跌7.8%，振幅较大",
-      "has_value": true,
-      "price": 26.66,
-      "change_pct": -7.75,
-      "amplitude": 10.55,
-      "created_at": "2026-07-20T00:20:21.429991+00:00"
-    }
-  ]
+  "reports": []
 }

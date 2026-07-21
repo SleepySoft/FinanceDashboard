@@ -59,6 +59,7 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                 </div>
                 <div class="stock-price-row">
                   <span class="price-current" :class="priceClass(s.change_pct)">
@@ -82,6 +83,20 @@
                   <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
+                </div>
+              </div>
+              <!-- Holdings Summary -->
+              <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
+                <div class="holdings-row">
+                  <span class="holdings-label">持仓</span>
+                  <span class="holdings-value">{{ holdingsMap[s.code].quantity }}股 @ ¥{{ holdingsMap[s.code].avg_cost.toFixed(2) }}</span>
+                  <span v-if="s.last_price" :class="['holdings-pnl', holdingsMap[s.code].avg_cost < s.last_price ? 'up' : 'down']">
+                    {{ holdingsMap[s.code].avg_cost < s.last_price ? '+' : '' }}{{ ((s.last_price - holdingsMap[s.code].avg_cost) * holdingsMap[s.code].quantity).toFixed(0) }}
+                  </span>
+                </div>
+                <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
+                  <span class="holdings-label">做T</span>
+                  <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
               </div>
               <div class="stock-footer">
@@ -116,6 +131,7 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                 </div>
                 <div class="stock-price-row">
                   <span class="price-current" :class="priceClass(s.change_pct)">
@@ -139,6 +155,20 @@
                   <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
+                </div>
+              </div>
+              <!-- Holdings Summary -->
+              <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
+                <div class="holdings-row">
+                  <span class="holdings-label">持仓</span>
+                  <span class="holdings-value">{{ holdingsMap[s.code].quantity }}股 @ ¥{{ holdingsMap[s.code].avg_cost.toFixed(2) }}</span>
+                  <span v-if="s.last_price" :class="['holdings-pnl', holdingsMap[s.code].avg_cost < s.last_price ? 'up' : 'down']">
+                    {{ holdingsMap[s.code].avg_cost < s.last_price ? '+' : '' }}{{ ((s.last_price - holdingsMap[s.code].avg_cost) * holdingsMap[s.code].quantity).toFixed(0) }}
+                  </span>
+                </div>
+                <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
+                  <span class="holdings-label">做T</span>
+                  <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
               </div>
               <div class="stock-footer">
@@ -172,6 +202,7 @@
                   <span class="stock-code">{{ s.code }}</span>
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                 </div>
                 <div class="stock-price-row">
                   <span class="price-current" :class="priceClass(s.change_pct)">
@@ -196,6 +227,20 @@
                   <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
+                </div>
+              </div>
+              <!-- Holdings Summary -->
+              <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
+                <div class="holdings-row">
+                  <span class="holdings-label">持仓</span>
+                  <span class="holdings-value">{{ holdingsMap[s.code].quantity }}股 @ ¥{{ holdingsMap[s.code].avg_cost.toFixed(2) }}</span>
+                  <span v-if="s.last_price" :class="['holdings-pnl', holdingsMap[s.code].avg_cost < s.last_price ? 'up' : 'down']">
+                    {{ holdingsMap[s.code].avg_cost < s.last_price ? '+' : '' }}{{ ((s.last_price - holdingsMap[s.code].avg_cost) * holdingsMap[s.code].quantity).toFixed(0) }}
+                  </span>
+                </div>
+                <div v-if="holdingsMap[s.code].realized_pnl > 0" class="holdings-row">
+                  <span class="holdings-label">做T</span>
+                  <span class="holdings-value t-profit">+{{ holdingsMap[s.code].realized_pnl.toFixed(0) }}</span>
                 </div>
               </div>
               <div class="stock-footer">
@@ -377,6 +422,50 @@
       没有匹配的股票。调整筛选条件试试。
     </div>
     <StockModal :show="showModal" :stock="selectedStock" @close="closeModal" />
+
+    <!-- Trade Entry Modal -->
+    <div v-if="showTradeModal" class="modal-overlay" @click.self="closeTradeModal">
+      <div class="modal-panel trade-modal">
+        <div class="modal-header">
+          <h3>录入成交 — {{ tradeStock?.code }}</h3>
+          <button class="modal-close" @click="closeTradeModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>日期</label>
+            <input type="date" v-model="tradeForm.date" />
+          </div>
+          <div class="form-row">
+            <label>时间</label>
+            <input type="time" v-model="tradeForm.time" />
+          </div>
+          <div class="form-row">
+            <label>方向</label>
+            <div class="btn-group">
+              <button :class="{active: tradeForm.type === 'buy'}" @click="tradeForm.type = 'buy'">买入</button>
+              <button :class="{active: tradeForm.type === 'sell'}" @click="tradeForm.type = 'sell'">卖出</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>价格</label>
+            <input type="number" v-model.number="tradeForm.price" step="0.01" placeholder="¥" />
+          </div>
+          <div class="form-row">
+            <label>数量</label>
+            <input type="number" v-model.number="tradeForm.quantity" step="100" placeholder="股" />
+          </div>
+          <div class="form-row">
+            <label>备注</label>
+            <input type="text" v-model="tradeForm.note" placeholder="可选" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary" @click="submitTrade" :disabled="tradeSubmitting">
+            {{ tradeSubmitting ? '...' : '确认录入' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -400,6 +489,19 @@ const sortKey = ref('code')
 const sortAsc = ref(true)
 const selectedStock = ref(null)
 const showModal = ref(false)
+
+// Trade entry modal
+const showTradeModal = ref(false)
+const tradeStock = ref(null)
+const tradeForm = ref({
+  date: new Date().toISOString().slice(0, 10),
+  time: '10:00',
+  type: 'buy',
+  price: 0,
+  quantity: 0,
+  note: '',
+})
+const tradeSubmitting = ref(false)
 
 // Read view from URL query
 const queryView = route.query.view
@@ -434,12 +536,23 @@ function toggleGroup(key) {
   }
 }
 
+const holdingsMap = ref({})
+
 async function load() {
   loading.value = true
   try {
-    const data = await api.dashboard.get()
+    const [data, hList] = await Promise.all([
+      api.dashboard.get(),
+      api.holdings.list().catch(() => [])
+    ])
     stocks.value = data.stocks || []
     lastRefresh.value = data.price_data_time || data.last_update
+    // Build holdings map
+    const map = {}
+    for (const h of hList) {
+      map[h.code] = h
+    }
+    holdingsMap.value = map
   } catch (e) {
     console.error(e)
   } finally {
@@ -476,6 +589,40 @@ function openStock(code) {
 function closeModal() {
   showModal.value = false
   selectedStock.value = null
+}
+
+// ── Trade Entry ──
+function openTradeModal(stock) {
+  tradeStock.value = stock
+  tradeForm.value = {
+    date: new Date().toISOString().slice(0, 10),
+    time: new Date().toTimeString().slice(0, 5),
+    type: 'buy',
+    price: stock?.last_price || 0,
+    quantity: 100,
+    note: '',
+  }
+  showTradeModal.value = true
+}
+function closeTradeModal() {
+  showTradeModal.value = false
+  tradeStock.value = null
+}
+async function submitTrade() {
+  if (!tradeStock.value) return
+  tradeSubmitting.value = true
+  try {
+    await api.holdings.addTrade(tradeStock.value.code, {
+      ...tradeForm.value,
+      time: tradeForm.value.time + ':00',
+    })
+    closeTradeModal()
+    await load()  // Refresh holdings
+  } catch (e) {
+    alert('录入失败: ' + e.message)
+  } finally {
+    tradeSubmitting.value = false
+  }
 }
 
 // ── Filtered stocks ──
@@ -710,6 +857,108 @@ onUnmounted(stopAutoRefresh)
 
 .stock-footer { display: flex; gap: 12px; font-size: 11px; color: #64748b; border-top: 1px solid #334155; padding-top: 8px; }
 .stock-footer .expired { color: #f87171; }
+
+/* ── Holdings ── */
+.holdings-section { margin-top: 8px; padding: 8px 0; border-top: 1px dashed #334155; }
+.holdings-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.holdings-label { color: #64748b; min-width: 32px; }
+.holdings-value { color: #e2e8f0; }
+.holdings-value.t-profit { color: #22c55e; }
+.holdings-pnl { font-size: 11px; margin-left: auto; }
+.holdings-pnl.up { color: #22c55e; }
+.holdings-pnl.down { color: #ef4444; }
+
+.trade-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.trade-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+
+/* ── Trade Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.trade-modal {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #334155;
+}
+.modal-header h3 { margin: 0; font-size: 15px; color: #e2e8f0; }
+.modal-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 20px;
+  cursor: pointer;
+}
+.modal-body { padding: 16px; }
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+.form-row input {
+  width: 100%;
+  padding: 8px 10px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.form-row input:focus { outline: none; border-color: #3b82f6; }
+.btn-group { display: flex; gap: 8px; }
+.btn-group button {
+  flex: 1;
+  padding: 8px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-group button.active {
+  background: #1e40af;
+  border-color: #3b82f6;
+  color: #fff;
+}
+.modal-footer {
+  padding: 0 16px 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+.btn-primary {
+  padding: 10px 20px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .unassessed-banner { margin-bottom: 16px; padding: 12px 16px; border: 1px dashed #475569; }
 .ua-title { font-size: 14px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; }

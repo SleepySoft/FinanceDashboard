@@ -51,4 +51,11 @@ export default {
     refresh: () => api('/prices/refresh'),
   },
   health: () => api('/health'),
+  holdings: {
+    list: () => api('/holdings'),
+    get: (code) => api(`/holdings/${code}`),
+    addTrade: (code, trade) => api(`/holdings/${code}/trades`, { method: 'POST', body: trade }),
+    deleteTrade: (code, tradeId) => api(`/holdings/${code}/trades/${tradeId}`, { method: 'DELETE' }),
+    addAdjust: (code, adj) => api(`/holdings/${code}/adjust`, { method: 'POST', body: adj }),
+  },
 }
