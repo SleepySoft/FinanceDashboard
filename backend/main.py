@@ -356,6 +356,7 @@ class AgentTaskCompleteReq(BaseModel):
     report_path: Optional[str] = None
     summary: Optional[str] = None
     report_type: Literal["fundamental", "technical", "full"] = "full"
+    reports: Optional[List[dict]] = None  # [{"path": str, "type": str}] for multiple reports
 
 class AgentTaskFailReq(BaseModel):
     reason: str
@@ -738,36 +739,62 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
         raise HTTPException(404, "Task not found")
     task["status"] = "completed"
     task["completed_at"] = _now()
-    task["result"] = {"report_path": req.report_path, "summary": req.summary}
+    task["result"] = {"report_path": req.report_path, "summary": req.summary, "reports": req.reports}
     _save_tasks(tasks)
     
-    # Create stock entry if not exists (now it's officially in the list)
+    # Create stock entry if not exists
     code = task["code"]
     if not os.path.exists(_meta_path(code)):
         _init_stock(code, task.get("name", code), task.get("sector", ""))
     
     meta = _load_meta(code)
     now = _now()
-    report_entry = {
-        "id": str(uuid.uuid4())[:8],
-        "filename": os.path.basename(req.report_path) if req.report_path else None,
-        "type": req.report_type,
-        "created_at": now,
-        "task_id": task_id
-    }
-    meta["reports"].append(report_entry)
     
-    # Update cache based on report type
-    if req.report_type in ("fundamental", "full"):
-        meta["cache"]["fundamental"] = {
-            "last": now,
-            "valid_until": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+    # Handle multiple reports (new format)
+    if req.reports:
+        for r in req.reports:
+            report_entry = {
+                "id": str(uuid.uuid4())[:8],
+                "filename": os.path.basename(r["path"]) if r.get("path") else None,
+                "type": r.get("type", "full"),
+                "created_at": now,
+                "task_id": task_id
+            }
+            meta["reports"].append(report_entry)
+        # Update cache based on report types
+        has_fund = any(r.get("type") in ("fundamental", "full") for r in req.reports)
+        has_tech = any(r.get("type") in ("technical", "full") for r in req.reports)
+        if has_fund:
+            meta["cache"]["fundamental"] = {
+                "last": now,
+                "valid_until": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+            }
+        if has_tech:
+            meta["cache"]["technical"] = {
+                "last": now,
+                "valid_until": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+            }
+    # Handle single report (backward compatible)
+    elif req.report_path:
+        report_entry = {
+            "id": str(uuid.uuid4())[:8],
+            "filename": os.path.basename(req.report_path),
+            "type": req.report_type,
+            "created_at": now,
+            "task_id": task_id
         }
-    if req.report_type in ("technical", "full"):
-        meta["cache"]["technical"] = {
-            "last": now,
-            "valid_until": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
-        }
+        meta["reports"].append(report_entry)
+        if req.report_type in ("fundamental", "full"):
+            meta["cache"]["fundamental"] = {
+                "last": now,
+                "valid_until": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+            }
+        if req.report_type in ("technical", "full"):
+            meta["cache"]["technical"] = {
+                "last": now,
+                "valid_until": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+            }
+    
     _save_meta(code, meta)
     return task
 

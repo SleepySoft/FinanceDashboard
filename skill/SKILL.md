@@ -129,6 +129,16 @@ npx vite --host 0.0.0.0 --port 80
 ### Data Persistence
 
 All data lives in `/root/data/FinanceDashboard/data/`:
+- `data/{code}/meta.json` — stock metadata, tags, cache timestamps
+- `data/{code}/reports/` — analysis reports (markdown)
+  - **IMPORTANT**: Generate separate files for fundamental and technical analysis
+    - `fundamental_YYYYMMDD.md` — type: `fundamental`
+    - `technical_YYYYMMDD.md` — type: `technical`
+  - **Do NOT** combine both into a single `full` report file
+- `data/{code}/briefs.json` — daily briefs
+- `data/{code}/notes.md` — user notes
+- `data/_dashboard.json` — price snapshot cache
+- `data/_tasks.json` — pending analysis tasks
 - Git tracks code, NOT data (data/ is in .gitignore except templates)
 - Backup: `rsync -av /root/data/FinanceDashboard/data/ /backup/path/`
 
@@ -143,6 +153,48 @@ User → Tailscale network → 100.105.210.96:80 (frontend)
 ## Agent Workflow File
 
 The agent should read `/root/data/FinanceDashboard/AGENTS.md` on every session start to understand current project state, open TODOs, and credentials.
+
+## Report Generation Rules
+
+### Critical: Separate Fundamental and Technical Reports
+
+When a user requests `full` analysis (or just "分析 {code}" without specifying type), the agent MUST generate **TWO separate markdown files**:
+
+```
+data/{code}/reports/fundamental_YYYYMMDD.md   # type: fundamental
+data/{code}/reports/technical_YYYYMMDD.md     # type: technical
+```
+
+**Do NOT** put both analyses in a single file. This causes the frontend to show duplicate content in both sections.
+
+When calling the complete API, pass both reports:
+
+```python
+# After generating both files
+requests.post(f"/api/agent/tasks/{task_id}/complete", json={
+    "reports": [
+        {"path": f"data/{code}/reports/fundamental_YYYYMMDD.md", "type": "fundamental"},
+        {"path": f"data/{code}/reports/technical_YYYYMMDD.md", "type": "technical"}
+    ],
+    "summary": "分析完成"
+})
+```
+
+### Single-Type Analysis
+
+When user explicitly asks for one type:
+- "分析 {code} 基本面" → only `fundamental_YYYYMMDD.md`
+- "分析 {code} 技术面" → only `technical_YYYYMMDD.md`
+
+In this case, call complete with single report:
+
+```python
+requests.post(f"/api/agent/tasks/{task_id}/complete", json={
+    "report_path": f"data/{code}/reports/fundamental_YYYYMMDD.md",
+    "report_type": "fundamental",
+    "summary": "基本面分析完成"
+})
+```
 
 ## Analysis Standards
 

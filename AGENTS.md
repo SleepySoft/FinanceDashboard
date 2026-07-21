@@ -36,9 +36,11 @@ data/
     ├── meta.json            # Tags, marks, cache timestamps, report list
     ├── notes.md             # User notes (markdown, ## timestamp format)
     └── reports/
-        ├── fundamental_YYYYMMDD.md
-        └── technical_YYYYMMDD.md
+        ├── fundamental_YYYYMMDD.md   # Fundamental analysis ONLY
+        └── technical_YYYYMMDD.md     # Technical analysis ONLY
 ```
+
+**IMPORTANT:** Never combine fundamental and technical into one file. When doing `full` analysis, generate two separate files and call complete API with `reports: [{path, type}, {path, type}]`.
 
 ## Key Design Decisions
 
@@ -125,6 +127,7 @@ nohup npx vite --host 0.0.0.0 --port 80 > /tmp/vite.log 2>&1 &
 
 ## Open TODOs
 
+- [x] **Separate fundamental/technical reports** — Backend API now supports `reports` array in complete endpoint. Agent MUST generate two files for `full` analysis.
 - [ ] Move `.env` from legacy path to `/root/data/FinanceDashboard/.env`
 - [ ] Frontend Markdown rendering: add marked.js for proper tables/code blocks
 - [ ] Add stock code validation/normalization (A-share format auto-correction)
