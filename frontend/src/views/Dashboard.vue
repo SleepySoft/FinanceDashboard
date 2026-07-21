@@ -1,8 +1,7 @@
 <template>
   <div class="dashboard">
-    <!-- Single-line header: title + view tabs + refresh -->
+    <!-- Controls row: view tabs + filters + refresh -->
     <div class="dash-header">
-      <span class="dash-title">📊 股票池</span>
       <div class="view-tabs mini">
         <button
           v-for="v in views"
@@ -13,31 +12,23 @@
           {{ v.label }}
         </button>
       </div>
-      <button class="ghost" @click="refreshPrices" :disabled="loading">
-        {{ loading ? '...' : '🔄' }}
-      </button>
-    </div>
-
-    <!-- Single-line filters + group mode -->
-    <div class="toolbar compact">
-      <div class="filters">
-        <select v-model="filterSector" class="filter-select">
-          <option value="">全部行业</option>
-          <option v-for="sec in sectors" :key="sec" :value="sec">{{ sec }}</option>
-        </select>
+      <div class="toolbar-inline">
+        <div class="group-tabs" v-if="viewMode === 'grouped'">
+          <button
+            v-for="gm in groupModes"
+            :key="gm.key"
+            :class="['group-tab', { active: groupMode === gm.key }]"
+            @click="groupMode = gm.key"
+          >
+            {{ gm.label }}
+          </button>
+        </div>
         <label class="filter-check">
           <input type="checkbox" v-model="filterWatchlist" />
-          关注
+          仅关注
         </label>
-      </div>
-      <div class="group-tabs" v-if="viewMode === 'grouped'">
-        <button
-          v-for="gm in groupModes"
-          :key="gm.key"
-          :class="['group-tab', { active: groupMode === gm.key }]"
-          @click="groupMode = gm.key"
-        >
-          {{ gm.label }}
+        <button class="ghost" @click="refreshPrices" :disabled="loading">
+          {{ loading ? '...' : '🔄' }}
         </button>
       </div>
     </div>
@@ -645,6 +636,8 @@ onUnmounted(stopAutoRefresh)
 .view-tabs.mini .tab { padding: 3px 10px; border-radius: 4px; font-size: 12px; }
 .tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; background: transparent; color: #94a3b8; border: none; }
 .tab.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
+
+.toolbar-inline { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
 
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
 

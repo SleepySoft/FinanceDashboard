@@ -1,8 +1,5 @@
 <template>
   <div id="app">
-    <nav class="nav">
-      <router-link to="/" class="logo">Stock Analyst</router-link>
-    </nav>
     <main>
       <router-view />
     </main>
