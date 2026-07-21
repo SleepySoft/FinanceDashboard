@@ -34,6 +34,7 @@
         <button class="ghost" @click="refreshPrices" :disabled="loading">
           {{ loading ? '...' : '🔄' }}
         </button>
+        <router-link to="/holdings" class="btn-holdings">📦 持仓</router-link>
       </div>
     </div>
 
@@ -836,6 +837,8 @@ onUnmounted(stopAutoRefresh)
 .tab.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
 
 .toolbar-inline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.btn-holdings { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; background: #1e3a5f; color: #60a5fa; font-size: 12px; font-weight: 500; text-decoration: none; transition: background 0.15s; }
+.btn-holdings:hover { background: #2563eb; color: white; }
 
 .group-tabs { display: flex; gap: 2px; background: #0f172a; padding: 2px; border-radius: 5px; flex-shrink: 0; }
 .group-tab { padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; white-space: nowrap; }

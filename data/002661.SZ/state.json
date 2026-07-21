@@ -16,5 +16,6 @@
       "valid_until": null
     }
   },
-  "reports": []
+  "reports": [],
+  "status": "avoid"
 }

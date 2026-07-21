@@ -1254,6 +1254,13 @@ def add_trade(code: str, req: TradeIn):
 
     return {"status": "ok", "id": trade["id"], "fee": trade["fee"], "summary": data["summary"]}
 
+@app.get("/api/holdings/{code}/trades")
+def get_holdings_trades(code: str):
+    """获取某股票的所有交易记录（按时间顺序）"""
+    data = _load_holdings(code)
+    trades = sorted(data.get("trades", []), key=lambda x: (x.get("date", ""), x.get("time", "00:00:00")))
+    return {"code": code, "trades": trades, "trade_count": len(trades)}
+
 @app.get("/api/holdings/{code}")
 def get_holdings(code: str):
     """获取某股票的持仓分析"""

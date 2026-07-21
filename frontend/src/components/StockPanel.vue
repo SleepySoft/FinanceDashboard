@@ -251,6 +251,71 @@
       </div>
     </div>
 
+    <!-- Holdings -->
+    <div class="card holdings-card">
+      <div class="holdings-header" @click="showHoldings = !showHoldings">
+        <div class="holdings-title">
+          <span class="holdings-icon">📦</span>
+          <div>
+            <h3>持仓记录</h3>
+            <p v-if="holdingsData.summary" class="holdings-count">
+              {{ holdingsData.summary.total_quantity }}股 @ ¥{{ holdingsData.summary.avg_cost.toFixed(2) }}
+              <span v-if="holdingsData.summary.realized_pnl > 0" class="t-profit">做T +{{ holdingsData.summary.realized_pnl.toFixed(0) }}</span>
+            </p>
+            <p v-else class="holdings-count">暂无持仓记录</p>
+          </div>
+        </div>
+        <span class="collapse-btn">{{ showHoldings ? '▼' : '▶' }}</span>
+      </div>
+      <div v-show="showHoldings" class="holdings-content">
+        <div v-if="holdingsData.trades?.length > 0">
+          <!-- Summary -->
+          <div v-if="holdingsData.summary" class="holdings-summary">
+            <div class="hs-row">
+              <span class="hs-label">持仓</span>
+              <span class="hs-value">{{ holdingsData.summary.total_quantity }}股 @ ¥{{ holdingsData.summary.avg_cost.toFixed(2) }}</span>
+            </div>
+            <div class="hs-row">
+              <span class="hs-label">市值</span>
+              <span class="hs-value">¥{{ ((meta.last_price || 0) * holdingsData.summary.total_quantity).toFixed(0) }}</span>
+              <span v-if="holdingsData.summary.total_quantity > 0 && meta.last_price" :class="['hs-pnl', meta.last_price >= holdingsData.summary.avg_cost ? 'up' : 'down']">
+                {{ meta.last_price >= holdingsData.summary.avg_cost ? '+' : '' }}{{ ((meta.last_price - holdingsData.summary.avg_cost) * holdingsData.summary.total_quantity).toFixed(0) }}
+                ({{ (((meta.last_price - holdingsData.summary.avg_cost) / holdingsData.summary.avg_cost) * 100).toFixed(1) }}%)
+              </span>
+            </div>
+            <div v-if="holdingsData.summary.realized_pnl > 0" class="hs-row">
+              <span class="hs-label">做T</span>
+              <span class="hs-value t-profit">+{{ holdingsData.summary.realized_pnl.toFixed(0) }}</span>
+            </div>
+          </div>
+          <!-- Trades table -->
+          <div class="trades-table-wrap">
+            <table class="trades-table">
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>类型</th>
+                  <th>价格</th>
+                  <th>数量</th>
+                  <th>手续费</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="t in holdingsData.trades" :key="t.id">
+                  <td>{{ t.date }}</td>
+                  <td :class="t.type === 'buy' ? 'up' : 'down'">{{ t.type === 'buy' ? '买入' : '卖出' }}</td>
+                  <td>¥{{ t.price.toFixed(2) }}</td>
+                  <td>{{ t.quantity }}</td>
+                  <td>{{ t.fee?.toFixed(2) || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div v-else class="empty">暂无交易记录</div>
+      </div>
+    </div>
+
     <!-- Notes -->
     <div class="card notes-card">
       <h3>📝 随想笔记</h3>
@@ -303,6 +368,9 @@ const briefs = ref([])
 const showBriefs = ref(false)
 const showAllBriefs = ref(false)
 const generatingBrief = ref(false)
+
+const holdingsData = ref({ trades: [], summary: null })
+const showHoldings = ref(false)
 
 const todayBriefExists = computed(() => {
   const today = new Date().toISOString().slice(0, 10)
@@ -371,6 +439,17 @@ async function load() {
   briefs.value = data.daily_briefs || []
   const n = await api.stocks.getNotes(props.code)
   notes.value = n.notes
+  // Load holdings
+  try {
+    const h = await api.holdings.get(props.code)
+    if (h.has_data) {
+      holdingsData.value.summary = h.summary
+    }
+    const t = await api.holdings.getTrades(props.code)
+    holdingsData.value.trades = t.trades || []
+  } catch (e) {
+    holdingsData.value = { trades: [], summary: null }
+  }
   await loadLatestFundamental()
   await loadLatestTechnical()
 }
@@ -672,6 +751,26 @@ onMounted(load)
 .brief-text { font-size: 14px; line-height: 1.6; color: #e2e8f0; }
 .briefs-more { text-align: center; padding: 10px; font-size: 13px; color: #64748b; cursor: pointer; border-top: 1px dashed #334155; margin-top: 8px; transition: color 0.15s; }
 .briefs-more:hover { color: #94a3b8; }
+
+/* Holdings */
+.holdings-card { margin-top: 0; }
+.holdings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 14px; transition: background 0.15s; }
+.holdings-header:hover { background: #1e293b; }
+.holdings-title { display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.holdings-icon { font-size: 22px; }
+.holdings-count { font-size: 12px; color: #64748b; margin-top: 2px; }
+.holdings-content { padding-top: 4px; }
+.holdings-summary { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
+.hs-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; flex-wrap: wrap; }
+.hs-label { font-size: 12px; color: #94a3b8; min-width: 40px; }
+.hs-value { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+.hs-pnl { font-size: 13px; font-weight: 600; }
+.trades-table-wrap { overflow-x: auto; }
+.trades-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.trades-table th { text-align: left; padding: 8px 10px; border-bottom: 1px solid #334155; color: #94a3b8; font-weight: 500; }
+.trades-table td { padding: 8px 10px; border-bottom: 1px solid #1e293b; }
+.trades-table tr:last-child td { border-bottom: none; }
+.t-profit { color: #fbbf24; font-weight: 600; }
 
 /* Mobile */
 @media (max-width: 640px) {

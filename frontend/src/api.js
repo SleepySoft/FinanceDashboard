@@ -54,6 +54,7 @@ export default {
   holdings: {
     list: () => api('/holdings'),
     get: (code) => api(`/holdings/${code}`),
+    getTrades: (code) => api(`/holdings/${code}/trades`),
     addTrade: (code, trade) => api(`/holdings/${code}/trades`, { method: 'POST', body: trade }),
     deleteTrade: (code, tradeId) => api(`/holdings/${code}/trades/${tradeId}`, { method: 'DELETE' }),
     addAdjust: (code, adj) => api(`/holdings/${code}/adjust`, { method: 'POST', body: adj }),
