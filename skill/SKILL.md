@@ -103,6 +103,86 @@ Users can also use the web UI at `http://100.105.210.96` or `http://82.156.5.238
 | `read/write/edit` | File operations | Read/write reports, update meta.json |
 | `exec` | Shell commands | Start/stop services, git operations |
 
+## Holdings & T-Trade Tracking (持仓管理)
+
+FinanceDashboard now includes a **position tracking system** that goes beyond simple "average cost" calculations. It tracks every trade, identifies T-trades (intraday buy-sell pairs), and calculates realized/unrealized PnL separately.
+
+### How It Works
+
+**Matching Algorithm: Smart FIFO + Intraday LIFO**
+
+1. **Same-day trades** (做T): Sell matches against same-day buys first (LIFO within day)
+   - Example: Buy 1000 @ 10:00, Sell 500 @ 14:00 → Profit = 500 × (sell_price - 10.00)
+   - This profit is tracked separately as "T-trade profit"
+
+2. **Cross-day trades**: Standard FIFO for position reduction
+   - Example: Day1 Buy 1000 @ 10.00, Day3 Sell 300 @ 12.00 → Matches Day1 position
+
+3. **Short-selling / 反T**: Selling more than you own creates a "short" position
+   - Tracked as open short, can be closed by later buys
+
+### Trade Entry API
+
+```bash
+# Add a trade
+POST /api/holdings/{code}/trades
+{
+  "date": "2026-07-21",
+  "time": "10:30:00",
+  "type": "buy",        # or "sell"
+  "price": 24.50,
+  "quantity": 1000,
+  "note": "开盘买入"
+}
+
+# Auto-calculated: fee = max(price × qty × 0.00025, 5.00)
+
+# Idempotent: same date/time/price/qty/type won't duplicate
+
+# Get holdings summary
+GET /api/holdings/{code}
+Response: {
+  "summary": {
+    "total_quantity": 1000,
+    "avg_cost": 10.000,
+    "total_cost": 10000.00,
+    "realized_pnl": 500.00,    # T-trade profits
+    "open_short": 0,
+    "last_trade": {...}
+  },
+  "t_trades": [
+    {"type": "正T", "quantity": 500, "profit": 500.00, ...}
+  ]
+}
+
+# Corporate actions (送转股)
+POST /api/holdings/{code}/adjust
+{
+  "date": "2026-06-15",
+  "type": "split",       # or "bonus", "dividend"
+  "ratio": 1.3,          # 10送3 → 1.3x
+  "dividend_per_share": 0.2
+}
+```
+
+### Frontend Integration
+
+- Each stock card shows holdings summary (if any): quantity, avg cost, unrealized PnL, T-trade profits
+- Click **「记」** button on card to open trade entry modal
+- Holdings data auto-refreshes with dashboard
+
+### Data File
+
+Holdings stored in `data/{code}/holdings.json`:
+```json
+{
+  "trades": [...],
+  "t_trades": [...],
+  "adj_events": [...],
+  "summary": {...}
+}
+```
+
 ## Deployment
 
 ### Current Deployment (Single VM)

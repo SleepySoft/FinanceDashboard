@@ -35,6 +35,7 @@ data/
 └── {CODE}/                  # One dir per stock (e.g. 002430.SZ/)
     ├── meta.json            # Tags, marks, cache timestamps, report list
     ├── notes.md             # User notes (markdown, ## timestamp format)
+    ├── holdings.json        # Trade history + T-trade analysis + position summary
     └── reports/
         ├── fundamental_YYYYMMDD.md   # Fundamental analysis ONLY
         └── technical_YYYYMMDD.md     # Technical analysis ONLY
@@ -63,6 +64,11 @@ data/
 | `/api/stocks/{code}/price-marks` | POST | Add price mark |
 | `/api/stocks/{code}/notes` | GET/POST | Notes |
 | `/api/stocks/{code}/reports/{id}` | GET | Report content (Markdown) |
+| `/api/holdings` | GET | List all holdings summaries |
+| `/api/holdings/{code}` | GET | Holdings detail (position + T-trades) |
+| `/api/holdings/{code}/trades` | POST | Record a trade (buy/sell) |
+| `/api/holdings/{code}/trades/{id}` | DELETE | Remove a trade and rebuild |
+| `/api/holdings/{code}/adjust` | POST | Corporate action (split/bonus/dividend) |
 
 ## API Endpoints (Agent-facing)
 
@@ -128,12 +134,14 @@ nohup npx vite --host 0.0.0.0 --port 80 > /tmp/vite.log 2>&1 &
 ## Open TODOs
 
 - [x] **Separate fundamental/technical reports** — Backend API now supports `reports` array in complete endpoint. Agent MUST generate two files for `full` analysis.
+- [x] **Holdings & T-trade tracking** — Smart FIFO + intraday LIFO matching, trade entry modal, holdings display on cards
 - [ ] Move `.env` from legacy path to `/root/data/FinanceDashboard/.env`
 - [ ] Frontend Markdown rendering: add marked.js for proper tables/code blocks
 - [ ] Add stock code validation/normalization (A-share format auto-correction)
 - [ ] Consider adding cron for periodic price refresh (currently only manual + frontend poll)
 - [ ] Test end-to-end: web submit request → agent claim → analysis → report display
 - [ ] Add search/filter to Dashboard
+- [ ] OCR trade entry from screenshots (user uploads screenshot → auto-recognize price/qty)
 
 ## How to Update This File
 
