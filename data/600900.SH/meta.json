@@ -1,23 +1,5 @@
 {
   "code": "600900.SH",
   "name": "长江电力",
-  "sector": "电力",
-  "added_at": "2026-07-21T14:49:10.592084+00:00",
-  "tags": {
-    "overall": "none",
-    "watchlist": false
-  },
-  "price_marks": [],
-  "daily_briefs": [],
-  "notes": [],
-  "cache": {
-    "fundamental": {
-      "last": null,
-      "valid_until": null
-    },
-    "technical": {
-      "last": null,
-      "valid_until": null
-    }
-  }
+  "sector": "电力"
 }

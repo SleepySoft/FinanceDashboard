@@ -1,23 +1,7 @@
 {
-  "tags": {
-    "overall": "yellow",
-    "watchlist": true,
-    "quality": "green",
-    "valuation": "red",
-    "timing": "yellow",
-    "risk": "yellow",
-    "verdict": "yellow"
-  },
-  "price_marks": [
-    {
-      "id": "a0680d6e",
-      "label": "标记",
-      "price": 36.63,
-      "type": "mark",
-      "created_at": "2026-07-21T01:57:25.545885+00:00"
-    }
-  ],
-  "created_at": "2026-07-21",
-  "daily_briefs": [],
-  "status": "bullish"
+  "code": "688721.SH",
+  "name": "龙图光罩",
+  "sector": "半导体",
+  "added_at": "2026-07-21T14:49:10.592084+00:00",
+  "notes": "2025年报营收2.47亿元(+0.06%)，归母净利润5608.85万元(-38.92%)，毛利率45.32%。半导体掩模版厂商，珠海新厂产能爬坡中。"
 }
