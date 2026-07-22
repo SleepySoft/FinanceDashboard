@@ -17,5 +17,9 @@
       "valid_until": null
     },
     "technical": {}
+  },
+  "tags": {
+    "overall": "none",
+    "watchlist": false
   }
 }

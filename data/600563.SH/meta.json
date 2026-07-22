@@ -1,5 +1,9 @@
 {
   "code": "600563.SH",
   "name": "法拉电子",
-  "sector": "电子元件"
+  "sector": "电子元件",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

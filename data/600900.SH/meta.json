@@ -1,5 +1,9 @@
 {
   "code": "600900.SH",
   "name": "长江电力",
-  "sector": "电力"
+  "sector": "电力",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

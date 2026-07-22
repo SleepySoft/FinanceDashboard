@@ -1,20 +1,5 @@
 {
   "code": "300628.SZ",
   "name": "亿联网络",
-  "sector": "通信设备",
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "filename": "fundamental_20260719.md",
-      "type": "fundamental",
-      "created_at": "2026-07-19"
-    }
-  ],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": null
-    },
-    "technical": {}
-  }
+  "sector": "通信设备"
 }

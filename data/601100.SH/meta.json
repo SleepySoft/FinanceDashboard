@@ -1,5 +1,9 @@
 {
   "code": "601100.SH",
   "name": "恒立液压",
-  "sector": "机械设备"
+  "sector": "机械设备",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

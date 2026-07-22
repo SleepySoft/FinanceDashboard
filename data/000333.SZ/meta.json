@@ -1,5 +1,9 @@
 {
   "code": "000333.SZ",
   "name": "美的集团",
-  "sector": "家电"
+  "sector": "家电",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

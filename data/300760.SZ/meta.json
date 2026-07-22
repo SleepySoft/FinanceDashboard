@@ -1,5 +1,9 @@
 {
   "code": "300760.SZ",
   "name": "迈瑞医疗",
-  "sector": "医疗器械"
+  "sector": "医疗器械",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

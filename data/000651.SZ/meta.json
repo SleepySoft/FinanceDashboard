@@ -1,5 +1,9 @@
 {
   "code": "000651.SZ",
   "name": "格力电器",
-  "sector": "家电"
+  "sector": "家电",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

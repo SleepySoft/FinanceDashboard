@@ -1,5 +1,9 @@
 {
   "code": "605499.SH",
   "name": "东鹏饮料",
-  "sector": "食品饮料"
+  "sector": "食品饮料",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

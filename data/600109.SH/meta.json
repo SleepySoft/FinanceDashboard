@@ -1,5 +1,9 @@
 {
   "code": "600109.SH",
   "name": "国金证券",
-  "sector": "券商"
+  "sector": "券商",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  }
 }

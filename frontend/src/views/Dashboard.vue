@@ -1,5 +1,8 @@
 <template>
   <div class="dashboard">
+    <!-- Overlay when status menu is open -->
+    <div v-if="statusMenuCode" class="status-overlay" @click="statusMenuCode = null"></div>
+
     <!-- Controls row: view tabs + filters + refresh -->
     <div class="dash-header">
       <div class="view-tabs mini">
@@ -1226,6 +1229,13 @@ onUnmounted(stopAutoRefresh)
 .status-no_interest { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.25); }
 .status-blacklist { background: rgba(127, 29, 29, 0.25); color: #fca5a5; border: 1px solid rgba(127, 29, 29, 0.4); }
 .status-archive { background: rgba(71, 85, 105, 0.2); color: #64748b; border: 1px solid rgba(71, 85, 105, 0.3); }
+
+.status-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 90;
+  background: rgba(0,0,0,0.15);
+}
 
 .status-dropdown {
   position: absolute;
