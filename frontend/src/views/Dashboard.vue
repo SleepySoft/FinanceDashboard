@@ -85,7 +85,11 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
+                  <div v-if="statusMenuCode === s.code" class="status-dropdown" @click.stop>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click="setStatus(s, st.key)">{{ st.label }}</div>
+                  </div>
                 </div>
                 <div class="stock-price-row">
                   <span class="price-current" :class="priceClass(s.change_pct)">
@@ -165,7 +169,11 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
+                  <div v-if="statusMenuCode === s.code" class="status-dropdown" @click.stop>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click="setStatus(s, st.key)">{{ st.label }}</div>
+                  </div>
                 </div>
                 <div class="stock-price-row">
                   <span class="price-current" :class="priceClass(s.change_pct)">
@@ -244,7 +252,11 @@
                   <span class="stock-code">{{ s.code }}</span>
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
+                  <div v-if="statusMenuCode === s.code" class="status-dropdown" @click.stop>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click="setStatus(s, st.key)">{{ st.label }}</div>
+                  </div>
                 </div>
                 <div class="stock-price-row">
                   <span class="price-current" :class="priceClass(s.change_pct)">
@@ -554,6 +566,40 @@ const tradeForm = ref({
 })
 const tradeSubmitting = ref(false)
 
+// Status tag quick-edit
+const statusMenuCode = ref(null)
+const statusOptions = [
+  { key: 'core_position', label: '💎 底仓备选' },
+  { key: 'tracking', label: '🔭 跟踪中' },
+  { key: 'bullish', label: '看好' },
+  { key: 'neutral', label: '观望' },
+  { key: 'waiting', label: '伺机' },
+  { key: 'avoid', label: '回避' },
+  { key: 'no_interest', label: '无兴趣' },
+  { key: 'blacklist', label: '黑名单' },
+  { key: 'archive', label: '📁 归档' },
+]
+function statusShort(status) {
+  const map = {
+    core_position: '💎', tracking: '🔭', bullish: '看好', neutral: '观望',
+    waiting: '伺机', avoid: '回避', no_interest: '无感', blacklist: '拉黑', archive: '归档'
+  }
+  return map[status] || '观望'
+}
+function toggleStatusMenu(code) {
+  statusMenuCode.value = statusMenuCode.value === code ? null : code
+}
+async function setStatus(stock, newStatus) {
+  try {
+    await api.stocks.updateStatus(stock.code, newStatus)
+    stock.status = newStatus
+    statusMenuCode.value = null
+  } catch (e) {
+    console.error(e)
+    alert('更新失败')
+  }
+}
+
 // Read view from URL query
 const queryView = route.query.view
 if (queryView && ['grouped', 'matrix', 'list'].includes(queryView)) {
@@ -719,8 +765,8 @@ const sectors = computed(() => {
 
 // ── Status groups ──
 const statusGroups = computed(() => {
-  const order = ['tracking', 'bullish', 'neutral', 'waiting', 'avoid', 'no_interest', 'blacklist', 'archive']
-  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
+  const order = ['core_position', 'tracking', 'bullish', 'neutral', 'waiting', 'avoid', 'no_interest', 'blacklist', 'archive']
+  const labels = { core_position: '💎 底仓备选', tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
   return order.map(key => ({
     key,
     label: labels[key],
@@ -1159,4 +1205,50 @@ onUnmounted(stopAutoRefresh)
 .holdings-summary-bar .hs-item { color: #94a3b8; white-space: nowrap; }
 .holdings-summary-bar .hs-pnl { font-weight: 600; }
 .holdings-summary-bar .t-profit { color: #fbbf24; font-weight: 600; }
+
+/* ── Status badge & dropdown ── */
+.status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.status-badge:hover { opacity: 0.8; }
+.status-core_position { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.status-tracking { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.25); }
+.status-bullish { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+.status-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+.status-waiting { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.25); }
+.status-avoid { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+.status-no_interest { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.25); }
+.status-blacklist { background: rgba(127, 29, 29, 0.25); color: #fca5a5; border: 1px solid rgba(127, 29, 29, 0.4); }
+.status-archive { background: rgba(71, 85, 105, 0.2); color: #64748b; border: 1px solid rgba(71, 85, 105, 0.3); }
+
+.status-dropdown {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 120px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.status-option {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #e2e8f0;
+  cursor: pointer;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.status-option:hover { background: #1e293b; }
+.status-option.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
+
+.stock-title-row { position: relative; }
 </style>
