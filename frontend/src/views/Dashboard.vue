@@ -572,19 +572,19 @@ const tradeSubmitting = ref(false)
 // Status tag quick-edit
 const statusMenuCode = ref(null)
 const statusOptions = [
-  { key: 'tracking', label: '🔭 跟踪中' },
+  { key: 'tracking', label: '跟踪中' },
   { key: 'bullish', label: '看好' },
   { key: 'neutral', label: '观望' },
   { key: 'waiting', label: '伺机' },
-  { key: 'core_position', label: '💎 底仓备选' },
+  { key: 'core_position', label: '底仓备选' },
   { key: 'avoid', label: '回避' },
   { key: 'no_interest', label: '无兴趣' },
-  { key: 'archive', label: '📁 归档' },
+  { key: 'archive', label: '归档' },
   { key: 'blacklist', label: '黑名单' },
 ]
 function statusShort(status) {
   const map = {
-    core_position: '💎', tracking: '🔭', bullish: '看好', neutral: '观望',
+    core_position: '底仓', tracking: '跟踪', bullish: '看好', neutral: '观望',
     waiting: '伺机', avoid: '回避', no_interest: '无感', blacklist: '拉黑', archive: '归档'
   }
   return map[status] || '观望'
@@ -801,7 +801,7 @@ const sectors = computed(() => {
 // ── Status groups ──
 const statusGroups = computed(() => {
   const order = ['tracking', 'bullish', 'neutral', 'waiting', 'core_position', 'avoid', 'no_interest', 'archive', 'blacklist']
-  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', core_position: '💎 底仓备选', avoid: '回避', no_interest: '无兴趣', archive: '📁 归档', blacklist: '黑名单' }
+  const labels = { tracking: '跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', core_position: '底仓备选', avoid: '回避', no_interest: '无兴趣', archive: '归档', blacklist: '黑名单' }
   return order.map(key => ({
     key,
     label: labels[key],
@@ -1016,20 +1016,21 @@ onUnmounted(stopAutoRefresh)
 .verdict-red { background: #7f1d1d; color: #f87171; }
 .verdict-none { background: #334155; color: #64748b; }
 
-.tag-badge { display: inline-block; padding: 3px 12px; border-radius: 4px; font-size: 13px; font-weight: 600; }
-.tag-green { background: #064e3b; color: #34d399; }
-.tag-yellow { background: #713f12; color: #fbbf24; }
-.tag-red { background: #7f1d1d; color: #f87171; }
-.tag-none { background: #334155; color: #94a3b8; }
-.tag-tracking { background: #1e3a5f; color: #60a5fa; }
-.tag-bullish { background: #064e3b; color: #34d399; }
-.tag-neutral { background: #713f12; color: #fbbf24; }
-.tag-avoid { background: #7f1d1d; color: #f87171; }
-.tag-no_interest { background: #334155; color: #94a3b8; }
-.tag-blacklist { background: #000000; color: #f87171; }
-.tag-waiting { background: #3d2c12; color: #fbbf24; }
-.tag-archive { background: #334155; color: #94a3b8; }
-.tag-watch { background: #1e3a5f; color: #60a5fa; font-size: 11px; padding: 1px 8px; }
+.tag-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.tag-core_position { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.tag-tracking { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.25); }
+.tag-bullish { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+.tag-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+.tag-waiting { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.25); }
+.tag-avoid { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+.tag-no_interest { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.25); }
+.tag-blacklist { background: rgba(127, 29, 29, 0.25); color: #fca5a5; border: 1px solid rgba(127, 29, 29, 0.4); }
+.tag-archive { background: rgba(71, 85, 105, 0.2); color: #64748b; border: 1px solid rgba(71, 85, 105, 0.3); }
+.tag-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); }
+.tag-yellow { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.25); }
+.tag-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+.tag-none { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.25); }
+.tag-watch { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.25); }
 
 .marks-section { border-top: 1px solid #334155; padding-top: 8px; margin-bottom: 8px; }
 .mark-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
@@ -1240,12 +1241,13 @@ onUnmounted(stopAutoRefresh)
 /* ── Status badge & dropdown ── */
 .status-badge {
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
   cursor: pointer;
   user-select: none;
   transition: opacity 0.15s;
   white-space: nowrap;
+  font-weight: 600;
 }
 .status-badge:hover { opacity: 0.8; }
 .status-core_position { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
