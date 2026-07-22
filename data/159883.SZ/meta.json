@@ -2,24 +2,5 @@
   "code": "159883.SZ",
   "name": "医疗器械ETF",
   "sector": "ETF",
-  "added_at": "2026-07-21T06:52:17.032693+00:00",
-  "reports": [
-    {
-      "id": "fundamental_20260721",
-      "filename": "fundamental_20260721.md",
-      "type": "fundamental",
-      "created_at": "2026-07-21"
-    }
-  ],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-21",
-      "valid_until": null
-    },
-    "technical": {}
-  },
-  "tags": {
-    "overall": "none",
-    "watchlist": false
-  }
+  "added_at": "2026-07-21T06:52:17.032693+00:00"
 }

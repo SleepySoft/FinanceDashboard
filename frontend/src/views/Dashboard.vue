@@ -87,8 +87,8 @@
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
-                  <div v-if="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click="setStatus(s, st.key)">{{ st.label }}</div>
+                  <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -171,8 +171,8 @@
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
-                  <div v-if="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click="setStatus(s, st.key)">{{ st.label }}</div>
+                  <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -254,8 +254,8 @@
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
-                  <div v-if="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click="setStatus(s, st.key)">{{ st.label }}</div>
+                  <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -1251,21 +1251,23 @@ onUnmounted(stopAutoRefresh)
   position: absolute;
   top: 28px;
   right: 0;
-  background-color: #0f172a;
-  border: 1px solid #334155;
+  background-color: #020617;
+  border: 1px solid #475569;
   border-radius: 6px;
-  padding: 4px;
+  padding: 2px;
   min-width: 120px;
   z-index: 10001;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  pointer-events: auto;
 }
 .status-option {
-  padding: 6px 10px;
+  padding: 7px 12px;
   font-size: 12px;
   color: #e2e8f0;
   cursor: pointer;
   border-radius: 4px;
   white-space: nowrap;
+  pointer-events: auto;
 }
 .status-option:hover { background: #1e293b; }
 .status-option.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
