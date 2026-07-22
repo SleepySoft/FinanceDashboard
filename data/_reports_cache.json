@@ -328,5 +328,61 @@
       }
     ],
     "updated_at": "2026-07-21T10:23:31.034824+00:00"
+  },
+  "000526.SZ": {
+    "name": "学大教育",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T02:01:00.000000+00:00"
+  },
+  "000668.SZ": {
+    "name": "荣丰控股",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T02:01:00.000000+00:00"
+  },
+  "000539.SZ": {
+    "name": "粤电力A",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T02:01:00.000000+00:00"
+  },
+  "000001.SZ": {
+    "name": "平安银行",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T02:01:00.000000+00:00"
   }
 }

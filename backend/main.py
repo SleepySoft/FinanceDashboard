@@ -1421,11 +1421,287 @@ def list_holdings():
             })
     return results
 
+import anomaly as anomaly_module
+
 # ═══════════════════════════════════════════════════════
-#  Static Files (SPA)
+#  Anomaly Detection (异动监控)
 # ═══════════════════════════════════════════════════════
 
-# Serve frontend dist files; API routes above take precedence
-FRONTEND_DIST = os.path.join(os.path.dirname(BASE_DIR), "frontend", "dist")
-if os.path.exists(FRONTEND_DIST):
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="static")
+class AnomalyScanReq(BaseModel):
+    date: Optional[str] = None          # YYYY-MM-DD, None=auto
+    sample_size: Optional[int] = None   # 限制扫描数量（测试用）
+    min_score: Optional[int] = 60       # 最低分数
+
+@app.get("/api/anomalies")
+def list_anomaly_dates():
+    """获取所有有异动记录的日期"""
+    dates = anomaly_module.get_all_dates()
+    return {"dates": dates, "count": len(dates)}
+
+@app.get("/api/anomalies/{date}")
+def get_anomalies_by_date(date: str):
+    """获取指定日期的异动详情。支持特殊值 'latest'"""
+    if date == "latest":
+        # 找到最近有数据的日期
+        import json
+        anomaly_file = os.path.join(REPORTS_DIR, "_anomalies.json")
+        if not os.path.exists(anomaly_file):
+            return {"date": None, "stocks": [], "sectors": []}
+        with open(anomaly_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        daily = data.get("daily", {})
+        for d in sorted(daily.keys(), reverse=True):
+            record = daily[d]
+            stocks = record.get("stocks", [])
+            sectors = record.get("sectors", [])
+            if stocks or sectors:
+                return {"date": d, "stocks": stocks, "sectors": sectors}
+        return {"date": None, "stocks": [], "sectors": []}
+    data = anomaly_module.get_daily_anomalies(date)
+    return data
+
+@app.get("/api/anomalies/weekly/{date}")
+def get_weekly_anomalies(date: str):
+    """获取指定日期所在周的异动汇总"""
+    weekly = anomaly_module.aggregate_weekly(date)
+    return weekly
+
+@app.post("/api/anomalies/scan")
+def trigger_anomaly_scan(req: AnomalyScanReq = AnomalyScanReq()):
+    """
+    手动触发异动扫描。
+    建议通过cron每日收盘后自动执行，这里提供手动触发入口。
+    """
+    try:
+        result = anomaly_module.run_daily_scan(
+            trade_date=req.date,
+            sample_size=req.sample_size
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(500, f"Scan failed: {str(e)}")
+
+@app.post("/api/anomalies/{code}/add-to-dashboard")
+def add_anomaly_to_dashboard(code: str):
+    """
+    将异动股票加入主看板（创建stock目录）。
+    这样用户就可以对其进行深入分析了。
+    """
+    code = code.upper().strip()
+    
+    # 检查是否已存在（使用main.py自己的函数）
+    if os.path.exists(_meta_path(code)):
+        return {"status": "exists", "message": f"{code} already in dashboard"}
+    
+    # 初始化股票目录
+    from anomaly import TushareClient
+    client = TushareClient()
+    df = client.get_stock_basic()
+    name = code
+    sector = ""
+    if df is not None:
+        row = df[df["ts_code"] == code]
+        if not row.empty:
+            name = row.iloc[0].get("name", code)
+            sector = row.iloc[0].get("industry", "")
+    
+    _init_stock(code, name, sector)
+    
+    return {
+        "status": "ok",
+        "code": code,
+        "name": name,
+        "sector": sector,
+        "message": f"Added {name}({code}) to dashboard"
+    }
+
+@app.get("/api/anomalies/latest")
+def get_latest_anomalies():
+    """Get latest date with actual anomaly data"""
+    anomaly_file = os.path.join(REPORTS_DIR, "_anomalies.json")
+    if not os.path.exists(anomaly_file):
+        return {"date": None, "stocks": [], "sectors": []}
+    with open(anomaly_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    daily = data.get("daily", {})
+    dates = sorted(daily.keys(), reverse=True)
+    for d in dates:
+        record = daily[d]
+        stocks = record.get("stocks", [])
+        sectors = record.get("sectors", [])
+        if stocks or sectors:
+            return {"date": d, "stocks": stocks, "sectors": sectors}
+    return {"date": None, "stocks": [], "sectors": []}
+
+# ═══════════════════════════════════════════════════════
+#  Report Status API (for AI agent self-check)
+# ═══════════════════════════════════════════════════════
+
+# 报告有效期（天）
+# 技术分析时效短（市场变化快），财务分析时效长（基本面变化慢）
+FUNDAMENTAL_VALIDITY_DAYS = 90
+TECHNICAL_VALIDITY_DAYS = 7
+
+def _scan_stock_reports(stock_dir: str):
+    """
+    扫描某只股票的reports目录，返回按类型聚合的报告信息。
+    返回: {
+        "fundamental": {"latest_date": "2026-07-21", "count": 2, "files": [...]},
+        "technical": {"latest_date": null, "count": 0, "files": []},
+        ...
+    }
+    """
+    reports_dir = os.path.join(stock_dir, "reports")
+    type_map = {}  # { "fundamental": {latest_date, count, files}, ... }
+
+    if not os.path.exists(reports_dir):
+        return type_map
+
+    for fname in os.listdir(reports_dir):
+        if not fname.endswith(".md"):
+            continue
+        # 文件名格式: fundamental_20260722.md, technical_20260721.md, etc.
+        base = fname.replace(".md", "")
+        parts = base.split("_")
+        if len(parts) < 2:
+            continue
+        rtype = parts[0]
+        date_str = parts[-1]
+        if len(date_str) != 8 or not date_str.isdigit():
+            continue
+        iso_date = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
+
+        if rtype not in type_map:
+            type_map[rtype] = {"latest_date": None, "count": 0, "files": []}
+        type_map[rtype]["count"] += 1
+        type_map[rtype]["files"].append({"filename": fname, "date": iso_date})
+        if type_map[rtype]["latest_date"] is None or iso_date > type_map[rtype]["latest_date"]:
+            type_map[rtype]["latest_date"] = iso_date
+
+    return type_map
+
+def _is_report_expired(report_date_str: Optional[str], report_type: str) -> bool:
+    """判断报告是否过期。根据报告类型使用不同有效期。"""
+    if not report_date_str:
+        return True
+    try:
+        report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
+        days = (datetime.now(timezone.utc).date() - report_date).days
+        if report_type == "fundamental":
+            return days > FUNDAMENTAL_VALIDITY_DAYS
+        elif report_type == "technical":
+            return days > TECHNICAL_VALIDITY_DAYS
+        else:
+            return days > 30  # 默认30天
+    except Exception:
+        return True
+
+@app.get("/api/reports/status")
+def get_reports_status():
+    """
+    返回所有股票的分析报告状态，供AI自检使用。
+
+    返回格式:
+    {
+      "total": 30,
+      "analyzed": 22,
+      "pending": 8,
+      "latest_date": "2026-07-22",
+      "stocks": {
+        "300346.SZ": {
+          "name": "南大光电",
+          "sector": "电子化学品",
+          "fundamental": "2026-07-21",
+          "technical": "2026-07-20",
+          "status": "analyzed"
+        },
+        ...
+      }
+    }
+
+    status规则:
+    - pending  = 没有任何报告
+    - analyzed = 有报告且至少一份在30天有效期内
+    - expired  = 有报告但全部超过30天
+    """
+    stocks_data = {}
+    total = 0
+    analyzed_count = 0
+    pending_count = 0
+    expired_count = 0
+    global_latest = None
+
+    for entry in os.listdir(REPORTS_DIR):
+        # 匹配股票代码格式
+        if not (entry.endswith(".SZ") or entry.endswith(".SH") or entry.endswith(".BJ") or entry.endswith(".HK")):
+            continue
+
+        stock_dir = os.path.join(REPORTS_DIR, entry)
+        if not os.path.isdir(stock_dir):
+            continue
+
+        # 读取meta
+        name = entry
+        sector = ""
+        meta_path = os.path.join(stock_dir, "meta.json")
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                name = meta.get("name", entry)
+                sector = meta.get("sector", "")
+            except Exception:
+                pass
+
+        # 扫描报告
+        type_map = _scan_stock_reports(stock_dir)
+
+        # 构建该股票的记录
+        stock_rec = {"name": name, "sector": sector}
+        has_any_report = False
+        has_valid_report = False
+        stock_latest = None
+
+        for rtype in ["fundamental", "technical"]:
+            info = type_map.get(rtype)
+            if info and info["latest_date"]:
+                has_any_report = True
+                stock_rec[rtype] = info["latest_date"]
+                if stock_latest is None or info["latest_date"] > stock_latest:
+                    stock_latest = info["latest_date"]
+                if not _is_report_expired(info["latest_date"], rtype):
+                    has_valid_report = True
+            else:
+                stock_rec[rtype] = None
+
+        # 确定状态
+        if not has_any_report:
+            stock_rec["status"] = "pending"
+            pending_count += 1
+        elif has_valid_report:
+            stock_rec["status"] = "analyzed"
+            analyzed_count += 1
+        else:
+            stock_rec["status"] = "expired"
+            expired_count += 1
+
+        # 更新全局最新日期
+        if stock_latest:
+            if global_latest is None or stock_latest > global_latest:
+                global_latest = stock_latest
+
+        stocks_data[entry] = stock_rec
+        total += 1
+
+    return {
+        "total": total,
+        "analyzed": analyzed_count,
+        "pending": pending_count,
+        "expired": expired_count,
+        "latest_date": global_latest,
+        "validity": {
+            "fundamental_days": FUNDAMENTAL_VALIDITY_DAYS,
+            "technical_days": TECHNICAL_VALIDITY_DAYS
+        },
+        "stocks": stocks_data
+    }

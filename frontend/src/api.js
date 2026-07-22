@@ -50,6 +50,14 @@ export default {
   prices: {
     refresh: () => api('/prices/refresh'),
   },
+  anomalies: {
+    listDates: () => api('/anomalies'),
+    getByDate: (date) => api(`/anomalies/${date}`),
+    getWeekly: (date) => api(`/anomalies/weekly/${date}`),
+    getLatest: () => api('/anomalies/latest'),
+    scan: (date, sampleSize, minScore) => api('/anomalies/scan', { method: 'POST', body: { date, sample_size: sampleSize, min_score: minScore } }),
+    addToDashboard: (code) => api(`/anomalies/${code}/add-to-dashboard`, { method: 'POST' }),
+  },
   health: () => api('/health'),
   holdings: {
     list: () => api('/holdings'),

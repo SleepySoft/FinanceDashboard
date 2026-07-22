@@ -13,6 +13,7 @@
         </button>
       </div>
       <div class="toolbar-inline">
+        <router-link to="/anomalies" class="anomaly-link">📡 异动雷达</router-link>
         <div class="group-tabs" v-if="viewMode === 'grouped'">
           <button
             v-for="gm in groupModes"
@@ -878,6 +879,21 @@ onUnmounted(stopAutoRefresh)
 .btn-holdings:hover { background: #2563eb; color: white; }
 .hs-link { margin-left: auto; padding: 3px 10px; border-radius: 5px; background: #1e293b; color: #60a5fa; font-size: 12px; font-weight: 500; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
 .hs-link:hover { background: #334155; color: #93c5fd; }
+
+.anomaly-link {
+  font-size: 12px;
+  color: #fbbf24;
+  text-decoration: none;
+  padding: 4px 10px;
+  background: #1e293b;
+  border-radius: 4px;
+  margin-right: 8px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.anomaly-link:hover {
+  background: #334155;
+}
 
 .group-tabs { display: flex; gap: 2px; background: #0f172a; padding: 2px; border-radius: 5px; flex-shrink: 0; }
 .group-tab { padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid #334155; white-space: nowrap; }

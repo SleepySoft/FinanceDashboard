@@ -36,11 +36,13 @@
       "type": "sell",
       "price": 58.11,
       "quantity": 100
-    }
+    },
+    "last_buy_price": 57.03,
+    "last_sell_price": 58.11
   },
   "t_trades": [
     {
-      "id": "tt_a2355e29",
+      "id": "tt_de30996c",
       "type": "底仓卖出",
       "buy_date": "2026-05-28",
       "buy_price": 57.03,

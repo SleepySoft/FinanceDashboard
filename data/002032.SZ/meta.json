@@ -1,0 +1,23 @@
+{
+  "code": "002032.SZ",
+  "name": "苏泊尔",
+  "sector": "家用电器",
+  "added_at": "2026-07-21T14:49:10.591094+00:00",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  },
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "last": null,
+      "valid_until": null
+    },
+    "technical": {
+      "last": null,
+      "valid_until": null
+    }
+  }
+}

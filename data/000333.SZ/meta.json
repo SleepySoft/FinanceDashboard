@@ -1,0 +1,23 @@
+{
+  "code": "000333.SZ",
+  "name": "美的集团",
+  "sector": "家用电器",
+  "added_at": "2026-07-21T14:49:10.591642+00:00",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  },
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "last": null,
+      "valid_until": null
+    },
+    "technical": {
+      "last": null,
+      "valid_until": null
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "code": "605499.SH",
+  "name": "东鹏饮料",
+  "sector": "食品饮料",
+  "added_at": "2026-07-21T14:49:10.590869+00:00",
+  "tags": {
+    "overall": "none",
+    "watchlist": false
+  },
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "last": null,
+      "valid_until": null
+    },
+    "technical": {
+      "last": null,
+      "valid_until": null
+    }
+  }
+}

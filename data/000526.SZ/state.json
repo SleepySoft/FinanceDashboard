@@ -1,0 +1,25 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "green",
+    "valuation": "yellow",
+    "timing": "red",
+    "risk": "yellow",
+    "verdict": "yellow"
+  },
+  "status": "watching",
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [
+    "07-21异动：涨停10%，突破前高28.90，量比2.1，分数100(strong)",
+    "2025年报：营收32.27亿(+15.8%)，净利1.95亿(+8.6%)",
+    "ROE 20.59%，经营现金流7.39亿，现金流扎实",
+    "负债率76.8%偏高，K12个性化教育，政策风险已消化",
+    "策略：等回调到28附近再观察，涨停后追高风险大"
+  ],
+  "cache": {
+    "fundamental": {"last": "2026-07-22", "valid_until": "2026-10-22", "expired": false},
+    "technical": {"last": null, "valid_until": null, "expired": true}
+  }
+}
