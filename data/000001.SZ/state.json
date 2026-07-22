@@ -8,7 +8,7 @@
     "risk": "yellow",
     "verdict": "yellow"
   },
-  "status": "waiting",
+  "status": "core_position",
   "price_marks": [],
   "daily_briefs": [],
   "notes": [
@@ -16,9 +16,5 @@
     "亮点：净息差环比+13BP，管理层表态2026年重回增长",
     "当前PB<0.5，极低估，但拐点未确认",
     "策略：等Q2数据确认拐点后再进场"
-  ],
-  "cache": {
-    "fundamental": {"last": "2026-07-22", "valid_until": "2026-10-22", "expired": false},
-    "technical": {"last": null, "valid_until": null, "expired": true}
-  }
+  ]
 }

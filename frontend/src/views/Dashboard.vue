@@ -1,8 +1,5 @@
 <template>
-  <div class="dashboard">
-    <!-- Overlay when status menu is open -->
-    <div v-if="statusMenuCode" class="status-overlay" @click="statusMenuCode = null"></div>
-
+  <div class="dashboard" ref="dashboardRef">
     <!-- Controls row: view tabs + filters + refresh -->
     <div class="dash-header">
       <div class="view-tabs mini">
@@ -83,7 +80,7 @@
               @click="openStock(s.code)"
             >
               <div class="stock-main">
-                <div class="stock-title-row">
+                <div class="stock-title-row" :class="{ 'status-dropdown-open': statusMenuCode === s.code }">
                   <span class="stock-code">{{ s.code }}</span>
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
@@ -167,7 +164,7 @@
               @click="openStock(s.code)"
             >
               <div class="stock-main">
-                <div class="stock-title-row">
+                <div class="stock-title-row" :class="{ 'status-dropdown-open': statusMenuCode === s.code }">
                   <span class="stock-code">{{ s.code }}</span>
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
@@ -251,7 +248,7 @@
               @click="openStock(s.code)"
             >
               <div class="stock-main">
-                <div class="stock-title-row">
+                <div class="stock-title-row" :class="{ 'status-dropdown-open': statusMenuCode === s.code }">
                   <span class="stock-code">{{ s.code }}</span>
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
@@ -602,6 +599,23 @@ async function setStatus(stock, newStatus) {
     alert('更新失败')
   }
 }
+
+// Close status menu when clicking outside
+const dashboardRef = ref(null)
+function handleDocClick(e) {
+  if (statusMenuCode.value && dashboardRef.value) {
+    const openCard = dashboardRef.value.querySelector('.status-dropdown-open')
+    if (openCard && !openCard.contains(e.target)) {
+      statusMenuCode.value = null
+    }
+  }
+}
+onMounted(() => {
+  document.addEventListener('click', handleDocClick)
+})
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocClick)
+})
 
 // Read view from URL query
 const queryView = route.query.view
@@ -1230,12 +1244,8 @@ onUnmounted(stopAutoRefresh)
 .status-blacklist { background: rgba(127, 29, 29, 0.25); color: #fca5a5; border: 1px solid rgba(127, 29, 29, 0.4); }
 .status-archive { background: rgba(71, 85, 105, 0.2); color: #64748b; border: 1px solid rgba(71, 85, 105, 0.3); }
 
-.status-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 9990;
-  background: rgba(0,0,0,0.2);
-}
+.stock-title-row { position: relative; }
+.stock-title-row.status-dropdown-open { z-index: 10000; }
 
 .status-dropdown {
   position: absolute;
@@ -1246,12 +1256,10 @@ onUnmounted(stopAutoRefresh)
   border-radius: 6px;
   padding: 4px;
   min-width: 120px;
-  z-index: 10000;
+  z-index: 10001;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 .status-option {
-  position: relative;
-  z-index: 10001;
   padding: 6px 10px;
   font-size: 12px;
   color: #e2e8f0;
@@ -1261,6 +1269,4 @@ onUnmounted(stopAutoRefresh)
 }
 .status-option:hover { background: #1e293b; }
 .status-option.active { background: #1e3a5f; color: #60a5fa; font-weight: 600; }
-
-.stock-title-row { position: relative; }
 </style>
