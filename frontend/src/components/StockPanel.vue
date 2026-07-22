@@ -56,7 +56,7 @@
     </div>
 
     <!-- Reports Timeline -->
-    <div class="card" style="padding: 0">
+    <div class="card" style="padding: 0; overflow: visible">
       <div class="analysis-header" @click="showFund = !showFund" style="padding: 14px 16px">
         <div class="analysis-title">
           <span class="analysis-icon">📊</span>
@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <div v-show="showFund" style="padding: 0 16px 16px">
+      <div v-show="showFund">
         <div v-if="allReports.length > 0" class="report-timeline">
           <div
             v-for="(r, idx) in allReports"
@@ -694,47 +694,46 @@ onMounted(load)
 .timeline-latest { font-size: 11px; padding: 1px 8px; border-radius: 4px; background: #3b82f6; color: white; font-weight: 500; }
 
 /* Report Timeline - new unified view */
-.report-timeline { position: relative; padding-left: 20px; }
+.report-timeline { position: relative; padding-left: 6px; }
 .report-timeline::before {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 8px;
-  bottom: 8px;
+  left: 2px;
+  top: 6px;
+  bottom: 6px;
   width: 1px;
   background: #334155;
 }
-.timeline-item { position: relative; margin-bottom: 8px; }
+.timeline-item { position: relative; margin-bottom: 6px; }
 .timeline-item:last-child { margin-bottom: 0; }
 .timeline-item.expanded .timeline-header-row { background: #1e293b; border-color: #475569; }
 .timeline-line {
   position: absolute;
-  left: -14px;
-  top: 18px;
-  bottom: -8px;
+  left: -4px;
+  top: 14px;
+  bottom: -6px;
   width: 1px;
   background: #334155;
 }
 .timeline-dot {
   position: absolute;
-  left: -17px;
-  top: 10px;
-  width: 7px;
-  height: 7px;
+  left: -7px;
+  top: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #475569;
-  border: 2px solid #0f172a;
+  border: 1.5px solid #0f172a;
   z-index: 1;
 }
 .timeline-dot.badge-fund { background: #60a5fa; }
 .timeline-dot.badge-tech { background: #fbbf24; }
 .timeline-dot.badge-full { background: #34d399; }
-.timeline-body { flex: 1; }
 .timeline-header-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 8px 10px 8px 6px;
   background: #0f172a;
   border: 1px solid #334155;
   border-radius: 6px;
@@ -760,7 +759,7 @@ onMounted(load)
 .timeline-header-row:hover .btn-delete { opacity: 1; }
 .btn-delete:hover { color: #f87171; background: #7f1d1d; }
 .timeline-content {
-  padding: 12px;
+  padding: 10px 10px 10px 12px;
   border: 1px solid #334155;
   border-top: none;
   border-radius: 0 0 6px 6px;
