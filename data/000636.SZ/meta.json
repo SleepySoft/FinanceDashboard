@@ -1,24 +1,5 @@
 {
   "code": "000636.SZ",
   "name": "风华高科",
-  "sector": "电子元件/MLCC",
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "filename": "fundamental_20260719.md",
-      "type": "fundamental",
-      "created_at": "2026-07-19"
-    }
-  ],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-19",
-      "valid_until": null
-    },
-    "technical": {}
-  },
-  "tags": {
-    "overall": "none",
-    "watchlist": false
-  }
+  "sector": "电子元件/MLCC"
 }

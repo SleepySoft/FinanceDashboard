@@ -10,16 +10,23 @@
   },
   "status": "skipped",
   "price_marks": [],
-  "daily_briefs": [],
+  "daily_briefs": [
+    {
+      "id": "4357025c",
+      "date": "2026-07-22",
+      "content": "低开后震荡走高，收涨6.8%，振幅较大",
+      "has_value": true,
+      "price": 6.46,
+      "change_pct": 6.78,
+      "amplitude": 11.57,
+      "created_at": "2026-07-22T07:30:01.704864+00:00"
+    }
+  ],
   "notes": [
     "07-21异动：涨4%，振幅11%，量比2.1，分数74(notable)",
     "2025年报：营收515亿(-9.8%)，净利6亿(-37.8%)，Q1仍在亏损",
     "6月初被狂炒'算力+电力'概念，4天涨40%后已腰斩",
     "公司澄清：新疆算力项目利润仅7.22万，占净利润0.01%",
     "策略：概念炒作后一地鸡毛，业绩差，远离"
-  ],
-  "cache": {
-    "fundamental": {"last": "2026-07-22", "valid_until": "2026-10-22", "expired": false},
-    "technical": {"last": null, "valid_until": null, "expired": true}
-  }
+  ]
 }

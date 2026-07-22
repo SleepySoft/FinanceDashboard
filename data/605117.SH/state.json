@@ -4,6 +4,27 @@
     "watchlist": false
   },
   "price_marks": [],
-  "daily_briefs": [],
+  "daily_briefs": [
+    {
+      "id": "5ce86565",
+      "date": "2026-07-20",
+      "content": "平开后震荡走高，收跌3.0%",
+      "has_value": true,
+      "price": 80.15,
+      "change_pct": -2.99,
+      "amplitude": null,
+      "created_at": "2026-07-20T00:14:18.478190+00:00"
+    },
+    {
+      "id": "ca8f0bd1",
+      "date": "2026-07-22",
+      "content": "小幅高开后震荡走低，微跌1.0%",
+      "has_value": true,
+      "price": 80.46,
+      "change_pct": -1.0,
+      "amplitude": 3.83,
+      "created_at": "2026-07-22T07:30:01.706333+00:00"
+    }
+  ],
   "notes": []
 }

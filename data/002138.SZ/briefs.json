@@ -8,5 +8,15 @@
     "change_pct": -6.13,
     "amplitude": null,
     "created_at": "2026-07-20T00:14:18.469391+00:00"
+  },
+  {
+    "id": "ec3fdd19",
+    "date": "2026-07-22",
+    "content": "高开冲高回落，收涨4.7%，振幅较大",
+    "has_value": true,
+    "price": 43.84,
+    "change_pct": 4.66,
+    "amplitude": 6.8,
+    "created_at": "2026-07-22T07:30:01.694455+00:00"
   }
 ]

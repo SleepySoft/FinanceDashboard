@@ -2,30 +2,5 @@
   "code": "002138.SZ",
   "name": "顺络电子",
   "sector": "电子元件",
-  "added_at": "2026-07-21T07:11:07.800795+00:00",
-  "reports": [
-    {
-      "id": "fundamental_20260719",
-      "filename": "fundamental_20260719.md",
-      "type": "fundamental",
-      "created_at": "2026-07-19"
-    },
-    {
-      "id": "fundamental_20260721",
-      "filename": "fundamental_20260721.md",
-      "type": "fundamental",
-      "created_at": "2026-07-21"
-    }
-  ],
-  "cache": {
-    "fundamental": {
-      "last": "2026-07-21",
-      "valid_until": null
-    },
-    "technical": {}
-  },
-  "tags": {
-    "overall": "none",
-    "watchlist": false
-  }
+  "added_at": "2026-07-21T07:11:07.800795+00:00"
 }

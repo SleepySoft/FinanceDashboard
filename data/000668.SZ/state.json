@@ -10,7 +10,18 @@
   },
   "status": "watching",
   "price_marks": [],
-  "daily_briefs": [],
+  "daily_briefs": [
+    {
+      "id": "006ce06c",
+      "date": "2026-07-22",
+      "content": "高开后震荡走低，收跌2.9%，振幅较大",
+      "has_value": true,
+      "price": 14.6,
+      "change_pct": -2.86,
+      "amplitude": 9.25,
+      "created_at": "2026-07-22T07:30:01.693219+00:00"
+    }
+  ],
   "notes": [
     "07-21异动：跌4.8%，振幅10.6%，突破近期低点，分数94(strong)",
     "2025年6月3日刚摘*ST帽（*ST荣控→荣丰控股）",
@@ -18,9 +29,5 @@
     "Q1-Q3均亏损，Q4突击盈利5355万——利润调节痕迹明显",
     "主营：房地产(79%)转跨境物流(11%)，计划三年退出地产",
     "策略：摘帽概念票，游资最爱，波动极大，仅适合短线博弈"
-  ],
-  "cache": {
-    "fundamental": {"last": "2026-07-22", "valid_until": "2026-10-22", "expired": false},
-    "technical": {"last": null, "valid_until": null, "expired": true}
-  }
+  ]
 }
