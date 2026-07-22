@@ -1241,13 +1241,13 @@ onUnmounted(stopAutoRefresh)
   position: absolute;
   top: 28px;
   right: 0;
-  background: #0f172a;
+  background-color: #0f172a;
   border: 1px solid #334155;
   border-radius: 6px;
   padding: 4px;
   min-width: 120px;
   z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 .status-option {
   padding: 6px 10px;
