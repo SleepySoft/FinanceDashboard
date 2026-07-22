@@ -184,6 +184,28 @@ class TushareClient:
         
         return self._cached_call(key, fetch)
     
+    def get_daily_batch(self, ts_codes: List[str], start_date: str, end_date: str) -> pd.DataFrame:
+        """
+        批量获取多只股票日线数据。
+        
+        Tushare支持ts_code传入逗号分隔的多只股票，
+        这样30只股票只需要1次API调用，而不是30次。
+        """
+        if not ts_codes:
+            return pd.DataFrame()
+        codes_str = ",".join(ts_codes)
+        key = f"daily_batch_{codes_str}_{start_date}_{end_date}"
+        
+        def fetch():
+            df = self.pro.daily(
+                ts_code=codes_str,
+                start_date=start_date,
+                end_date=end_date
+            )
+            return df
+        
+        return self._cached_call(key, fetch)
+    
     def get_stock_basic(self) -> pd.DataFrame:
         """获取股票基础信息（含行业分类）"""
         key = "stock_basic"
@@ -280,7 +302,8 @@ class AnomalyDetector:
         self,
         ts_code: str,
         trade_date: Optional[str] = None,
-        lookback: int = 30
+        lookback: int = 30,
+        df: Optional[pd.DataFrame] = None
     ) -> Optional[StockAnomaly]:
         """
         检测单只个股在指定交易日是否有异动。
@@ -289,6 +312,7 @@ class AnomalyDetector:
             ts_code: Tushare格式代码，如 "000636.SZ"
             trade_date: 检测日期（YYYYMMDD），None则取最近交易日
             lookback: 向前看多少个交易日（用于计算均线、历史高低点）
+            df: 可选，传入已获取的历史数据，避免重复API调用
         
         Returns:
             StockAnomaly if anomaly detected, else None
@@ -298,15 +322,21 @@ class AnomalyDetector:
             trade_date = self._latest_trade_date()
         trade_date = trade_date.replace("-", "")
         
-        # 计算查询区间（需要足够多的历史数据）
-        end_dt = datetime.strptime(trade_date, "%Y%m%d")
-        start_dt = end_dt - timedelta(days=lookback * 2)  # 留足余量过滤非交易日
-        start_date = start_dt.strftime("%Y%m%d")
-        
-        # 获取日线数据
-        df = self.client.get_daily(ts_code, start_date, trade_date)
-        if df is None or len(df) < 10:
-            return None  # 数据不足，跳过
+        if df is None:
+            # 计算查询区间（需要足够多的历史数据）
+            end_dt = datetime.strptime(trade_date, "%Y%m%d")
+            start_dt = end_dt - timedelta(days=lookback * 2)  # 留足余量过滤非交易日
+            start_date = start_dt.strftime("%Y%m%d")
+            
+            # 获取日线数据
+            df = self.client.get_daily(ts_code, start_date, trade_date)
+            if df is None or len(df) < 10:
+                return None  # 数据不足，跳过
+        else:
+            # 筛选指定股票的数据
+            df = df[df["ts_code"] == ts_code].copy()
+            if len(df) < 10:
+                return None
         
         df = df.sort_values("trade_date").reset_index(drop=True)
         
@@ -477,6 +507,15 @@ class AnomalyDetector:
             if sample_size:
                 scan_codes = scan_codes[:sample_size]
         
+        # 批量获取历史数据（仅指定codes模式）
+        # Tushare支持一次传入多只股票，这样30只只需要1次调用
+        hist_df = None
+        if codes and len(scan_codes) > 0:
+            end_dt = datetime.strptime(trade_date_str, "%Y%m%d")
+            start_dt = end_dt - timedelta(days=60 * 2)  # 留足余量
+            start_date = start_dt.strftime("%Y%m%d")
+            hist_df = self.client.get_daily_batch(scan_codes, start_date, trade_date_str)
+        
         for ts_code in scan_codes:
             row = df_all[df_all["ts_code"] == ts_code]
             if row.empty:
@@ -492,7 +531,8 @@ class AnomalyDetector:
                 continue  # 快速跳过，节省API调用
             
             # 需要历史数据做深度检测
-            anomaly = self.detect_stock(ts_code, trade_date)
+            # 如果有批量获取的数据，直接传入避免重复调用
+            anomaly = self.detect_stock(ts_code, trade_date, df=hist_df)
             
             if anomaly and anomaly.score >= min_score:
                 # 补充名称和行业
