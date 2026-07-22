@@ -410,5 +410,61 @@
       }
     ],
     "updated_at": "2026-07-22T03:30:00+00:00"
+  },
+  "000651.SZ": {
+    "name": "格力电器",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T03:35:00+00:00"
+  },
+  "002032.SZ": {
+    "name": "苏泊尔",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T03:35:00+00:00"
+  },
+  "600563.SH": {
+    "name": "法拉电子",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T03:35:00+00:00"
+  },
+  "000333.SZ": {
+    "name": "美的集团",
+    "report_count": 1,
+    "last_analysis": "2026-07-22",
+    "reports": [
+      {
+        "id": "fundamental_20260722",
+        "filename": "fundamental_20260722.md",
+        "type": "fundamental",
+        "created_at": "2026-07-22"
+      }
+    ],
+    "updated_at": "2026-07-22T03:35:00+00:00"
   }
 }
