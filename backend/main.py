@@ -854,6 +854,20 @@ def get_report_raw(code: str, report_id: str):
     path = os.path.join(_reports_dir(code), rpt["filename"])
     return FileResponse(path, media_type="text/markdown")
 
+@app.delete("/api/stocks/{code}/reports/{report_id}")
+def delete_report(code: str, report_id: str):
+    """Delete a report file and update cache."""
+    reports = _scan_reports(code)
+    rpt = next((r for r in reports if r["id"] == report_id), None)
+    if not rpt:
+        raise HTTPException(404, "Report not found")
+    path = os.path.join(_reports_dir(code), rpt["filename"])
+    if os.path.exists(path):
+        os.remove(path)
+    # Update cache
+    _update_reports_cache(code)
+    return {"deleted": report_id}
+
 @app.get("/api/stocks/{code}/notes")
 def get_notes(code: str):
     path = _notes_path(code)

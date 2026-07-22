@@ -55,119 +55,77 @@
       </div>
     </div>
 
-    <!-- Analysis Sections -->
+    <!-- Timeline Analysis -->
     <div class="analysis-grid">
-      <!-- Fundamental Analysis -->
       <div class="analysis-card card">
         <div class="analysis-header" @click="showFund = !showFund">
           <div class="analysis-title">
             <span class="analysis-icon">📊</span>
             <div>
-              <h3>基本面分析</h3>
-              <p class="analysis-status" :class="{ expired: meta.cache?.fundamental?.expired }">
-                {{ fundamentalStatus }}
+              <h3>分析报告</h3>
+              <p class="analysis-status">
+                <span :class="{ expired: meta.cache?.fundamental?.expired }">
+                  基本面{{ fundamentalStatus.replace('已过期', '').replace('有效', '').replace('（', '').replace('）', '') }}
+                </span>
+                <span style="margin: 0 4px">·</span>
+                <span :class="{ expired: meta.cache?.technical?.expired }">
+                  技术面{{ technicalStatus.replace('已过期', '').replace('有效', '').replace('（', '').replace('）', '') }}
+                </span>
               </p>
             </div>
           </div>
           <div class="header-right">
             <button v-if="!readonly" class="primary" @click.stop="analyze('fundamental')" :disabled="analyzing.fundamental">
-              {{ analyzing.fundamental ? '分析中...' : '重新分析' }}
+              {{ analyzing.fundamental ? '分析中...' : '基本面' }}
+            </button>
+            <button v-if="!readonly" class="primary" @click.stop="analyze('technical')" :disabled="analyzing.technical" style="margin-left: 6px">
+              {{ analyzing.technical ? '分析中...' : '技术面' }}
             </button>
             <span class="collapse-btn">{{ showFund ? '▼' : '▶' }}</span>
           </div>
         </div>
 
         <div class="analysis-content" v-show="showFund">
-          <div v-if="fundamentalReports.length > 0">
-            <div class="report-latest" v-if="fundamentalContent">
-              <div class="report-badge-row">
-                <span class="timeline-badge badge-fund">基本面</span>
-                <span class="report-time">{{ fmtDateTime(fundamentalReports[0]?.created_at) }}</span>
-                <span class="timeline-latest">最新</span>
+          <!-- Delete Confirm Modal -->
+          <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
+            <div class="confirm-box" @click.stop>
+              <p>确认删除 {{ reportToDelete?.created_at }} 的{{ reportTypeLabel(reportToDelete?.type) }}报告？</p>
+              <p class="confirm-warning">此操作不可恢复</p>
+              <div class="confirm-actions">
+                <button class="btn-cancel" @click="showDeleteConfirm = false">取消</button>
+                <button class="btn-danger" @click="doDelete">删除</button>
               </div>
-              <div class="report-body" v-html="renderMarkdown(fundamentalContent)"></div>
             </div>
-            <div class="older-versions" v-if="fundamentalReports.length > 1">
-              <div class="older-toggle" @click.stop="showFundHistory = !showFundHistory">
-                <span>{{ showFundHistory ? '▼' : '▶' }} 历史版本 ({{ fundamentalReports.length - 1 }})</span>
-              </div>
-              <div v-show="showFundHistory" class="timeline-collapsed">
-                <div
-                  v-for="(r, idx) in fundamentalReports.slice(1)"
-                  :key="r.id"
-                  class="timeline-collapsed-item"
-                  @click.stop="toggleFundVersion(idx + 1)"
-                >
-                  <div class="tci-header">
-                    <span class="tci-dot"></span>
-                    <span class="tci-time">{{ fmtDateTime(r.created_at) }}</span>
-                    <span :class="['timeline-badge', r.type === 'full' ? 'badge-full' : 'badge-fund']">
-                      {{ r.type === 'full' ? '综合' : '基本面' }}
-                    </span>
-                  </div>
-                  <div class="tci-body" v-show="fundExpandedIndex === idx + 1" v-html="renderMarkdown(fundVersionContent)"></div>
+          </div>
+
+          <div v-if="allReports.length > 0" class="report-timeline">
+            <div
+              v-for="(r, idx) in allReports"
+              :key="r.id"
+              :class="['timeline-item', { expanded: expandedReportId === r.id }]"
+            >
+              <div class="timeline-line" v-if="idx < allReports.length - 1"></div>
+              <div class="timeline-dot" :class="reportTypeClass(r.type)"></div>
+              <div class="timeline-body">
+                <div class="timeline-header-row" @click="toggleReport(r)">
+                  <span :class="['timeline-badge', reportTypeClass(r.type)]">{{ reportTypeLabel(r.type) }}</span>
+                  <span class="timeline-time">{{ fmtDateTime(r.created_at) }}</span>
+                  <span v-if="idx === 0" class="timeline-latest">最新</span>
+                  <span class="timeline-expand-icon">{{ expandedReportId === r.id ? '▼' : '▶' }}</span>
+                  <button
+                    v-if="!readonly"
+                    class="btn-delete"
+                    @click.stop="confirmDelete(r)"
+                    title="删除"
+                  >🗑</button>
+                </div>
+                <div v-show="expandedReportId === r.id" class="timeline-content">
+                  <div class="report-body" v-html="renderMarkdown(reportContents[r.id] || '加载中...')"></div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="empty" v-else>暂无基本面分析报告</div>
-        </div>
-      </div>
-
-      <!-- Technical Analysis -->
-      <div class="analysis-card card">
-        <div class="analysis-header" @click="showTech = !showTech">
-          <div class="analysis-title">
-            <span class="analysis-icon">📈</span>
-            <div>
-              <h3>技术面分析</h3>
-              <p class="analysis-status" :class="{ expired: meta.cache?.technical?.expired }">
-                {{ technicalStatus }}
-              </p>
-            </div>
-          </div>
-          <div class="header-right">
-            <button v-if="!readonly" class="primary" @click.stop="analyze('technical')" :disabled="analyzing.technical">
-              {{ analyzing.technical ? '分析中...' : '重新分析' }}
-            </button>
-            <span class="collapse-btn">{{ showTech ? '▼' : '▶' }}</span>
-          </div>
-        </div>
-
-        <div class="analysis-content" v-show="showTech">
-          <div v-if="technicalReports.length > 0">
-            <div class="report-latest" v-if="technicalContent">
-              <div class="report-badge-row">
-                <span class="timeline-badge badge-tech">技术面</span>
-                <span class="report-time">{{ fmtDateTime(technicalReports[0]?.created_at) }}</span>
-                <span class="timeline-latest">最新</span>
-              </div>
-              <div class="report-body" v-html="renderMarkdown(technicalContent)"></div>
-            </div>
-            <div class="older-versions" v-if="technicalReports.length > 1">
-              <div class="older-toggle" @click.stop="showTechHistory = !showTechHistory">
-                <span>{{ showTechHistory ? '▼' : '▶' }} 历史版本 ({{ technicalReports.length - 1 }})</span>
-              </div>
-              <div v-show="showTechHistory" class="timeline-collapsed">
-                <div
-                  v-for="(r, idx) in technicalReports.slice(1)"
-                  :key="r.id"
-                  class="timeline-collapsed-item"
-                  @click.stop="toggleTechVersion(idx + 1)"
-                >
-                  <div class="tci-header">
-                    <span class="tci-dot"></span>
-                    <span class="tci-time">{{ fmtDateTime(r.created_at) }}</span>
-                    <span :class="['timeline-badge', r.type === 'full' ? 'badge-full' : 'badge-tech']">
-                      {{ r.type === 'full' ? '综合' : '技术面' }}
-                    </span>
-                  </div>
-                  <div class="tci-body" v-show="techExpandedIndex === idx + 1" v-html="renderMarkdown(techVersionContent)"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="empty" v-else>暂无技术面分析报告</div>
+          <div class="empty" v-else>暂无分析报告</div>
         </div>
       </div>
     </div>
@@ -457,6 +415,65 @@ async function load() {
   await loadLatestTechnical()
 }
 
+// Timeline report functions
+const showDeleteConfirm = ref(false)
+const reportToDelete = ref(null)
+const expandedReportId = ref(null)
+const reportContents = ref({})
+
+const allReports = computed(() =>
+  (meta.value.reports || [])
+    .slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+)
+
+async function toggleReport(r) {
+  if (expandedReportId.value === r.id) {
+    expandedReportId.value = null
+    return
+  }
+  expandedReportId.value = r.id
+  if (!reportContents.value[r.id]) {
+    try {
+      const data = await api.stocks.getReport(props.code, r.id)
+      reportContents.value[r.id] = data.content
+    } catch (e) {
+      reportContents.value[r.id] = '加载失败'
+    }
+  }
+}
+
+function confirmDelete(r) {
+  reportToDelete.value = r
+  showDeleteConfirm.value = true
+}
+
+async function doDelete() {
+  if (!reportToDelete.value) return
+  try {
+    await api.stocks.deleteReport(props.code, reportToDelete.value.id)
+    meta.value.reports = (meta.value.reports || []).filter(x => x.id !== reportToDelete.value.id)
+    delete reportContents.value[reportToDelete.value.id]
+    if (expandedReportId.value === reportToDelete.value.id) {
+      expandedReportId.value = null
+    }
+  } catch (e) {
+    alert('删除失败: ' + e.message)
+  } finally {
+    showDeleteConfirm.value = false
+    reportToDelete.value = null
+  }
+}
+
+function reportTypeLabel(type) {
+  const map = { fundamental: '基本面', technical: '技术面', full: '综合' }
+  return map[type] || type
+}
+
+function reportTypeClass(type) {
+  const map = { fundamental: 'badge-fund', technical: 'badge-tech', full: 'badge-full' }
+  return map[type] || 'badge-full'
+}
+
 async function loadLatestFundamental() {
   const reps = fundamentalReports.value
   if (reps.length === 0) { fundamentalContent.value = ''; return }
@@ -690,6 +707,128 @@ onMounted(load)
 .badge-tech { background: #3f2c1d; color: #fbbf24; }
 .badge-full { background: #14532d; color: #34d399; }
 .timeline-latest { font-size: 11px; padding: 1px 8px; border-radius: 4px; background: #3b82f6; color: white; font-weight: 500; }
+
+/* Report Timeline - new unified view */
+.report-timeline { position: relative; padding-left: 20px; }
+.report-timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: #334155;
+}
+.timeline-item { position: relative; margin-bottom: 8px; }
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-item.expanded .timeline-header-row { background: #1e293b; border-color: #475569; }
+.timeline-line {
+  position: absolute;
+  left: -14px;
+  top: 18px;
+  bottom: -8px;
+  width: 1px;
+  background: #334155;
+}
+.timeline-dot {
+  position: absolute;
+  left: -17px;
+  top: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #475569;
+  border: 2px solid #0f172a;
+  z-index: 1;
+}
+.timeline-dot.badge-fund { background: #60a5fa; }
+.timeline-dot.badge-tech { background: #fbbf24; }
+.timeline-dot.badge-full { background: #34d399; }
+.timeline-body { flex: 1; }
+.timeline-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  flex-wrap: wrap;
+}
+.timeline-header-row:hover { background: #1e293b; border-color: #475569; }
+.timeline-time { color: #94a3b8; font-size: 12px; }
+.timeline-expand-icon { margin-left: auto; color: #64748b; font-size: 11px; }
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.timeline-header-row:hover .btn-delete { opacity: 1; }
+.btn-delete:hover { color: #f87171; background: #7f1d1d; }
+.timeline-content {
+  padding: 12px;
+  border: 1px solid #334155;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* Delete confirm modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.confirm-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 20px 24px;
+  max-width: 320px;
+  width: 90%;
+}
+.confirm-box p { margin: 0 0 8px; font-size: 14px; color: #e2e8f0; }
+.confirm-warning { font-size: 12px !important; color: #f87171 !important; }
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.btn-cancel {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-danger {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #7f1d1d;
+  color: #f87171;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.btn-danger:hover { background: #991b1b; }
 
 /* Price marks */
 .price-marks { margin-bottom: 12px; }

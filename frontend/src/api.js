@@ -30,6 +30,7 @@ export default {
     deletePriceMark: (code, id) => api(`/stocks/${code}/price-marks/${id}`, { method: 'DELETE' }),
     listReports: (code) => api(`/stocks/${code}/reports`),
     getReport: (code, id) => api(`/stocks/${code}/reports/${id}`),
+    deleteReport: (code, id) => api(`/stocks/${code}/reports/${id}`, { method: 'DELETE' }),
     getNotes: (code) => api(`/stocks/${code}/notes`),
     addNote: (code, content) => api(`/stocks/${code}/notes`, { method: 'POST', body: { content } }),
     getBriefs: (code) => api(`/stocks/${code}/briefs`),
