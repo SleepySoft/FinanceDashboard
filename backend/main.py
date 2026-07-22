@@ -748,6 +748,13 @@ def get_stock(code: str):
         "fundamental": {"last": last_fund, "valid_until": None},
         "technical": {"last": last_tech, "valid_until": None}
     }
+    # Compute valid_until from report dates
+    if last_fund:
+        fund_dt = datetime.fromisoformat(last_fund.replace("Z", "+00:00"))
+        meta["cache"]["fundamental"]["valid_until"] = (fund_dt + timedelta(days=90)).isoformat()
+    if last_tech:
+        tech_dt = datetime.fromisoformat(last_tech.replace("Z", "+00:00"))
+        meta["cache"]["technical"]["valid_until"] = (tech_dt + timedelta(days=7)).isoformat()
     # Compute expired
     now = datetime.now(timezone.utc)
     for key in ["fundamental", "technical"]:
