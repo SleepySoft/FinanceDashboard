@@ -507,31 +507,42 @@ class AnomalyDetector:
             if sample_size:
                 scan_codes = scan_codes[:sample_size]
         
-        # 批量获取历史数据（仅指定codes模式）
-        # Tushare支持一次传入多只股票，这样30只只需要1次调用
-        hist_df = None
-        if codes and len(scan_codes) > 0:
-            end_dt = datetime.strptime(trade_date_str, "%Y%m%d")
-            start_dt = end_dt - timedelta(days=60 * 2)  # 留足余量
-            start_date = start_dt.strftime("%Y%m%d")
-            hist_df = self.client.get_daily_batch(scan_codes, start_date, trade_date_str)
-        
+        # 第一步：快速过滤，找出需要深度检测的股票
+        deep_check_codes = []
         for ts_code in scan_codes:
             row = df_all[df_all["ts_code"] == ts_code]
             if row.empty:
                 continue
-            
             row = row.iloc[0]
-            
-            # 快速过滤：先排除明显不可能异动的
             amplitude = self._calc_amplitude_from_row(row)
             change_pct = row.get("pct_chg", 0) or 0
+            # 放宽过滤条件，让更多股票进入深度检测
+            if abs(change_pct) >= 1.5 or amplitude >= 3:
+                deep_check_codes.append(ts_code)
+        
+        # 第二步：批量获取历史数据（每批500只，1次API调用）
+        hist_df_map = {}  # ts_code -> df
+        if deep_check_codes:
+            end_dt = datetime.strptime(trade_date_str, "%Y%m%d")
+            start_dt = end_dt - timedelta(days=60 * 2)
+            start_date = start_dt.strftime("%Y%m%d")
             
-            if abs(change_pct) < 2 and amplitude < 4:
-                continue  # 快速跳过，节省API调用
+            batch_size = 500
+            for i in range(0, len(deep_check_codes), batch_size):
+                batch = deep_check_codes[i:i + batch_size]
+                batch_df = self.client.get_daily_batch(batch, start_date, trade_date_str)
+                if batch_df is not None and not batch_df.empty:
+                    for code in batch:
+                        code_df = batch_df[batch_df["ts_code"] == code]
+                        if len(code_df) >= 10:
+                            hist_df_map[code] = code_df
+        
+        # 第三步：深度检测
+        for ts_code in deep_check_codes:
+            hist_df = hist_df_map.get(ts_code)
+            if hist_df is None:
+                continue
             
-            # 需要历史数据做深度检测
-            # 如果有批量获取的数据，直接传入避免重复调用
             anomaly = self.detect_stock(ts_code, trade_date, df=hist_df)
             
             if anomaly and anomaly.score >= min_score:
