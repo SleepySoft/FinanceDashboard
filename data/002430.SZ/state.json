@@ -1,7 +1,12 @@
 {
   "tags": {
-    "overall": "none",
-    "watchlist": false
+    "overall": "yellow",
+    "watchlist": false,
+    "quality": "none",
+    "valuation": "yellow",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "yellow"
   },
   "notes": "2025年报营收150.83亿元(+9.96%)，归母净利润9.49亿元(+2.87%)，毛利率21.0%。全球最大空分设备制造商，布局核聚变低温系统。",
   "daily_briefs": [

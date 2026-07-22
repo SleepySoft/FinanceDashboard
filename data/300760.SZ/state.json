@@ -1,7 +1,12 @@
 {
   "tags": {
-    "overall": "none",
-    "watchlist": false
+    "overall": "red",
+    "watchlist": false,
+    "quality": "green",
+    "valuation": "red",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "red"
   },
   "notes": "2025年报营收332.82亿元(-9.38%)，归母净利润81.36亿元(-30.28%)，毛利率60.32%。受医疗反腐和集采影响，业绩短期承压。",
   "status": "waiting",

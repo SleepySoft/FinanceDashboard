@@ -1,7 +1,12 @@
 {
   "tags": {
     "overall": "none",
-    "watchlist": false
+    "watchlist": false,
+    "quality": "none",
+    "valuation": "yellow",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "none"
   },
   "notes": "2025年报营收744.1亿元(+6.46%)，归母净利润40.18亿元(+10.87%)，毛利率15.99%。手机/电脑业务占比82%，AI眼镜业务突破增长。",
   "daily_briefs": [

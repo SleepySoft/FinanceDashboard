@@ -1,12 +1,12 @@
 {
   "tags": {
-    "overall": "yellow",
+    "overall": "none",
     "watchlist": "",
-    "quality": "yellow",
-    "valuation": "red",
+    "quality": "red",
+    "valuation": "yellow",
     "timing": "none",
     "risk": "yellow",
-    "verdict": "yellow"
+    "verdict": "none"
   },
   "price_marks": [
     {

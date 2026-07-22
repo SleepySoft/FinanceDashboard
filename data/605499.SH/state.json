@@ -1,7 +1,12 @@
 {
   "tags": {
-    "overall": "none",
-    "watchlist": false
+    "overall": "green",
+    "watchlist": false,
+    "quality": "green",
+    "valuation": "green",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "green"
   },
   "notes": "2025一季报营收48.48亿元，归母净利润9.80亿元。能量饮料龙头，有息资产负债率26.81%，ROE 11.32%。",
   "status": "bullish",

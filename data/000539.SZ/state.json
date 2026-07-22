@@ -4,8 +4,8 @@
     "watchlist": false,
     "quality": "red",
     "valuation": "red",
-    "timing": "red",
-    "risk": "red",
+    "timing": "none",
+    "risk": "yellow",
     "verdict": "red"
   },
   "status": "skipped",

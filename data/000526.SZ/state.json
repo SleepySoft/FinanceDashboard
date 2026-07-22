@@ -4,7 +4,7 @@
     "watchlist": true,
     "quality": "green",
     "valuation": "yellow",
-    "timing": "red",
+    "timing": "none",
     "risk": "yellow",
     "verdict": "yellow"
   },

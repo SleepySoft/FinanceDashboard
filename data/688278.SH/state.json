@@ -1,7 +1,12 @@
 {
   "tags": {
-    "overall": "none",
-    "watchlist": false
+    "overall": "green",
+    "watchlist": false,
+    "quality": "green",
+    "valuation": "green",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "green"
   },
   "price_marks": [],
   "daily_briefs": [

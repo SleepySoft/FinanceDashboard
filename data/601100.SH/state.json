@@ -1,7 +1,12 @@
 {
   "tags": {
-    "overall": "none",
-    "watchlist": false
+    "overall": "yellow",
+    "watchlist": false,
+    "quality": "green",
+    "valuation": "yellow",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "yellow"
   },
   "notes": "2025年报营收109.41亿元(+16.52%)，归母净利润27.34亿元(+8.99%)，毛利率41.58%，ROE约21%。挖掘机液压件龙头，国内市占率领先。",
   "daily_briefs": [

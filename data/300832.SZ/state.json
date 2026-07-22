@@ -1,12 +1,12 @@
 {
   "tags": {
-    "overall": "green",
+    "overall": "none",
     "watchlist": "",
     "quality": "green",
-    "valuation": "green",
+    "valuation": "yellow",
     "timing": "none",
-    "risk": "green",
-    "verdict": "green"
+    "risk": "yellow",
+    "verdict": "none"
   },
   "price_marks": [],
   "created_at": "2026-07-19",
