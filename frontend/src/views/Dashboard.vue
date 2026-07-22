@@ -572,15 +572,15 @@ const tradeSubmitting = ref(false)
 // Status tag quick-edit
 const statusMenuCode = ref(null)
 const statusOptions = [
-  { key: 'core_position', label: '💎 底仓备选' },
   { key: 'tracking', label: '🔭 跟踪中' },
   { key: 'bullish', label: '看好' },
   { key: 'neutral', label: '观望' },
   { key: 'waiting', label: '伺机' },
+  { key: 'core_position', label: '💎 底仓备选' },
   { key: 'avoid', label: '回避' },
   { key: 'no_interest', label: '无兴趣' },
-  { key: 'blacklist', label: '黑名单' },
   { key: 'archive', label: '📁 归档' },
+  { key: 'blacklist', label: '黑名单' },
 ]
 function statusShort(status) {
   const map = {
@@ -645,6 +645,7 @@ const groupModes = [
 ]
 
 const collapsedGroups = ref(new Set())
+let firstLoadDone = false
 function toggleGroup(key) {
   if (collapsedGroups.value.has(key)) {
     collapsedGroups.value.delete(key)
@@ -670,6 +671,20 @@ async function load() {
       map[h.code] = h
     }
     holdingsMap.value = map
+    // Default collapse all groups on first load
+    if (!firstLoadDone) {
+      firstLoadDone = true
+      const statusSet = new Set(stocks.value.map(s => 'status-' + (s.status || 'neutral')))
+      const sectorSet = new Set(stocks.value.map(s => 'sector-' + (s.sector || '未分类')))
+      const ratingSet = new Set()
+      for (const s of stocks.value) {
+        const v = s.dimensions?.verdict || s.overall || 'none'
+        ratingSet.add('rating-' + v)
+      }
+      for (const key of [...statusSet, ...sectorSet, ...ratingSet]) {
+        collapsedGroups.value.add(key)
+      }
+    }
   } catch (e) {
     console.error(e)
   } finally {
@@ -785,8 +800,8 @@ const sectors = computed(() => {
 
 // ── Status groups ──
 const statusGroups = computed(() => {
-  const order = ['core_position', 'tracking', 'bullish', 'neutral', 'waiting', 'avoid', 'no_interest', 'blacklist', 'archive']
-  const labels = { core_position: '💎 底仓备选', tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
+  const order = ['tracking', 'bullish', 'neutral', 'waiting', 'core_position', 'avoid', 'no_interest', 'archive', 'blacklist']
+  const labels = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', core_position: '💎 底仓备选', avoid: '回避', no_interest: '无兴趣', archive: '📁 归档', blacklist: '黑名单' }
   return order.map(key => ({
     key,
     label: labels[key],
@@ -924,10 +939,6 @@ function isExpired(iso) {
 onMounted(() => {
   load()
   startAutoRefresh()
-  // Default collapse: 回避, 无兴趣, 黑名单, 伺机
-  for (const key of ['status-avoid', 'status-no_interest', 'status-blacklist', 'status-waiting']) {
-    collapsedGroups.value.add(key)
-  }
 })
 onUnmounted(stopAutoRefresh)
 </script>
