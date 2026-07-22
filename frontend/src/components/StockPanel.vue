@@ -55,77 +55,62 @@
       </div>
     </div>
 
-    <!-- Timeline Analysis -->
-    <div class="analysis-grid">
-      <div class="analysis-card card">
-        <div class="analysis-header" @click="showFund = !showFund">
-          <div class="analysis-title">
-            <span class="analysis-icon">📊</span>
-            <div>
-              <h3>分析报告</h3>
-              <p class="analysis-status">
-                <span :class="{ expired: meta.cache?.fundamental?.expired }">
-                  基本面{{ fundamentalStatus.replace('已过期', '').replace('有效', '').replace('（', '').replace('）', '') }}
-                </span>
-                <span style="margin: 0 4px">·</span>
-                <span :class="{ expired: meta.cache?.technical?.expired }">
-                  技术面{{ technicalStatus.replace('已过期', '').replace('有效', '').replace('（', '').replace('）', '') }}
-                </span>
-              </p>
-            </div>
-          </div>
-          <div class="header-right">
-            <button v-if="!readonly" class="primary" @click.stop="analyze('fundamental')" :disabled="analyzing.fundamental">
-              {{ analyzing.fundamental ? '分析中...' : '基本面' }}
-            </button>
-            <button v-if="!readonly" class="primary" @click.stop="analyze('technical')" :disabled="analyzing.technical" style="margin-left: 6px">
-              {{ analyzing.technical ? '分析中...' : '技术面' }}
-            </button>
-            <span class="collapse-btn">{{ showFund ? '▼' : '▶' }}</span>
+    <!-- Reports Timeline -->
+    <div class="card" style="padding: 0">
+      <div class="analysis-header" @click="showFund = !showFund" style="padding: 14px 16px">
+        <div class="analysis-title">
+          <span class="analysis-icon">📊</span>
+          <div>
+            <h3>分析报告</h3>
+            <p class="analysis-status">
+              <span :class="{ expired: meta.cache?.fundamental?.expired }">基本面{{ fundamentalStatus.replace(/[已过期有效（）]/g, '') }}</span>
+              <span style="margin: 0 4px">·</span>
+              <span :class="{ expired: meta.cache?.technical?.expired }">技术面{{ technicalStatus.replace(/[已过期有效（）]/g, '') }}</span>
+            </p>
           </div>
         </div>
+        <div class="header-right">
+          <button v-if="!readonly" class="primary" @click.stop="analyze('fundamental')" :disabled="analyzing.fundamental">
+            {{ analyzing.fundamental ? '分析中...' : '基本面' }}
+          </button>
+          <button v-if="!readonly" class="primary" @click.stop="analyze('technical')" :disabled="analyzing.technical" style="margin-left: 6px">
+            {{ analyzing.technical ? '分析中...' : '技术面' }}
+          </button>
+          <span class="collapse-btn">{{ showFund ? '▼' : '▶' }}</span>
+        </div>
+      </div>
 
-        <div class="analysis-content" v-show="showFund">
-          <!-- Delete Confirm Modal -->
-          <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
-            <div class="confirm-box" @click.stop>
-              <p>确认删除 {{ reportToDelete?.created_at }} 的{{ reportTypeLabel(reportToDelete?.type) }}报告？</p>
-              <p class="confirm-warning">此操作不可恢复</p>
-              <div class="confirm-actions">
-                <button class="btn-cancel" @click="showDeleteConfirm = false">取消</button>
-                <button class="btn-danger" @click="doDelete">删除</button>
-              </div>
+      <div v-show="showFund" style="padding: 0 16px 16px">
+        <div v-if="allReports.length > 0" class="report-timeline">
+          <div
+            v-for="(r, idx) in allReports"
+            :key="r.id"
+            :class="['timeline-item', { expanded: expandedReportId === r.id }]"
+          >
+            <div class="timeline-line" v-if="idx < allReports.length - 1"></div>
+            <div class="timeline-dot" :class="reportTypeClass(r.type)"></div>
+            <div class="timeline-header-row" @click="toggleReport(r)">
+              <span :class="['timeline-badge', reportTypeClass(r.type)]">{{ reportTypeLabel(r.type) }}</span>
+              <span class="timeline-time">{{ fmtDateTime(r.created_at) }}</span>
+              <span v-if="idx === 0" class="timeline-latest">最新</span>
+              <span class="timeline-expand-icon">{{ expandedReportId === r.id ? '▼' : '▶' }}</span>
+              <button v-if="!readonly" class="btn-delete" @click.stop="confirmDelete(r)" title="删除">🗑</button>
             </div>
+            <div v-show="expandedReportId === r.id" class="timeline-content" v-html="renderMarkdown(reportContents[r.id] || '加载中...')"></div>
           </div>
+        </div>
+        <div class="empty" v-else>暂无分析报告</div>
+      </div>
+    </div>
 
-          <div v-if="allReports.length > 0" class="report-timeline">
-            <div
-              v-for="(r, idx) in allReports"
-              :key="r.id"
-              :class="['timeline-item', { expanded: expandedReportId === r.id }]"
-            >
-              <div class="timeline-line" v-if="idx < allReports.length - 1"></div>
-              <div class="timeline-dot" :class="reportTypeClass(r.type)"></div>
-              <div class="timeline-body">
-                <div class="timeline-header-row" @click="toggleReport(r)">
-                  <span :class="['timeline-badge', reportTypeClass(r.type)]">{{ reportTypeLabel(r.type) }}</span>
-                  <span class="timeline-time">{{ fmtDateTime(r.created_at) }}</span>
-                  <span v-if="idx === 0" class="timeline-latest">最新</span>
-                  <span class="timeline-expand-icon">{{ expandedReportId === r.id ? '▼' : '▶' }}</span>
-                  <button
-                    v-if="!readonly"
-                    class="btn-delete"
-                    @click.stop="confirmDelete(r)"
-                    title="删除"
-                  >🗑</button>
-                </div>
-                <div v-show="expandedReportId === r.id" class="timeline-content">
-                  <div class="report-body" v-html="renderMarkdown(reportContents[r.id] || '加载中...')"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="empty" v-else>暂无分析报告</div>
+    <!-- Delete Confirm Modal -->
+    <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
+      <div class="confirm-box" @click.stop>
+        <p>确认删除 {{ reportToDelete?.created_at }} 的{{ reportTypeLabel(reportToDelete?.type) }}报告？</p>
+        <p class="confirm-warning">此操作不可恢复</p>
+        <div class="confirm-actions">
+          <button class="btn-cancel" @click="showDeleteConfirm = false">取消</button>
+          <button class="btn-danger" @click="doDelete">删除</button>
         </div>
       </div>
     </div>
