@@ -77,6 +77,7 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
+              :class="{ 'status-card-open': statusMenuCode === s.code }"
               @click="openStock(s.code)"
             >
               <div class="stock-main">
@@ -161,6 +162,7 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
+              :class="{ 'status-card-open': statusMenuCode === s.code }"
               @click="openStock(s.code)"
             >
               <div class="stock-main">
@@ -245,6 +247,7 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
+              :class="{ 'status-card-open': statusMenuCode === s.code }"
               @click="openStock(s.code)"
             >
               <div class="stock-main">
@@ -1246,6 +1249,11 @@ onUnmounted(stopAutoRefresh)
 
 .stock-title-row { position: relative; }
 .stock-title-row.status-dropdown-open { z-index: 10000; }
+
+.stock-card.status-card-open {
+  position: relative;
+  z-index: 10000;
+}
 
 .status-dropdown {
   position: absolute;
