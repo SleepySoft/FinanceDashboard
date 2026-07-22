@@ -133,7 +133,7 @@ class TushareClient:
         self._cache = {}          # {key: (timestamp, data)}
         self._cache_ttl = 300     # 缓存5分钟
         self._last_call = 0
-        self._min_interval = 0.08  # 最小调用间隔80ms（约12次/秒，留有余量）
+        self._min_interval = 0.15  # 最小调用间隔150ms（约4次/秒，Tushare限制500次/分钟）
     
     @property
     def pro(self):
@@ -419,20 +419,22 @@ class AnomalyDetector:
         self,
         trade_date: Optional[str] = None,
         min_score: int = SCORE_NOTABLE,
-        sample_size: Optional[int] = None
+        sample_size: Optional[int] = None,
+        codes: Optional[List[str]] = None
     ) -> Tuple[List[StockAnomaly], List[SectorAnomaly]]:
         """
-        扫描全市场异动。
+        扫描异动。
         
         原理：
-        1. 获取当日全市场数据
-        2. 对每只票计算异动评分
+        1. 获取当日数据
+        2. 对每只股票计算异动评分
         3. 聚合到板块级别
         
         Args:
             trade_date: 扫描日期
             min_score: 最低分数阈值（过滤噪音）
             sample_size: 限制扫描数量（测试用）
+            codes: 指定扫描的股票列表，None则扫描全市场
         
         Returns:
             (stock_anomalies, sector_anomalies)
@@ -465,12 +467,17 @@ class AnomalyDetector:
         stock_anomalies = []
         sector_data: Dict[str, List[Dict]] = {}  # sector -> list of stock data
         
-        # 限制样本量（测试用）
-        codes = df_all["ts_code"].tolist()
-        if sample_size:
-            codes = codes[:sample_size]
+        # 确定扫描范围
+        if codes:
+            # 只扫描指定列表
+            scan_codes = [c for c in codes if c in df_all["ts_code"].values]
+        else:
+            # 全市场扫描
+            scan_codes = df_all["ts_code"].tolist()
+            if sample_size:
+                scan_codes = scan_codes[:sample_size]
         
-        for ts_code in codes:
+        for ts_code in scan_codes:
             row = df_all[df_all["ts_code"] == ts_code]
             if row.empty:
                 continue
@@ -900,7 +907,7 @@ def aggregate_weekly(date_str: str) -> Dict:
 
 # ─── Main Entry Point ────────────────────────────────
 
-def run_daily_scan(trade_date: Optional[str] = None, sample_size: Optional[int] = None) -> Dict:
+def run_daily_scan(trade_date: Optional[str] = None, sample_size: Optional[int] = None, codes: Optional[List[str]] = None) -> Dict:
     """
     执行每日异动扫描。
     
@@ -909,6 +916,7 @@ def run_daily_scan(trade_date: Optional[str] = None, sample_size: Optional[int] 
     Args:
         trade_date: 扫描日期（YYYY-MM-DD），None则自动判断
         sample_size: 限制扫描数量（测试用）
+        codes: 指定扫描的股票代码列表，None则扫描全市场
     
     Returns:
         扫描结果摘要
@@ -935,9 +943,10 @@ def run_daily_scan(trade_date: Optional[str] = None, sample_size: Optional[int] 
                 print(f"[AnomalyScan] Using fallback date: {trade_date}")
                 break
     
-    print(f"[AnomalyScan] Starting scan for {trade_date}...")
+    scope = f"{len(codes)} tracked stocks" if codes else "full market"
+    print(f"[AnomalyScan] Starting scan for {trade_date} ({scope})...")
     
-    stocks, sectors = detector.scan_market(trade_date, sample_size=sample_size)
+    stocks, sectors = detector.scan_market(trade_date, sample_size=sample_size, codes=codes)
     
     # 保存结果
     add_daily_anomalies(trade_date, stocks, sectors)

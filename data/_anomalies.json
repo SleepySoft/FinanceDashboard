@@ -1,11 +1,135 @@
 {
   "daily": {
     "2026-07-22": {
-      "stocks": [],
+      "stocks": [
+        {
+          "code": "000526.SZ",
+          "name": "学大教育",
+          "date": "2026-07-22",
+          "score": 107,
+          "level": "strong",
+          "close": 33.0,
+          "change_pct": 6.5203,
+          "amplitude": 9.231762427372496,
+          "volume": 113264.84,
+          "vol_ratio": 2.383156269962236,
+          "signals": [
+            {
+              "type": "amplitude",
+              "value": 9.23,
+              "score": 30,
+              "desc": "振幅9.2%"
+            },
+            {
+              "type": "change",
+              "value": 6.52,
+              "score": 25,
+              "desc": "涨6.5%"
+            },
+            {
+              "type": "volume",
+              "value": 2.38,
+              "score": 17,
+              "desc": "量比2.4倍"
+            },
+            {
+              "type": "breakout",
+              "value": 30.98,
+              "score": 25,
+              "desc": "突破high 30.98"
+            },
+            {
+              "type": "momentum",
+              "value": 10,
+              "score": 10,
+              "desc": "连续动量"
+            }
+          ],
+          "breakout_type": "high",
+          "breakout_level": 30.98,
+          "sector": "文教休闲",
+          "sector_anomaly": false,
+          "created_at": "2026-07-22T13:26:12.799502+00:00"
+        },
+        {
+          "code": "000539.SZ",
+          "name": "粤电力A",
+          "date": "2026-07-22",
+          "score": 70,
+          "level": "notable",
+          "close": 6.46,
+          "change_pct": 6.7769,
+          "amplitude": 11.5702479338843,
+          "volume": 2370309.35,
+          "vol_ratio": 1.5546418376899853,
+          "signals": [
+            {
+              "type": "amplitude",
+              "value": 11.57,
+              "score": 30,
+              "desc": "振幅11.6%"
+            },
+            {
+              "type": "change",
+              "value": 6.78,
+              "score": 25,
+              "desc": "涨6.8%"
+            },
+            {
+              "type": "momentum",
+              "value": 15,
+              "score": 15,
+              "desc": "连续动量"
+            }
+          ],
+          "breakout_type": "none",
+          "breakout_level": 0,
+          "sector": "火力发电",
+          "sector_anomaly": false,
+          "created_at": "2026-07-22T13:26:13.549783+00:00"
+        },
+        {
+          "code": "300832.SZ",
+          "name": "新产业",
+          "date": "2026-07-22",
+          "score": 68,
+          "level": "notable",
+          "close": 48.43,
+          "change_pct": 5.535,
+          "amplitude": 9.544563085639577,
+          "volume": 145340.37,
+          "vol_ratio": 1.6796547385673866,
+          "signals": [
+            {
+              "type": "amplitude",
+              "value": 9.54,
+              "score": 30,
+              "desc": "振幅9.5%"
+            },
+            {
+              "type": "change",
+              "value": 5.54,
+              "score": 25,
+              "desc": "涨5.5%"
+            },
+            {
+              "type": "breakout",
+              "value": 48.12,
+              "score": 13,
+              "desc": "突破high 48.12"
+            }
+          ],
+          "breakout_type": "high",
+          "breakout_level": 48.12,
+          "sector": "医疗保健",
+          "sector_anomaly": false,
+          "created_at": "2026-07-22T13:26:12.500947+00:00"
+        }
+      ],
       "sectors": [],
-      "stock_count": 0,
+      "stock_count": 3,
       "sector_count": 0,
-      "scanned_at": "2026-07-22T00:07:41.358473+00:00"
+      "scanned_at": "2026-07-22T13:26:14.604987+00:00"
     },
     "2026-07-21": {
       "stocks": [
@@ -530,16 +654,24 @@
     "2026-07-20": {
       "week_start": "2026-07-20",
       "week_end": "2026-07-26",
-      "total_stock_anomalies": 12,
+      "total_stock_anomalies": 15,
       "total_sector_anomalies": 0,
       "top_sectors": [],
       "top_stocks": [
         {
-          "code": "000632.SZ",
+          "code": "000526.SZ",
+          "count": 2
+        },
+        {
+          "code": "000539.SZ",
+          "count": 2
+        },
+        {
+          "code": "300832.SZ",
           "count": 1
         },
         {
-          "code": "000526.SZ",
+          "code": "000632.SZ",
           "count": 1
         },
         {
@@ -555,10 +687,6 @@
           "count": 1
         },
         {
-          "code": "000539.SZ",
-          "count": 1
-        },
-        {
           "code": "000610.SZ",
           "count": 1
         },
@@ -569,15 +697,11 @@
         {
           "code": "000565.SZ",
           "count": 1
-        },
-        {
-          "code": "000036.SZ",
-          "count": 1
         }
       ],
       "daily_breakdown": {
         "2026-07-22": {
-          "stock_count": 0,
+          "stock_count": 3,
           "sector_count": 0
         },
         "2026-07-21": {

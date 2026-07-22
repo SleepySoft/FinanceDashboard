@@ -1494,9 +1494,12 @@ def trigger_anomaly_scan(req: AnomalyScanReq = AnomalyScanReq()):
     建议通过cron每日收盘后自动执行，这里提供手动触发入口。
     """
     try:
+        # 默认只扫描跟踪列表中的股票，避免全市场扫描触发API频率限制
+        codes = _get_stock_codes() if req.sample_size is None else None
         result = anomaly_module.run_daily_scan(
             trade_date=req.date,
-            sample_size=req.sample_size
+            sample_size=req.sample_size,
+            codes=codes
         )
         return result
     except Exception as e:
