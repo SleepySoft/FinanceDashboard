@@ -1233,8 +1233,8 @@ onUnmounted(stopAutoRefresh)
 .status-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 90;
-  background: rgba(0,0,0,0.15);
+  z-index: 9990;
+  background: rgba(0,0,0,0.2);
 }
 
 .status-dropdown {
@@ -1246,10 +1246,12 @@ onUnmounted(stopAutoRefresh)
   border-radius: 6px;
   padding: 4px;
   min-width: 120px;
-  z-index: 100;
+  z-index: 10000;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 .status-option {
+  position: relative;
+  z-index: 10001;
   padding: 6px 10px;
   font-size: 12px;
   color: #e2e8f0;
