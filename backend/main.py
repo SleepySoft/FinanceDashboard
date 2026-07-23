@@ -406,6 +406,25 @@ def _save_meta(code: str, meta: dict):
         # Remove stale top-level dimensions
         del meta["dimensions"]
     
+    # Validate and fix tags values before saving
+    if "tags" in meta and isinstance(meta["tags"], dict):
+        tags = meta["tags"]
+        # Fix watchlist: must be boolean, not empty string or None
+        wl = tags.get("watchlist")
+        if wl == "" or wl is None:
+            tags["watchlist"] = False
+        # Fix empty string dimension values
+        valid_dims = {"green", "yellow", "red", "none"}
+        for key in ["overall", "quality", "valuation", "timing", "risk", "verdict"]:
+            if key in tags and tags[key] == "":
+                tags[key] = "none"
+            if key in tags and tags[key] not in valid_dims:
+                # Map numeric values
+                if isinstance(tags[key], (int, float)):
+                    tags[key] = {1: "green", 0: "none", -1: "red"}.get(tags[key], "none")
+                else:
+                    tags[key] = "none"
+    
     static = {k: v for k, v in meta.items() if k in static_fields}
     mutable = {k: v for k, v in meta.items() if k not in static_fields and k not in derive_fields}
 

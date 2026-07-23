@@ -54,13 +54,19 @@ def migrate_stock(code: str) -> bool:
         changed = True
         print(f"  Migrated top-level dimensions → tags")
     
-    # 2. Ensure tags has required fields
-    if "overall" not in tags:
+    # 2. Ensure tags has required fields and fix empty strings
+    if "overall" not in tags or tags.get("overall") == "":
         tags["overall"] = "none"
         changed = True
-    if "watchlist" not in tags:
+    if "watchlist" not in tags or tags.get("watchlist") == "" or tags.get("watchlist") is None:
         tags["watchlist"] = False
         changed = True
+    
+    # 2b. Fix any dimension values that are empty strings
+    for key in DIMENSION_KEYS:
+        if key in tags and tags[key] == "":
+            tags[key] = "none"
+            changed = True
     
     # 3. Validate dimension values in tags
     for key in DIMENSION_KEYS:

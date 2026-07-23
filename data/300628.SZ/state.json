@@ -1,7 +1,7 @@
 {
   "tags": {
     "overall": "none",
-    "watchlist": "",
+    "watchlist": false,
     "quality": "green",
     "valuation": "yellow",
     "timing": "none",
