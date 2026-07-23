@@ -360,6 +360,31 @@ def _load_meta(code: str) -> dict:
         merged["notes"] = []
     return merged
 
+
+def _get_latest_note(code: str) -> Optional[dict]:
+    """Get the latest note from notes.md."""
+    path = _notes_path(code)
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read().strip()
+    if not content:
+        return None
+    # Parse the first entry (most recent, since we prepend)
+    # Actually notes.md is append-only, so last entry is most recent
+    lines = content.splitlines()
+    current_time = None
+    current_lines = []
+    for line in lines:
+        if line.startswith("## "):
+            current_time = line[3:].strip()
+            current_lines = []
+        else:
+            current_lines.append(line)
+    if current_time and current_lines:
+        return {"time": current_time, "content": "\n".join(current_lines).strip()}
+    return None
+
 def _save_meta(code: str, meta: dict):
     """Split fields into meta.json (static) and state.json (mutable).
     Reports and cache are derived from disk scans - never saved here."""
@@ -730,6 +755,7 @@ def list_stocks():
             "price_marks": meta.get("price_marks", []),
             "report_count": cached.get("report_count", 0),
             "last_analysis": cached.get("last_analysis"),
+            "latest_note": _get_latest_note(entry),
             "last_price": p.get("price"),
             "change_pct": p.get("change_pct"),
             "price_updated": p.get("updated_at")

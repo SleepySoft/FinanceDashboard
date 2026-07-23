@@ -91,6 +91,9 @@
             </span>
             <span v-else class="no-data">未分析</span>
           </div>
+          <div v-if="s.latest_note" class="stock-note">
+            💭 {{ s.latest_note.content.length > 36 ? s.latest_note.content.slice(0, 36) + '...' : s.latest_note.content }}
+          </div>
         </div>
       </div>
     </div>
@@ -227,6 +230,8 @@ onMounted(load)
 .stock-meta { display: flex; gap: 16px; font-size: 12px; color: #64748b; }
 .stock-meta .expired { color: #f87171; }
 .stock-meta .no-data { color: #475569; }
+
+.stock-note { margin-top: 8px; font-size: 12px; color: #94a3b8; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Mobile */
 @media (max-width: 640px) {

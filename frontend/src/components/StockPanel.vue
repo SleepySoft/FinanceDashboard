@@ -55,18 +55,14 @@
       </div>
     </div>
 
-    <!-- Reports Timeline -->
+    <!-- 统一时间线 -->
     <div class="card" style="padding: 0; overflow: visible">
-      <div class="analysis-header" @click="showFund = !showFund" style="padding: 14px 16px">
+      <div class="analysis-header" style="padding: 14px 16px">
         <div class="analysis-title">
-          <span class="analysis-icon">📊</span>
+          <span class="analysis-icon">📋</span>
           <div>
-            <h3>分析报告</h3>
-            <p class="analysis-status">
-              <span :class="{ expired: meta.cache?.fundamental?.expired }">基本面{{ fundamentalStatus.replace(/[已过期有效（）]/g, '') }}</span>
-              <span style="margin: 0 4px">·</span>
-              <span :class="{ expired: meta.cache?.technical?.expired }">技术面{{ technicalStatus.replace(/[已过期有效（）]/g, '') }}</span>
-            </p>
+            <h3>记录时间线</h3>
+            <p class="analysis-status">笔记 · 报告 · 简评 · 标记</p>
           </div>
         </div>
         <div class="header-right">
@@ -76,31 +72,60 @@
           <button v-if="!readonly" class="primary" @click.stop="analyze('technical')" :disabled="analyzing.technical" style="margin-left: 6px">
             {{ analyzing.technical ? '分析中...' : '技术面' }}
           </button>
-          <span class="collapse-btn">{{ showFund ? '▼' : '▶' }}</span>
         </div>
       </div>
 
-      <div v-show="showFund">
-        <div v-if="allReports.length > 0" class="report-timeline">
-          <div
-            v-for="(r, idx) in allReports"
-            :key="r.id"
-            :class="['timeline-item', { expanded: expandedReportId === r.id }]"
-          >
-            <div class="timeline-line" v-if="idx < allReports.length - 1"></div>
-            <div class="timeline-dot" :class="reportTypeClass(r.type)"></div>
-            <div class="timeline-header-row" @click="toggleReport(r)">
-              <span :class="['timeline-badge', reportTypeClass(r.type)]">{{ reportTypeLabel(r.type) }}</span>
-              <span class="timeline-time">{{ fmtDateTime(r.created_at) }}</span>
-              <span v-if="idx === 0" class="timeline-latest">最新</span>
-              <span class="timeline-expand-icon">{{ expandedReportId === r.id ? '▼' : '▶' }}</span>
-              <button v-if="!readonly" class="btn-delete" @click.stop="confirmDelete(r)" title="删除">🗑</button>
+      <!-- 笔记输入框 -->
+      <div v-if="!readonly" class="timeline-note-input">
+        <textarea v-model="newNote" rows="2" placeholder="记录你的想法..."></textarea>
+        <button class="primary" @click="addNote" :disabled="!newNote.trim()">保存笔记</button>
+      </div>
+
+      <!-- 时间线列表 -->
+      <div v-if="timelineItems.length > 0" class="report-timeline">
+        <div
+          v-for="(item, idx) in timelineItems"
+          :key="item.key"
+          :class="['timeline-item', { expanded: expandedTimelineId === item.key }]"
+        >
+          <div class="timeline-line" v-if="idx < timelineItems.length - 1"></div>
+          <div class="timeline-dot" :class="item.type"></div>
+          <div class="timeline-header-row" @click="item.kind === 'report' ? toggleTimelineItem(item) : null">
+            <span :class="['timeline-badge', item.type]">{{ item.badge }}</span>
+            <span class="timeline-time">{{ item.timeStr }}</span>
+            <span v-if="idx === 0" class="timeline-latest">最新</span>
+            <!-- 笔记/简评/标记的摘要 -->
+            <span v-if="item.kind === 'note'" class="timeline-preview">{{ item.preview }}</span>
+            <span v-if="item.kind === 'brief'" :class="['timeline-preview', item.raw.change_pct > 0 ? 'up' : 'down']">
+              收 ¥{{ item.raw.price?.toFixed(2) }} {{ item.raw.change_pct > 0 ? '+' : '' }}{{ item.raw.change_pct?.toFixed(1) }}%
+            </span>
+            <span v-if="item.kind === 'mark'" class="timeline-preview mark-preview">
+              {{ item.raw.label }} ¥{{ item.raw.price?.toFixed(2) }}
+            </span>
+            <span v-if="item.kind === 'report'" class="timeline-expand-icon">{{ expandedTimelineId === item.key ? '▼' : '▶' }}</span>
+            <button v-if="!readonly && item.kind === 'report'" class="btn-delete" @click.stop="confirmDelete(item.raw)" title="删除">🗑</button>
+          </div>
+
+          <!-- 展开内容 -->
+          <div v-show="expandedTimelineId === item.key" class="timeline-content">
+            <!-- 报告内容 -->
+            <div v-if="item.kind === 'report'" v-html="renderMarkdown(reportContents[item.raw.id] || '加载中...')"></div>
+            <!-- 笔记内容 -->
+            <div v-if="item.kind === 'note'" class="timeline-note-body">{{ item.raw.content }}</div>
+            <!-- 简评内容 -->
+            <div v-if="item.kind === 'brief'" class="timeline-brief-body">{{ item.raw.content }}</div>
+            <!-- 标记内容 -->
+            <div v-if="item.kind === 'mark'" class="timeline-mark-body">
+              <span :class="['mark-label', 'mark-' + item.raw.type]">{{ item.raw.label }}</span>
+              <span class="mark-price">¥{{ item.raw.price.toFixed(2) }}</span>
+              <span v-if="meta.last_price != null" :class="['mark-diff', diffClass(meta.last_price - item.raw.price)]">
+                {{ meta.last_price >= item.raw.price ? '+' : '' }}{{ (meta.last_price - item.raw.price).toFixed(2) }}
+              </span>
             </div>
-            <div v-show="expandedReportId === r.id" class="timeline-content" v-html="renderMarkdown(reportContents[r.id] || '加载中...')"></div>
           </div>
         </div>
-        <div class="empty" v-else>暂无分析报告</div>
       </div>
+      <div v-else class="empty" style="padding: 20px">暂无记录</div>
     </div>
 
     <!-- Delete Confirm Modal -->
@@ -151,49 +176,6 @@
           </div>
           <button class="primary" @click="addMark" :disabled="!newMark.label || !newMark.price">添加</button>
         </div>
-      </div>
-    </div>
-
-    <!-- Daily Briefs -->
-    <div class="card briefs-card">
-      <div class="briefs-header" @click="showBriefs = !showBriefs">
-        <div class="briefs-title">
-          <span class="briefs-icon">📋</span>
-          <div>
-            <h3>交易日简评</h3>
-            <p class="briefs-count">{{ briefs.length }} 条记录</p>
-          </div>
-        </div>
-        <div class="header-right">
-          <button v-if="!readonly" class="primary" @click.stop="generateBrief" :disabled="generatingBrief || todayBriefExists">
-            {{ generatingBrief ? '生成中...' : (todayBriefExists ? '今日已评' : '生成今日简评') }}
-          </button>
-          <span class="collapse-btn">{{ showBriefs ? '▼' : '▶' }}</span>
-        </div>
-      </div>
-      
-      <div v-show="showBriefs" class="briefs-content">
-        <div v-if="displayBriefs.length > 0" class="briefs-timeline">
-          <div v-for="b in displayBriefs" :key="b.id" class="brief-item">
-            <div class="brief-date-line">
-              <span class="brief-dot"></span>
-              <span class="brief-date-text">{{ b.date }}</span>
-              <span :class="['brief-pct', b.change_pct > 0 ? 'up' : 'down']">
-                {{ b.change_pct > 0 ? '+' : '' }}{{ b.change_pct?.toFixed(2) }}%
-              </span>
-            </div>
-            <div class="brief-body">
-              <div class="brief-meta">
-                <span class="brief-price">收 ¥{{ b.price?.toFixed(2) }}</span>
-              </div>
-              <div class="brief-text">{{ b.content }}</div>
-            </div>
-          </div>
-        </div>
-        <div v-if="briefs.length > 5 && !showAllBriefs" class="briefs-more" @click="showAllBriefs = true">
-          ▼ 还有 {{ briefs.length - 5 }} 条记录
-        </div>
-        <div v-if="briefs.length === 0" class="empty">暂无交易日简评</div>
       </div>
     </div>
 
@@ -262,20 +244,6 @@
       </div>
     </div>
 
-    <!-- Notes -->
-    <div class="card notes-card">
-      <h3>📝 随想笔记</h3>
-      <div v-if="!readonly" class="note-input">
-        <textarea v-model="newNote" rows="3" placeholder="记录你的想法..."></textarea>
-        <button class="primary" @click="addNote" :disabled="!newNote.trim()">保存</button>
-      </div>
-      <div class="notes-list">
-        <div v-for="n in notes" :key="n.time" class="note-item">
-          <div class="note-time">{{ n.time }}</div>
-          <div class="note-content">{{ n.content }}</div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -298,12 +266,6 @@ const technicalContent = ref('')
 const fundVersionContent = ref('')
 const techVersionContent = ref('')
 
-const showFund = ref(true)
-const showTech = ref(true)
-const showFundHistory = ref(false)
-const showTechHistory = ref(false)
-const fundExpandedIndex = ref(-1)
-const techExpandedIndex = ref(-1)
 
 const tagForm = ref({ watchlist: false })
 const statusForm = ref({ status: 'neutral' })
@@ -403,7 +365,6 @@ async function load() {
 // Timeline report functions
 const showDeleteConfirm = ref(false)
 const reportToDelete = ref(null)
-const expandedReportId = ref(null)
 const reportContents = ref({})
 
 const allReports = computed(() =>
@@ -411,19 +372,89 @@ const allReports = computed(() =>
     .slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 )
 
-async function toggleReport(r) {
-  if (expandedReportId.value === r.id) {
-    expandedReportId.value = null
+// 统一时间线：笔记 + 报告 + 简评 + 标记
+const timelineItems = computed(() => {
+  const items = []
+
+  // 笔记
+  notes.value.forEach(n => {
+    const d = new Date(n.time.replace(' ', 'T'))
+    items.push({
+      key: 'note-' + n.time,
+      kind: 'note',
+      type: 'note',
+      badge: '💭 笔记',
+      time: d,
+      timeStr: n.time,
+      raw: n,
+      preview: n.content.length > 30 ? n.content.slice(0, 30) + '...' : n.content
+    })
+  })
+
+  // 报告
+  allReports.value.forEach(r => {
+    const d = new Date(r.created_at)
+    items.push({
+      key: 'report-' + r.id,
+      kind: 'report',
+      type: reportTypeClass(r.type),
+      badge: '📊 ' + reportTypeLabel(r.type),
+      time: d,
+      timeStr: fmtDateTime(r.created_at),
+      raw: r
+    })
+  })
+
+  // 简评
+  briefs.value.forEach(b => {
+    const d = new Date(b.date + 'T15:00:00')
+    items.push({
+      key: 'brief-' + b.id,
+      kind: 'brief',
+      type: 'brief',
+      badge: '📋 简评',
+      time: d,
+      timeStr: b.date,
+      raw: b
+    })
+  })
+
+  // 价格标记
+  ;(meta.value.price_marks || []).forEach(m => {
+    const d = new Date(m.created_at || Date.now())
+    items.push({
+      key: 'mark-' + m.id,
+      kind: 'mark',
+      type: 'mark',
+      badge: '📌 标记',
+      time: d,
+      timeStr: fmtDateTime(m.created_at),
+      raw: m
+    })
+  })
+
+  return items.sort((a, b) => b.time - a.time)
+})
+
+const expandedTimelineId = ref(null)
+
+function toggleTimelineItem(item) {
+  if (expandedTimelineId.value === item.key) {
+    expandedTimelineId.value = null
     return
   }
-  expandedReportId.value = r.id
-  if (!reportContents.value[r.id]) {
-    try {
-      const data = await api.stocks.getReport(props.code, r.id)
-      reportContents.value[r.id] = data.content
-    } catch (e) {
-      reportContents.value[r.id] = '加载失败'
-    }
+  expandedTimelineId.value = item.key
+  if (item.kind === 'report' && !reportContents.value[item.raw.id]) {
+    loadReportContent(item.raw)
+  }
+}
+
+async function loadReportContent(r) {
+  try {
+    const data = await api.stocks.getReport(props.code, r.id)
+    reportContents.value[r.id] = data.content
+  } catch (e) {
+    reportContents.value[r.id] = '加载失败'
   }
 }
 
