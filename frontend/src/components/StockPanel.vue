@@ -753,7 +753,7 @@ onMounted(load)
   font-size: 13px;
   padding: 2px 4px;
   border-radius: 4px;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.15s;
 }
 .timeline-header-row:hover .btn-delete { opacity: 1; }
