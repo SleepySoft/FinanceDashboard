@@ -671,19 +671,10 @@ async function load() {
       map[h.code] = h
     }
     holdingsMap.value = map
-    // Default collapse all groups on first load
+    // Default: expand all groups on first load (previously collapsed, caused confusion)
     if (!firstLoadDone) {
       firstLoadDone = true
-      const statusSet = new Set(stocks.value.map(s => 'status-' + (s.status || 'neutral')))
-      const sectorSet = new Set(stocks.value.map(s => 'sector-' + (s.sector || '未分类')))
-      const ratingSet = new Set()
-      for (const s of stocks.value) {
-        const v = s.dimensions?.verdict || s.overall || 'none'
-        ratingSet.add('rating-' + v)
-      }
-      for (const key of [...statusSet, ...sectorSet, ...ratingSet]) {
-        collapsedGroups.value.add(key)
-      }
+      // Groups start expanded - user can collapse manually
     }
   } catch (e) {
     console.error(e)
