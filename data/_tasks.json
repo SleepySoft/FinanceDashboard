@@ -302,5 +302,33 @@
     "completed_at": "2026-07-21T08:54:30.836872+00:00",
     "result": null,
     "error": "已存在分析报告，跳过"
+  },
+  {
+    "id": "71a26265-67c",
+    "code": "688721.SH",
+    "name": "龙图光罩",
+    "sector": "半导体",
+    "note": "",
+    "type": "fundamental",
+    "status": "pending",
+    "created_at": "2026-07-23T03:14:12.583821+00:00",
+    "claimed_at": null,
+    "completed_at": null,
+    "result": null,
+    "error": null
+  },
+  {
+    "id": "6d14a4c2-fb9",
+    "code": "688721.SH",
+    "name": "龙图光罩",
+    "sector": "半导体",
+    "note": "",
+    "type": "technical",
+    "status": "pending",
+    "created_at": "2026-07-23T03:14:14.445707+00:00",
+    "claimed_at": null,
+    "completed_at": null,
+    "result": null,
+    "error": null
   }
 ]

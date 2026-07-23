@@ -354,7 +354,11 @@ def _load_meta(code: str) -> dict:
         # This branch can be removed once migration is done everywhere
         pass
 
-    return {**static, **mutable}
+    merged = {**static, **mutable}
+    # Legacy: notes may be a string instead of array
+    if "notes" in merged and isinstance(merged["notes"], str):
+        merged["notes"] = []
+    return merged
 
 def _save_meta(code: str, meta: dict):
     """Split fields into meta.json (static) and state.json (mutable).

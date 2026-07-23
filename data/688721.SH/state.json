@@ -1,4 +1,18 @@
 {
+  "dimensions": {
+    "quality": "red",
+    "valuation": "red",
+    "timing": "red",
+    "risk": "red",
+    "verdict": "red"
+  },
+  "dimension_reasons": {
+    "quality": "技术节点落后（90nm vs 国际28nm以下），毛利率从58%暴跌至45%显示竞争力退化",
+    "valuation": "PE 52倍、PB 4.3倍，对于ROE仅4.6%的公司明显偏贵",
+    "timing": "产能爬坡中期、毛利率下滑趋势未止、定增不确定性大",
+    "risk": "28nm技术失败可能导致永久性资本损失，定增稀释30%",
+    "verdict": "好赛道里的困难公司，当前不具备风险收益比优势"
+  },
   "tags": {
     "overall": "red",
     "watchlist": false,
@@ -8,8 +22,8 @@
     "risk": "yellow",
     "verdict": "red"
   },
-  "notes": "2025年报营收2.47亿元(+0.06%)，归母净利润5608.85万元(-38.92%)，毛利率45.32%。半导体掩模版厂商，珠海新厂产能爬坡中。",
-  "status": "bullish",
+  "notes": [],
+  "status": "waiting",
   "daily_briefs": [
     {
       "id": "19893b19",

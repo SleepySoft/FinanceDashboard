@@ -540,9 +540,13 @@ async function removeMark(id) {
 }
 
 async function addNote() {
-  await api.stocks.addNote(props.code, newNote.value)
-  newNote.value = ''
-  await load()
+  try {
+    await api.stocks.addNote(props.code, newNote.value)
+    newNote.value = ''
+    await load()
+  } catch (e) {
+    alert('保存失败: ' + e.message)
+  }
 }
 
 async function generateBrief() {
