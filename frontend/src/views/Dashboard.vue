@@ -659,10 +659,12 @@ const holdingsMap = ref({})
 async function load() {
   loading.value = true
   try {
+    console.log('[Dashboard] Loading...')
     const [data, hList] = await Promise.all([
       api.dashboard.get(),
       api.holdings.list().catch(() => [])
     ])
+    console.log('[Dashboard] API returned', data.stocks?.length || 0, 'stocks')
     stocks.value = data.stocks || []
     lastRefresh.value = data.price_data_time || data.last_update
     // Build holdings map
@@ -671,10 +673,19 @@ async function load() {
       map[h.code] = h
     }
     holdingsMap.value = map
-    // Default: expand all groups on first load (previously collapsed, caused confusion)
+    // Default collapse all groups on first load
     if (!firstLoadDone) {
       firstLoadDone = true
-      // Groups start expanded - user can collapse manually
+      const statusSet = new Set(stocks.value.map(s => 'status-' + (s.status || 'neutral')))
+      const sectorSet = new Set(stocks.value.map(s => 'sector-' + (s.sector || '未分类')))
+      const ratingSet = new Set()
+      for (const s of stocks.value) {
+        const v = s.dimensions?.verdict || s.overall || 'none'
+        ratingSet.add('rating-' + v)
+      }
+      for (const key of [...statusSet, ...sectorSet, ...ratingSet]) {
+        collapsedGroups.value.add(key)
+      }
     }
   } catch (e) {
     console.error(e)
@@ -750,7 +761,7 @@ async function submitTrade() {
 
 // ── Filtered stocks ──
 const filteredStocks = computed(() => {
-  return stocks.value.filter(s => {
+  const result = stocks.value.filter(s => {
     if (filterSector.value && s.sector !== filterSector.value) return false
     const verdict = s.dimensions?.verdict || s.overall
     if (filterVerdict.value && verdict !== filterVerdict.value) return false
@@ -761,6 +772,10 @@ const filteredStocks = computed(() => {
     }
     return true
   })
+  console.log('[Dashboard] filteredStocks:', result.length, 'of', stocks.value.length,
+    'sector=', filterSector.value, 'verdict=', filterVerdict.value,
+    'watchlist=', filterWatchlist.value, 'holdings=', filterHoldings.value)
+  return result
 })
 
 // ── Holdings Summary ──
