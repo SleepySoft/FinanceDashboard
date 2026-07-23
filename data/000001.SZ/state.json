@@ -20,6 +20,16 @@
       "change_pct": 1.29,
       "amplitude": 1.94,
       "created_at": "2026-07-22T07:30:01.692711+00:00"
+    },
+    {
+      "id": "86df095e",
+      "date": "2026-07-23",
+      "content": "小幅低开后震荡走高，微涨0.9%",
+      "has_value": true,
+      "price": 11.08,
+      "change_pct": 0.91,
+      "amplitude": 2.0,
+      "created_at": "2026-07-23T07:30:02.052981+00:00"
     }
   ],
   "notes": [

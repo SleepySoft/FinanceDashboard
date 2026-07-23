@@ -19,6 +19,16 @@
       "change_pct": -3.89,
       "amplitude": 6.63,
       "created_at": "2026-07-22T07:30:01.709930+00:00"
+    },
+    {
+      "id": "e53c2e1b",
+      "date": "2026-07-23",
+      "content": "小幅高开后震荡走低，微跌0.6%，振幅较大",
+      "has_value": true,
+      "price": 36.58,
+      "change_pct": -0.6,
+      "amplitude": 6.66,
+      "created_at": "2026-07-23T07:30:02.068945+00:00"
     }
   ],
   "status": "waiting"

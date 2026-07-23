@@ -1,11 +1,4 @@
 {
-  "dimensions": {
-    "quality": "red",
-    "valuation": "red",
-    "timing": "red",
-    "risk": "red",
-    "verdict": "red"
-  },
   "dimension_reasons": {
     "quality": "技术节点落后（90nm vs 国际28nm以下），毛利率从58%暴跌至45%显示竞争力退化",
     "valuation": "PE 52倍、PB 4.3倍，对于ROE仅4.6%的公司明显偏贵",
@@ -18,7 +11,7 @@
     "watchlist": false,
     "quality": "red",
     "valuation": "red",
-    "timing": "none",
+    "timing": "red",
     "risk": "yellow",
     "verdict": "red"
   },
@@ -34,6 +27,16 @@
       "change_pct": -3.31,
       "amplitude": 6.96,
       "created_at": "2026-07-22T07:30:01.711314+00:00"
+    },
+    {
+      "id": "b29b5dc4",
+      "date": "2026-07-23",
+      "content": "小幅高开后震荡走低，收跌4.3%，振幅较大",
+      "has_value": true,
+      "price": 37.51,
+      "change_pct": -4.31,
+      "amplitude": 7.07,
+      "created_at": "2026-07-23T07:30:02.070581+00:00"
     }
   ]
 }

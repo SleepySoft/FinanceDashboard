@@ -1,0 +1,26 @@
+{
+  "tags": {
+    "watchlist": false,
+    "overall": "yellow",
+    "quality": "green",
+    "valuation": "none",
+    "timing": "none",
+    "risk": "none",
+    "verdict": "yellow"
+  },
+  "status": "neutral",
+  "price_marks": [],
+  "notes": [],
+  "daily_briefs": [
+    {
+      "id": "e5e04d36",
+      "date": "2026-07-23",
+      "content": "小幅低开后单边下行，收跌7.6%，振幅较大",
+      "has_value": true,
+      "price": 103.92,
+      "change_pct": -7.6,
+      "amplitude": 7.81,
+      "created_at": "2026-07-23T07:30:02.041666+00:00"
+    }
+  ]
+}

@@ -387,10 +387,25 @@ def _get_latest_note(code: str) -> Optional[dict]:
 
 def _save_meta(code: str, meta: dict):
     """Split fields into meta.json (static) and state.json (mutable).
-    Reports and cache are derived from disk scans - never saved here."""
+    Reports and cache are derived from disk scans - never saved here.
+    Also migrates any top-level dimensions to tags for schema consistency."""
     static_fields = {"code", "name", "sector", "type", "added_at"}
     # Never save reports/cache to state - they are derived from disk
     derive_fields = {"reports", "cache"}
+    
+    # Migrate top-level dimensions to tags if present
+    if "dimensions" in meta and isinstance(meta["dimensions"], dict):
+        tags = meta.setdefault("tags", {})
+        for key in ["quality", "valuation", "timing", "risk", "verdict"]:
+            if key in meta["dimensions"] and key not in tags:
+                val = meta["dimensions"][key]
+                if isinstance(val, (int, float)):
+                    val = {1: "green", 0: "none", -1: "red"}.get(val, "none")
+                if val in {"green", "yellow", "red", "none"}:
+                    tags[key] = val
+        # Remove stale top-level dimensions
+        del meta["dimensions"]
+    
     static = {k: v for k, v in meta.items() if k in static_fields}
     mutable = {k: v for k, v in meta.items() if k not in static_fields and k not in derive_fields}
 
@@ -405,30 +420,38 @@ def _save_meta(code: str, meta: dict):
 
 
 def _normalize_dimensions(meta: dict) -> dict:
-    """Extract evaluation dimensions from meta tags (new or legacy format)."""
+    """Extract evaluation dimensions from meta tags (canonical) or top-level dimensions (legacy fallback)."""
     tags = meta.get("tags", {})
+    # Legacy: top-level dimensions may exist from external scripts
+    legacy_dims = meta.get("dimensions", {}) if isinstance(meta.get("dimensions"), dict) else {}
     dims = {}
 
-    # New format: direct dimension fields
-    if "quality" in tags:
-        dims["quality"] = tags["quality"]
-    else:
-        # Legacy fallback: derive from moat / fundamental
-        dims["quality"] = tags.get("moat") or tags.get("fundamental") or "none"
+    # Helper: get value from tags first, then legacy dims, then default
+    def _get_dim(key, legacy_key=None, default="none"):
+        if key in tags and tags[key]:
+            return tags[key]
+        lk = legacy_key or key
+        if lk in legacy_dims and legacy_dims[lk]:
+            val = legacy_dims[lk]
+            # Map numeric values
+            if isinstance(val, (int, float)):
+                return {1: "green", 0: "none", -1: "red"}.get(val, default)
+            return val if val in {"green", "yellow", "red", "none"} else default
+        return default
 
-    dims["valuation"] = tags.get("valuation", "none")
+    dims["quality"] = _get_dim("quality", "moat", "none")
+    if dims["quality"] == "none" and "fundamental" in tags:
+        dims["quality"] = tags["fundamental"]
 
-    if "timing" in tags:
-        dims["timing"] = tags["timing"]
-    else:
-        dims["timing"] = tags.get("technical", "none")
+    dims["valuation"] = _get_dim("valuation")
 
-    dims["risk"] = tags.get("risk", "none")
+    dims["timing"] = _get_dim("timing", "technical")
 
-    if "verdict" in tags:
-        dims["verdict"] = tags["verdict"]
-    else:
-        dims["verdict"] = tags.get("overall", "none")
+    dims["risk"] = _get_dim("risk")
+
+    dims["verdict"] = _get_dim("verdict", "overall", "none")
+    if dims["verdict"] == "none" and "overall" in tags:
+        dims["verdict"] = tags["overall"]
 
     return dims
 

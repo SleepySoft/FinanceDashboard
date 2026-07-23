@@ -20,6 +20,16 @@
       "change_pct": 6.52,
       "amplitude": 9.23,
       "created_at": "2026-07-22T07:30:01.689672+00:00"
+    },
+    {
+      "id": "5d404801",
+      "date": "2026-07-23",
+      "content": "低开后震荡走高，微涨0.1%",
+      "has_value": true,
+      "price": 33.05,
+      "change_pct": 0.15,
+      "amplitude": 4.73,
+      "created_at": "2026-07-23T07:30:02.043580+00:00"
     }
   ],
   "notes": [

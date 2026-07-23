@@ -29,6 +29,16 @@
       "change_pct": -3.9,
       "amplitude": 6.03,
       "created_at": "2026-07-22T07:30:01.710404+00:00"
+    },
+    {
+      "id": "ea20ed05",
+      "date": "2026-07-23",
+      "content": "小幅高开后震荡走低，收跌2.8%，振幅较大",
+      "has_value": true,
+      "price": 25.86,
+      "change_pct": -2.78,
+      "amplitude": 6.32,
+      "created_at": "2026-07-23T07:30:02.069496+00:00"
     }
   ],
   "notes": [],
