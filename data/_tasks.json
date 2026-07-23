@@ -330,5 +330,23 @@
     "completed_at": null,
     "result": null,
     "error": null
+  },
+  {
+    "id": "b0782ab2-2c2",
+    "code": "688018.SH",
+    "name": "乐鑫科技",
+    "sector": "半导体/物联网芯片",
+    "note": "AIoT芯片龙头，Wi-Fi MCU全球领先",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-07-23T05:12:52.132081+00:00",
+    "claimed_at": null,
+    "completed_at": "2026-07-23T05:16:16.959957+00:00",
+    "result": {
+      "report_path": "data/688018.SH/reports/fundamental_20260723.md",
+      "summary": "乐鑫科技基本面优秀（高成长、毛利率持续提升、财务稳健），但估值偏高（PE 48倍），股价已从5月高点回调46%。技术面处于下降后的横盘整理，布林带极度收窄，方向待确认。综合判断：观望。",
+      "reports": null
+    },
+    "error": null
   }
 ]

@@ -459,5 +459,25 @@
       }
     ],
     "updated_at": "2026-07-22T03:35:00+00:00"
+  },
+  "688018.SH": {
+    "name": "乐鑫科技",
+    "report_count": 2,
+    "last_analysis": "2026-07-23",
+    "reports": [
+      {
+        "id": "fundamental_20260723",
+        "filename": "fundamental_20260723.md",
+        "type": "fundamental",
+        "created_at": "2026-07-23"
+      },
+      {
+        "id": "technical_20260723",
+        "filename": "technical_20260723.md",
+        "type": "technical",
+        "created_at": "2026-07-23"
+      }
+    ],
+    "updated_at": "2026-07-23T05:16:16.960793+00:00"
   }
 }
