@@ -55,6 +55,8 @@ FinanceDashboard/
 
 ## 快速开始
 
+### Linux / macOS
+
 ```bash
 # 构建前端（如有代码改动）
 cd frontend
@@ -64,6 +66,23 @@ npm run build
 cd backend
 source venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 80
+```
+
+### Windows
+
+项目已提供 Windows 批处理脚本，详见 [docs/windows-setup.md](docs/windows-setup.md)。
+
+```powershell
+# 一键启动后端 + 前端（推荐）
+start_all.bat
+
+# 或分别启动
+cd backend && start.bat
+cd frontend && start.bat
+
+# 生产部署：先构建前端，再由后端统一 serve
+cd frontend && build.bat
+cd backend && start_production.bat
 ```
 
 ## AI Agent 使用

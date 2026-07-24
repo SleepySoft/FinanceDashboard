@@ -89,6 +89,8 @@ data/
 ## Development Workflow
 
 ### Starting Services
+
+#### Linux / macOS
 ```bash
 cd /root/data/FinanceDashboard/backend
 source venv/bin/activate
@@ -96,6 +98,27 @@ nohup uvicorn main:app --host 0.0.0.0 --port 80 > /tmp/uvicorn.log 2>&1 &
 ```
 - 后端同时 serve API 和前端静态文件（`frontend/dist/`）
 - 前端改动后需要 `npm run build` 重新构建
+
+#### Windows
+项目根目录提供一键启动脚本 `start_all.bat`，会自动创建虚拟环境、安装依赖并启动前后端：
+```cmd
+start_all.bat
+```
+单独启动：
+```cmd
+cd backend && start.bat
+cd frontend && start.bat
+```
+生产部署：
+```cmd
+cd frontend && build.bat
+cd backend && start_production.bat
+```
+详见 [docs/windows-setup.md](docs/windows-setup.md)。
+
+### Dependency Files
+- 后端：`backend/requirements.txt`（FastAPI + Uvicorn + Pydantic）
+- 前端：`frontend/package.json`（Vue 3 + Vite + Axios + Vue Router）
 
 ### Adding a New Stock for Analysis
 1. User submits via frontend (`/requests`) or tells agent directly
@@ -136,6 +159,7 @@ nohup uvicorn main:app --host 0.0.0.0 --port 80 > /tmp/uvicorn.log 2>&1 &
 - [x] **Separate fundamental/technical reports** — Backend API now supports `reports` array in complete endpoint. Agent MUST generate two files for `full` analysis.
 - [x] **Holdings & T-trade tracking** — Smart FIFO + intraday LIFO matching, trade entry modal, holdings display on cards
 - [ ] Move `.env` from legacy path to `/root/data/FinanceDashboard/.env`
+- [x] Windows startup scripts (`start_all.bat`, `backend/start.bat`, `frontend/start.bat`) and dependency docs (`docs/windows-setup.md`)
 - [ ] Frontend Markdown rendering: add marked.js for proper tables/code blocks
 - [ ] Add stock code validation/normalization (A-share format auto-correction)
 - [ ] Consider adding cron for periodic price refresh (currently only manual + frontend poll)
