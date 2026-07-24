@@ -4,21 +4,21 @@ cd /d "%~dp0"
 echo [FinanceDashboard Backend - Production]
 echo.
 
-if not exist "..\frontend\dist\" (
-    echo 未检测到 frontend\dist，请先运行 frontend\build.bat 构建前端。
+if not exist "..\frontend\dist" (
+    echo frontend\dist not found. Please run frontend\build.bat first.
     pause
     exit /b 1
 )
 
 if not exist "venv\Scripts\activate.bat" (
-    echo 未检测到虚拟环境，请先运行 start.bat 完成初始化。
+    echo Virtual environment not found. Please run start.bat first to initialize.
     pause
     exit /b 1
 )
 
 call venv\Scripts\activate.bat
 
-echo 启动生产服务（http://localhost:80）...
-echo 注意：80 端口需要管理员权限，若启动失败请以管理员身份运行本脚本。
+echo Starting production server (http://localhost:80) ...
+echo Note: port 80 may require administrator rights. Run this script as administrator if it fails.
 uvicorn main:app --host 0.0.0.0 --port 80
 pause

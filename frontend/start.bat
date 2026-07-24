@@ -4,18 +4,18 @@ cd /d "%~dp0"
 echo [FinanceDashboard Frontend]
 echo.
 
-if not exist "node_modules\" (
-    echo 未检测到 node_modules，正在安装 npm 依赖 ...
+if not exist "node_modules" (
+    echo node_modules not found. Installing npm dependencies ...
     npm install
     if errorlevel 1 (
-        echo npm 依赖安装失败，请确认已安装 Node.js 18+ 且加入了 PATH。
+        echo Failed to install npm dependencies. Make sure Node.js 18+ is installed and in PATH.
         pause
         exit /b 1
     )
 )
 
 echo.
-echo 启动 Vite 开发服务器（http://localhost:80）...
-echo 注意：80 端口需要管理员权限，若启动失败请以管理员身份运行本脚本。
+echo Starting Vite dev server (http://localhost:80) ...
+echo Note: port 80 may require administrator rights. Run this script as administrator if it fails.
 npm run dev
 pause
