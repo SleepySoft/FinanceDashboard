@@ -665,6 +665,8 @@ async function load() {
       api.holdings.list().catch(() => [])
     ])
     console.log('[Dashboard] API returned', data.stocks?.length || 0, 'stocks')
+    console.log('[Dashboard] data type:', typeof data, 'isArray:', Array.isArray(data), 'keys:', Object.keys(data || {}))
+    console.log('[Dashboard] data.stocks type:', typeof data.stocks, 'isArray:', Array.isArray(data.stocks), 'length:', data.stocks?.length)
     stocks.value = data.stocks || []
     lastRefresh.value = data.price_data_time || data.last_update
     // Build holdings map
