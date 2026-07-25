@@ -646,6 +646,7 @@ const groupModes = [
 
 const collapsedGroups = ref(new Set())
 let firstLoadDone = false
+let autoTimer = null
 function toggleGroup(key) {
   if (collapsedGroups.value.has(key)) {
     collapsedGroups.value.delete(key)
