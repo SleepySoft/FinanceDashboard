@@ -978,9 +978,49 @@ def add_note(code: str, req: NoteReq):
     with open(path, "a", encoding="utf-8") as f:
         f.write(entry)
     note_obj = {"time": ts, "content": req.content}
-    meta["notes"].insert(0, note_obj)
+    meta.setdefault("notes", []).insert(0, note_obj)
     _save_meta(code, meta)
     return note_obj
+
+@app.delete("/api/stocks/{code}/notes/{note_time}")
+def delete_note(code: str, note_time: str):
+    """Delete note(s) by timestamp (notes.md entries with matching ## time header)."""
+    path = _notes_path(code)
+    if not os.path.exists(path):
+        raise HTTPException(404, "Note not found")
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    # Rebuild file without entries matching note_time
+    blocks = []
+    current = None
+    for line in content.splitlines():
+        if line.startswith("## "):
+            if current is not None:
+                blocks.append(current)
+            current = {"time": line[3:].strip(), "lines": []}
+        elif current is not None:
+            current["lines"].append(line)
+    if current is not None:
+        blocks.append(current)
+    kept = [b for b in blocks if b["time"] != note_time]
+    if len(kept) == len(blocks):
+        raise HTTPException(404, "Note not found")
+    with open(path, "w", encoding="utf-8") as f:
+        for b in kept:
+            f.write(f"## {b['time']}\n")
+            body = "\n".join(b["lines"]).strip("\n")
+            if body:
+                f.write(body + "\n")
+            f.write("\n")
+    # Sync meta notes cache if present
+    try:
+        meta = _load_meta(code)
+        if meta.get("notes"):
+            meta["notes"] = [n for n in meta["notes"] if n.get("time") != note_time]
+            _save_meta(code, meta)
+    except Exception:
+        pass
+    return {"deleted": note_time}
 
 # ─── Agent Endpoints (for AI polling) ──────────────────
 

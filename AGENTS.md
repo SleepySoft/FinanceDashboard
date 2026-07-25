@@ -65,6 +65,7 @@ data/
 | `/api/stocks/{code}/tags` | PATCH | Update overall/watchlist/unread tags |
 | `/api/stocks/{code}/price-marks` | POST | Add price mark |
 | `/api/stocks/{code}/notes` | GET/POST | Notes |
+| `/api/stocks/{code}/notes/{time}` | DELETE | Delete note(s) by timestamp |
 | `/api/stocks/{code}/reports/{id}` | GET | Report content (Markdown) |
 | `/api/holdings` | GET | List all holdings summaries |
 | `/api/holdings/{code}` | GET | Holdings detail (position + T-trades) |

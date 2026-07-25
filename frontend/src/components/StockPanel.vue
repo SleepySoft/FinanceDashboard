@@ -77,8 +77,16 @@
 
       <!-- 笔记输入框 -->
       <div v-if="!readonly" class="timeline-note-input">
-        <textarea v-model="newNote" rows="2" placeholder="记录你的想法..."></textarea>
-        <button class="primary" @click="addNote" :disabled="!newNote.trim()">保存笔记</button>
+        <textarea
+          v-model="newNote"
+          rows="3"
+          placeholder="记录你的想法… 支持多行，Ctrl+Enter 快速保存"
+          @keydown.ctrl.enter="addNote"
+        ></textarea>
+        <div class="note-input-footer">
+          <span class="note-char-count">{{ newNote.trim() ? newNote.length + ' 字' : '' }}</span>
+          <button class="primary" @click="addNote" :disabled="!newNote.trim()">保存笔记</button>
+        </div>
       </div>
 
       <!-- 时间线列表 -->
@@ -90,7 +98,7 @@
         >
           <div class="timeline-line" v-if="idx < timelineItems.length - 1"></div>
           <div class="timeline-dot" :class="item.type"></div>
-          <div class="timeline-header-row" @click="item.kind === 'report' ? toggleTimelineItem(item) : null">
+          <div class="timeline-header-row" :class="{ clickable: isItemExpandable(item) }" @click="onTimelineItemClick(item)">
             <span :class="['timeline-badge', item.type]">{{ item.badge }}</span>
             <span class="timeline-time">{{ item.timeStr }}</span>
             <span v-if="idx === 0" class="timeline-latest">最新</span>
@@ -102,8 +110,9 @@
             <span v-if="item.kind === 'mark'" class="timeline-preview mark-preview">
               {{ item.raw.label }} ¥{{ item.raw.price?.toFixed(2) }}
             </span>
-            <span v-if="item.kind === 'report'" class="timeline-expand-icon">{{ expandedTimelineId === item.key ? '▼' : '▶' }}</span>
+            <span v-if="isItemExpandable(item)" class="timeline-expand-icon">{{ expandedTimelineId === item.key ? '▼' : '▶' }}</span>
             <button v-if="!readonly && item.kind === 'report'" class="btn-delete" @click.stop="confirmDelete(item.raw)" title="删除">🗑</button>
+            <button v-if="!readonly && item.kind === 'note'" class="btn-delete" @click.stop="deleteNote(item.raw)" title="删除笔记">🗑</button>
           </div>
 
           <!-- 展开内容 -->
@@ -397,7 +406,7 @@ const timelineItems = computed(() => {
       time: d,
       timeStr: n.time,
       raw: n,
-      preview: n.content.length > 30 ? n.content.slice(0, 30) + '...' : n.content
+      preview: n.content.length > 60 ? n.content.slice(0, 60) + '…' : n.content
     })
   })
 
@@ -581,12 +590,37 @@ async function removeMark(id) {
 }
 
 async function addNote() {
+  if (!newNote.value.trim()) return
   try {
     await api.stocks.addNote(props.code, newNote.value)
     newNote.value = ''
     await load()
   } catch (e) {
     alert('保存失败: ' + e.message)
+  }
+}
+
+async function deleteNote(note) {
+  if (!confirm(`删除这条笔记？\n\n${note.content.slice(0, 50)}${note.content.length > 50 ? '…' : ''}`)) return
+  try {
+    await api.stocks.deleteNote(props.code, note.time)
+    notes.value = notes.value.filter(n => n.time !== note.time)
+  } catch (e) {
+    alert('删除失败: ' + e.message)
+  }
+}
+
+// 报告总是可展开；笔记仅长文（预览被截断）时可展开
+function isItemExpandable(item) {
+  if (item.kind === 'report') return true
+  if (item.kind === 'note') return item.raw.content.length > 60
+  return false
+}
+
+function onTimelineItemClick(item) {
+  if (item.kind === 'report') { toggleTimelineItem(item); return }
+  if (item.kind === 'note' && isItemExpandable(item)) {
+    expandedTimelineId.value = expandedTimelineId.value === item.key ? null : item.key
   }
 }
 
@@ -823,6 +857,29 @@ onMounted(load)
   font-size: 14px;
   line-height: 1.8;
 }
+
+/* 笔记输入区 */
+.timeline-note-input { padding: 0 16px 14px; }
+.timeline-note-input textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.6;
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.timeline-note-input textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.note-input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.note-char-count { font-size: 12px; color: #475569; }
+
+/* 笔记条目 */
+.timeline-header-row.clickable { cursor: pointer; }
+.timeline-header-row:not(.clickable) { cursor: default; }
+.timeline-preview { color: #cbd5e1; font-size: 13px; line-height: 1.5; word-break: break-all; }
+.timeline-note-body { white-space: pre-wrap; color: #e2e8f0; }
 
 /* Delete confirm modal */
 .modal-overlay {
