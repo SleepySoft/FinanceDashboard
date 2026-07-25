@@ -51,6 +51,7 @@ data/
 3. **Separate Caches** — Fundamental (30 days) and Technical (7 days) have independent expiry and refresh buttons.
 4. **Agent-triggered Analysis** — User submits request → pool → agent claims → runs analysis → writes report. No automatic polling.
 5. **File-based Storage** — No database. Everything is JSON or Markdown files.
+6. **Unread Tag** — Agent `complete` 后 `tags.unread=true`，看板显示红色「未读」徽章；用户打开个股面板/详情页时前端自动 PATCH 清除。
 
 ## API Endpoints (Human-facing)
 
@@ -61,7 +62,7 @@ data/
 | `/api/requests` | GET/POST/DELETE | Request pool (pending analysis tasks) |
 | `/api/stocks` | GET | List all analyzed stocks |
 | `/api/stocks/{code}` | GET | Stock detail (meta + injected price) |
-| `/api/stocks/{code}/tags` | PATCH | Update overall/watchlist tags |
+| `/api/stocks/{code}/tags` | PATCH | Update overall/watchlist/unread tags |
 | `/api/stocks/{code}/price-marks` | POST | Add price mark |
 | `/api/stocks/{code}/notes` | GET/POST | Notes |
 | `/api/stocks/{code}/reports/{id}` | GET | Report content (Markdown) |

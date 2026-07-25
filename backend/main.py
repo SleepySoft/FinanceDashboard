@@ -572,11 +572,12 @@ class SubmitRequestReq(BaseModel):
 class TagUpdateReq(BaseModel):
     overall: Optional[Literal["green", "yellow", "red", "none"]] = None
     watchlist: Optional[bool] = None
+    unread: Optional[bool] = None
 
 class PriceMarkReq(BaseModel):
     label: str
     price: float
-    type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark"] = "mark"
+    type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell"] = "mark"
 
 class StatusReq(BaseModel):
     status: Literal["tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "waiting", "archive", "core_position"]
@@ -860,6 +861,8 @@ def update_tags(code: str, req: TagUpdateReq):
         meta["tags"]["overall"] = req.overall
     if req.watchlist is not None:
         meta["tags"]["watchlist"] = req.watchlist
+    if req.unread is not None:
+        meta["tags"]["unread"] = req.unread
     _save_meta(code, meta)
     return meta["tags"]
 
@@ -887,7 +890,7 @@ def add_price_mark(code: str, req: PriceMarkReq):
         "type": req.type,
         "created_at": _now()
     }
-    meta["price_marks"].append(mark)
+    meta.setdefault("price_marks", []).append(mark)
     _save_meta(code, meta)
     return mark
 
@@ -1026,7 +1029,12 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
     name = task.get("name", code)
     if not os.path.exists(_meta_path(code)) and not os.path.exists(_state_path(code)):
         _init_stock(code, name, task.get("sector", ""))
-    
+
+    # Mark stock as unread - new analysis report not yet reviewed by user
+    meta = _load_meta(code)
+    meta.setdefault("tags", {})["unread"] = True
+    _save_meta(code, meta)
+
     # Update reports cache (program-managed, no hand-editing)
     _update_reports_cache(code, name)
     return task

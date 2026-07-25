@@ -8,8 +8,16 @@
     "risk": "none",
     "verdict": "yellow"
   },
-  "status": "neutral",
-  "price_marks": [],
+  "status": "waiting",
+  "price_marks": [
+    {
+      "id": "a431e40e",
+      "label": "标记",
+      "price": 105.16,
+      "type": "mark",
+      "created_at": "2026-07-25T02:17:06.552973+00:00"
+    }
+  ],
   "notes": [],
   "daily_briefs": [
     {

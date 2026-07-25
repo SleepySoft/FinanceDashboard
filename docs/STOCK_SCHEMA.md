@@ -67,6 +67,7 @@ All stock data is stored under `data/{code}/` with the following files:
 | timing | string | "green", "yellow", "red", "none" | Entry timing |
 | risk | string | "green", "yellow", "red", "none" | Risk level |
 | verdict | string | "green", "yellow", "red", "none" | Final verdict |
+| unread | boolean | true, false | 未读标记：分析完成（agent complete）后自动置 true，用户打开个股面板/详情页后自动清除 |
 
 #### status
 
@@ -101,7 +102,9 @@ All stock data is stored under `data/{code}/` with the following files:
 | id | string | Unique mark ID |
 | label | string | Display label |
 | price | number | Mark price |
-| type | string | target_buy, stop_loss, take_profit, add, reduce, mark |
+| type | string | target_buy, stop_loss, take_profit, add, reduce, mark, last_buy, last_sell |
+
+`last_buy` / `last_sell`：前端「最后买入」「最后卖出」快捷按钮，自动从持仓交易记录（`holdings.json` summary 的 `last_buy_price` / `last_sell_price`）取价填充；无交易记录时提示先录入交易。
 | created_at | string | ISO 8601 timestamp |
 
 ### API Response Format

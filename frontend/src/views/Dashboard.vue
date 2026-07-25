@@ -86,6 +86,7 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
                   <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
@@ -171,6 +172,7 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
                   <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
@@ -255,6 +257,7 @@
                   <span class="stock-code">{{ s.code }}</span>
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
+                  <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
                   <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
@@ -463,7 +466,7 @@
               @click="openStock(s.code)"
             >
               <td class="cell-code">{{ s.code }}</td>
-              <td class="cell-name">{{ s.name }}</td>
+              <td class="cell-name">{{ s.name }}<span v-if="s.tags?.unread" class="tag-badge tag-unread" style="margin-left:6px">未读</span></td>
               <td class="cell-sector">{{ s.sector }}</td>
               <td :class="['cell-price', priceClass(s.change_pct)]">
                 {{ s.last_price != null ? '¥' + s.last_price.toFixed(2) : '--' }}
@@ -724,6 +727,8 @@ function openStock(code) {
   }
 }
 function closeModal() {
+  // StockPanel 打开时已向后端标记已读，这里同步清除本地未读角标
+  if (selectedStock.value?.tags) selectedStock.value.tags.unread = false
   showModal.value = false
   selectedStock.value = null
 }
@@ -1040,6 +1045,7 @@ onUnmounted(stopAutoRefresh)
 .tag-red { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
 .tag-none { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.25); }
 .tag-watch { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.25); }
+.tag-unread { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.35); }
 
 .marks-section { border-top: 1px solid #334155; padding-top: 8px; margin-bottom: 8px; }
 .mark-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }

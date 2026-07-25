@@ -165,6 +165,8 @@
           <span class="preset-label" @click="newMark.label = '加仓'; newMark.type = 'add'">加仓</span>
           <span class="preset-label" @click="newMark.label = '减仓'; newMark.type = 'reduce'">减仓</span>
           <span class="preset-label" @click="newMark.label = '标记'; newMark.type = 'mark'">标记</span>
+          <span class="preset-label preset-trade" @click="fillLastTrade('buy')">最后买入</span>
+          <span class="preset-label preset-trade" @click="fillLastTrade('sell')">最后卖出</span>
         </div>
         <div class="add-mark-row">
           <input v-model="newMark.label" placeholder="标签（可自定义）" style="flex:1" />
@@ -348,6 +350,11 @@ async function load() {
   tagForm.value = { watchlist: data.tags?.watchlist || false }
   statusForm.value = { status: data.status || 'neutral' }
   briefs.value = data.daily_briefs || []
+  // 用户打开面板即视为已读：清除未读标记
+  if (data.tags?.unread) {
+    meta.value.tags.unread = false
+    api.stocks.updateTags(props.code, { unread: false }).catch(() => {})
+  }
   const n = await api.stocks.getNotes(props.code)
   notes.value = n.notes
   // Load holdings
@@ -623,6 +630,18 @@ function fillPrice(offset) {
   newMark.value.price = Number((base * (1 + offset)).toFixed(2))
 }
 
+// 最后买入/最后卖出：从持仓交易记录取价自动填充；无记录则提示录入
+function fillLastTrade(kind) {
+  const summary = holdingsData.value?.summary
+  const price = kind === 'buy' ? summary?.last_buy_price : summary?.last_sell_price
+  const label = kind === 'buy' ? '最后买入' : '最后卖出'
+  if (price == null) {
+    alert(`暂无${label}记录，请先在「持仓」中录入交易后再试`)
+    return
+  }
+  newMark.value = { label, price, type: kind === 'buy' ? 'last_buy' : 'last_sell' }
+}
+
 function fmtDate(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
@@ -863,6 +882,8 @@ onMounted(load)
 .mark-add { background: #064e3b; color: #34d399; }
 .mark-reduce { background: #7f1d1d; color: #f87171; }
 .mark-mark { background: #334155; color: #94a3b8; }
+.mark-last_buy { background: #3b2f06; color: #fbbf24; }
+.mark-last_sell { background: #312e81; color: #a5b4fc; }
 .mark-price { font-size: 14px; font-weight: 600; }
 .mark-diff { font-size: 12px; font-weight: 500; }
 .up { color: #f87171; }

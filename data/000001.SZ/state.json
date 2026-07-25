@@ -6,7 +6,8 @@
     "valuation": "red",
     "timing": "none",
     "risk": "yellow",
-    "verdict": "red"
+    "verdict": "red",
+    "unread": false
   },
   "status": "core_position",
   "price_marks": [],
