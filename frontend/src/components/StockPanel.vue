@@ -265,6 +265,9 @@ const fundamentalContent = ref('')
 const technicalContent = ref('')
 const fundVersionContent = ref('')
 const techVersionContent = ref('')
+const expandedReportId = ref(null)
+const fundExpandedIndex = ref(-1)
+const techExpandedIndex = ref(-1)
 
 
 const tagForm = ref({ watchlist: false })

@@ -120,6 +120,16 @@ cd backend && start_production.bat
 - 后端：`backend/requirements.txt`（FastAPI + Uvicorn + Pydantic）
 - 前端：`frontend/package.json`（Vue 3 + Vite + Axios + Vue Router）
 
+### Code Quality Gates (frontend/)
+```cmd
+cd frontend
+npm run lint    # ESLint (flat config, no-undef=error)。autoTimer 事故后引入
+npm run smoke   # 冒烟测试：自动拉起前后端 → 无头 Chrome 验证股票卡片渲染 + 视图切换 + 无 JS 错误
+```
+根目录也提供一键脚本：`lint.bat`、`smoke.bat`（注意：必须在 frontend/ 目录或用这两个 bat，项目根目录没有 package.json）
+- 冒烟测试脚本：`frontend/tests/smoke.mjs`（playwright-core + 系统 Chrome，无需下载浏览器）
+- 修改任何 `.vue`/`.js` 后、提交前，务必跑这两个命令
+
 ### Adding a New Stock for Analysis
 1. User submits via frontend (`/requests`) or tells agent directly
 2. Agent calls `POST /api/requests` with code/name/sector/type

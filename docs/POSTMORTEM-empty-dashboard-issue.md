@@ -85,14 +85,11 @@ Vue 3.5 的调度器队列、批处理深度、job 标志位全部是**模块私
 
 ### 给项目的可执行改进
 
-1. **加 ESLint（`no-undef`）**：这类"漏声明变量"是静态检查一抓一个准的低级错误，不该留到运行时。一行配置即可杜绝：
-   ```bash
-   npm i -D eslint eslint-plugin-vue
-   ```
-2. **给 App 配置全局 `errorHandler`/`warnHandler`**（`main.js`），把错误持久化到 `localStorage` 或上报，而不是只打 console——页面一刷新证据就没了。
-3. **加一个冒烟测试**（哪怕只是 Playwright 打开首页断言出现至少 1 张股票卡片），这类"全站冻结"级别的回归能在提交前被发现。
-4. **顺带修复**：`index.html` 的挂载点 `<div id="app">` 与 `App.vue` 根节点 `id="app"` 重复，建议 App.vue 根节点改名（如 `id="app-root"`），消除嵌套同 id 的隐患。
-5. `start_all.bat` 首次运行依赖安装较慢且无进度提示，建议文档注明或加镜像源说明。
+1. **加 ESLint（`no-undef`）** —— ✅ 已完成（2026-07-25）：`frontend/eslint.config.js`（flat config，`no-undef: error`），`npm run lint`。首次运行即发现 StockPanel.vue 中 3 个同类未声明变量（`expandedReportId`/`fundExpandedIndex`/`techExpandedIndex`），已修复。
+2. **加冒烟测试** —— ✅ 已完成（2026-07-25）：`frontend/tests/smoke.mjs`（playwright-core + 系统 Chrome，免下载浏览器），`npm run smoke`。负向验证通过：重新引入 autoTimer bug 时测试如期失败。
+3. **给 App 配置全局 `errorHandler`/`warnHandler`**（`main.js`），把错误持久化到 `localStorage` 或上报，而不是只打 console——页面一刷新证据就没了。（待做）
+4. **顺带修复**：`index.html` 的挂载点 `<div id="app">` 与 `App.vue` 根节点 `id="app"` 重复，建议 App.vue 根节点改名（如 `id="app-root"`），消除嵌套同 id 的隐患。（待做）
+5. `start_all.bat` 首次运行依赖安装较慢且无进度提示，建议文档注明或加镜像源说明。（待做）
 
 ### 给排查者的方法论
 
