@@ -102,9 +102,11 @@ nohup uvicorn main:app --host 0.0.0.0 --port 80 > /tmp/uvicorn.log 2>&1 &
 - 前端改动后需要 `npm run build` 重新构建
 
 #### Windows
-项目根目录提供一键启动脚本 `start_all.bat`，会自动创建虚拟环境、安装依赖并启动前后端：
+项目根目录提供一键脚本（自动创建虚拟环境、安装依赖并启动前后端）：
 ```cmd
-start_all.bat
+start_all.bat      :: 启动后端(8000) + 前端(默认80，可传端口参数)
+stop_all.bat       :: 停止前后端（含 --reload 派生的 worker 进程）
+restart_all.bat    :: 重启（可传前端端口参数，如 restart_all.bat 5173）
 ```
 单独启动：
 ```cmd

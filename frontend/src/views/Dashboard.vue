@@ -108,6 +108,28 @@
                   <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
                 </div>
               </div>
+              <!-- 最新笔记预览：固定高度，点击弹出最近笔记小框 -->
+              <div v-if="s.latest_note" class="note-preview" @click.stop="toggleNotePopover(s)">
+                <span class="note-preview-icon">💭</span>
+                <span class="note-preview-text">{{ s.latest_note.content }}</span>
+                <span class="note-preview-time">{{ s.latest_note.time }}</span>
+              </div>
+              <div v-if="notePopoverCode === s.code" class="note-popover" @click.stop>
+                <div class="note-popover-header">
+                  <span>💭 最近笔记</span>
+                  <button class="note-popover-close" @click.stop="notePopoverCode = null">×</button>
+                </div>
+                <div class="note-popover-body">
+                  <div v-if="notePopoverLoading" class="note-popover-empty">加载中…</div>
+                  <template v-else>
+                    <div v-if="!(notePopoverCache[s.code] || []).length" class="note-popover-empty">暂无笔记</div>
+                    <div v-for="n in (notePopoverCache[s.code] || [])" :key="n.time" class="note-popover-item">
+                      <div class="note-popover-item-time">{{ n.time }}</div>
+                      <div class="note-popover-item-content">{{ n.content }}</div>
+                    </div>
+                  </template>
+                </div>
+              </div>
               <div v-if="s.price_marks?.length > 0" class="marks-section">
                 <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
                   <span class="mark-label">{{ m.label }}</span>
@@ -194,6 +216,28 @@
                   <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
                 </div>
               </div>
+              <!-- 最新笔记预览：固定高度，点击弹出最近笔记小框 -->
+              <div v-if="s.latest_note" class="note-preview" @click.stop="toggleNotePopover(s)">
+                <span class="note-preview-icon">💭</span>
+                <span class="note-preview-text">{{ s.latest_note.content }}</span>
+                <span class="note-preview-time">{{ s.latest_note.time }}</span>
+              </div>
+              <div v-if="notePopoverCode === s.code" class="note-popover" @click.stop>
+                <div class="note-popover-header">
+                  <span>💭 最近笔记</span>
+                  <button class="note-popover-close" @click.stop="notePopoverCode = null">×</button>
+                </div>
+                <div class="note-popover-body">
+                  <div v-if="notePopoverLoading" class="note-popover-empty">加载中…</div>
+                  <template v-else>
+                    <div v-if="!(notePopoverCache[s.code] || []).length" class="note-popover-empty">暂无笔记</div>
+                    <div v-for="n in (notePopoverCache[s.code] || [])" :key="n.time" class="note-popover-item">
+                      <div class="note-popover-item-time">{{ n.time }}</div>
+                      <div class="note-popover-item-content">{{ n.content }}</div>
+                    </div>
+                  </template>
+                </div>
+              </div>
               <div v-if="s.price_marks?.length > 0" class="marks-section">
                 <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
                   <span class="mark-label">{{ m.label }}</span>
@@ -278,6 +322,28 @@
                   <span :class="['dim-badge', 'dim-' + dim(s, 'timing')]">时</span>
                   <span :class="['dim-badge', 'dim-' + dim(s, 'risk')]">险</span>
                   <span :class="['verdict-badge', 'verdict-' + (s.dimensions?.verdict || s.overall)]">{{ verdictLabel(s) }}</span>
+                </div>
+              </div>
+              <!-- 最新笔记预览：固定高度，点击弹出最近笔记小框 -->
+              <div v-if="s.latest_note" class="note-preview" @click.stop="toggleNotePopover(s)">
+                <span class="note-preview-icon">💭</span>
+                <span class="note-preview-text">{{ s.latest_note.content }}</span>
+                <span class="note-preview-time">{{ s.latest_note.time }}</span>
+              </div>
+              <div v-if="notePopoverCode === s.code" class="note-popover" @click.stop>
+                <div class="note-popover-header">
+                  <span>💭 最近笔记</span>
+                  <button class="note-popover-close" @click.stop="notePopoverCode = null">×</button>
+                </div>
+                <div class="note-popover-body">
+                  <div v-if="notePopoverLoading" class="note-popover-empty">加载中…</div>
+                  <template v-else>
+                    <div v-if="!(notePopoverCache[s.code] || []).length" class="note-popover-empty">暂无笔记</div>
+                    <div v-for="n in (notePopoverCache[s.code] || [])" :key="n.time" class="note-popover-item">
+                      <div class="note-popover-item-time">{{ n.time }}</div>
+                      <div class="note-popover-item-content">{{ n.content }}</div>
+                    </div>
+                  </template>
                 </div>
               </div>
               <div v-if="s.price_marks?.length > 0" class="marks-section">
@@ -720,10 +786,31 @@ function stopAutoRefresh() {
 }
 
 function openStock(code) {
+  notePopoverCode.value = null
   const stock = stocks.value.find(s => s.code === code)
   if (stock) {
     selectedStock.value = stock
     showModal.value = true
+  }
+}
+
+// ── 笔记预览弹层 ──
+const notePopoverCode = ref(null)
+const notePopoverCache = ref({})
+const notePopoverLoading = ref(false)
+async function toggleNotePopover(s) {
+  if (notePopoverCode.value === s.code) { notePopoverCode.value = null; return }
+  notePopoverCode.value = s.code
+  if (!notePopoverCache.value[s.code]) {
+    notePopoverLoading.value = true
+    try {
+      const r = await api.stocks.getNotes(s.code)
+      notePopoverCache.value[s.code] = (r.notes || []).slice(0, 5)
+    } catch {
+      notePopoverCache.value[s.code] = []
+    } finally {
+      notePopoverLoading.value = false
+    }
   }
 }
 function closeModal() {
@@ -1002,7 +1089,7 @@ onUnmounted(stopAutoRefresh)
 
 .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 
-.stock-card { cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 14px; }
+.stock-card { cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 14px; position: relative; }
 .stock-card:hover { transform: translateY(-1px); border-color: #3b82f6; }
 
 .stock-main { margin-bottom: 10px; }
@@ -1048,6 +1135,71 @@ onUnmounted(stopAutoRefresh)
 .tag-unread { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.35); }
 
 .marks-section { border-top: 1px solid #334155; padding-top: 8px; margin-bottom: 8px; }
+
+/* 笔记预览（固定高度，不撑大卡片） */
+.note-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  margin-bottom: 8px;
+  padding: 3px 8px;
+  background: rgba(96, 165, 250, 0.06);
+  border: 1px solid rgba(96, 165, 250, 0.15);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.note-preview:hover { background: rgba(96, 165, 250, 0.12); border-color: rgba(96, 165, 250, 0.35); }
+.note-preview-icon { flex-shrink: 0; font-size: 11px; }
+.note-preview-text {
+  flex: 1;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.note-preview:hover .note-preview-text { color: #cbd5e1; }
+.note-preview-time { flex-shrink: 0; color: #475569; font-size: 11px; }
+
+/* 笔记弹出小框 */
+.note-popover {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 40px;
+  z-index: 30;
+  background: #1a2436;
+  border: 1px solid #3b82f6;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+.note-popover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+.note-popover-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 16px;
+  padding: 0 4px;
+  line-height: 1;
+}
+.note-popover-close:hover { color: #e2e8f0; }
+.note-popover-body { max-height: 220px; overflow-y: auto; padding: 6px 12px 10px; }
+.note-popover-empty { color: #475569; font-size: 12px; text-align: center; padding: 14px 0; }
+.note-popover-item { padding: 8px 0; border-bottom: 1px dashed #334155; }
+.note-popover-item:last-child { border-bottom: none; }
+.note-popover-item-time { font-size: 11px; color: #64748b; margin-bottom: 3px; }
+.note-popover-item-content { font-size: 13px; color: #e2e8f0; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
 .mark-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
 .mark-label { color: #94a3b8; min-width: 50px; }
 .mark-target { font-weight: 600; color: #e2e8f0; }

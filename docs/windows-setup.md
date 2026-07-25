@@ -69,6 +69,15 @@ start_all.bat
 
 > 注意：前端 Vite 开发服务器配置在 80 端口，Windows 下需要管理员权限。如果无法启动，请右键 `start_all.bat` 选择「以管理员身份运行」。
 
+### 停止与重启
+
+```
+stop_all.bat        :: 停止前后端所有相关进程（含 --reload 派生的 worker）
+restart_all.bat     :: 先停后启；可传前端端口，如 restart_all.bat 5173
+```
+
+Linux 对应脚本：`start_all.sh` / `stop_all.sh` / `restart_all.sh`。
+
 ### 方式二：分别启动
 
 启动后端：

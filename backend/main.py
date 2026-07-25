@@ -1143,6 +1143,7 @@ def get_dashboard():
             "price_marks": marks_with_diff,
             "report_count": cached.get("report_count", 0),
             "last_analysis": cached.get("last_analysis"),
+            "latest_note": _get_latest_note(entry),
             "last_price": current_price,
             "change_pct": p.get("change_pct"),
             "price_updated": p.get("updated_at")
