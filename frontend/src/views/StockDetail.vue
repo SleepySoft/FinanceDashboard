@@ -3,17 +3,28 @@
     <div class="back-bar">
       <button class="back-btn" @click="goBack">← 返回</button>
     </div>
-    <StockPanel :code="code" />
+    <StockPanel :code="code" @loaded="restoreOnce" />
   </div>
 </template>
 
 <script setup>
+import { nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import StockPanel from '../components/StockPanel.vue'
+import { useScrollRestore } from '../composables/useSession.js'
 
 const route = useRoute()
 const router = useRouter()
 const code = route.params.code
+
+// 详情页滚动位置恢复：面板数据加载完成后回到上次阅读位置
+const { restore } = useScrollRestore('stock:scroll:' + code)
+let restored = false
+function restoreOnce() {
+  if (restored) return
+  restored = true
+  nextTick(() => restore())
+}
 
 function goBack() {
   router.push('/')

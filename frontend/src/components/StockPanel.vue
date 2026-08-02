@@ -260,13 +260,20 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import api from '../api.js'
+import { readState, writeState } from '../composables/useSession.js'
 
 const props = defineProps({
   code: { type: String, required: true },
   embedded: { type: Boolean, default: false },
   readonly: { type: Boolean, default: false }
 })
+const emit = defineEmits(['loaded'])
+const route = useRoute()
+const router = useRouter()
+// 仅在完整详情页（非弹窗只读模式）保存会话状态
+const isStandalone = !props.embedded
 
 const meta = ref({ cache: { fundamental: {}, technical: {} }, price_marks: [], reports: [] })
 const notes = ref([])
@@ -379,6 +386,7 @@ async function load() {
   }
   await loadLatestFundamental()
   await loadLatestTechnical()
+  if (isStandalone) emit('loaded')
 }
 
 // Timeline report functions
@@ -688,8 +696,48 @@ function fmtDateTime(iso) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-watch(() => props.code, load)
-onMounted(load)
+// ---- 会话恢复：草稿/展开状态/滚动位置，防止手机切后台刷新后丢失 ----
+function panelKey(name) {
+  return `panel:${name}:${props.code}`
+}
+
+function restorePanelState() {
+  if (!isStandalone) return
+  newNote.value = readState(panelKey('note'), '')
+  newMark.value = readState(panelKey('mark'), { label: '', price: null, type: 'mark' })
+  const urlOpen = typeof route.query.open === 'string' ? route.query.open : ''
+  const savedExpanded = readState(panelKey('expanded'), null)
+  expandedTimelineId.value = urlOpen || savedExpanded
+  if (expandedTimelineId.value && expandedTimelineId.value.startsWith('report-')) {
+    const id = expandedTimelineId.value.slice('report-'.length)
+    if (!reportContents.value[id]) loadReportContent({ id })
+  }
+  showHoldings.value = readState(panelKey('holdings'), false)
+}
+
+function persistPanelState() {
+  if (!isStandalone) return
+  writeState(panelKey('note'), newNote.value)
+  writeState(panelKey('mark'), newMark.value)
+  writeState(panelKey('expanded'), expandedTimelineId.value)
+  writeState(panelKey('holdings'), showHoldings.value)
+}
+
+if (isStandalone) {
+  watch([newNote, newMark, expandedTimelineId, showHoldings], persistPanelState, { deep: true })
+  // 阅读位置写入 URL（?open=...），刷新/分享后可直达同一条目
+  watch(expandedTimelineId, (v) => {
+    router.replace({ query: v ? { open: v } : {} })
+  })
+}
+
+function handleCodeChange() {
+  restorePanelState()
+  load()
+}
+
+watch(() => props.code, handleCodeChange)
+onMounted(handleCodeChange)
 </script>
 
 <style scoped>

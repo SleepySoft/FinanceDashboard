@@ -20,4 +20,11 @@ const router = createRouter({
   routes,
 })
 
+// 跨页面跳转时回到顶部；各页面内部会在数据加载完成后恢复自己保存的滚动位置
+router.afterEach((to, from) => {
+  if (to.path !== from.path) {
+    window.scrollTo(0, 0)
+  }
+})
+
 createApp(App).use(router).mount('#app')

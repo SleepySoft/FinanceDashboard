@@ -604,10 +604,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, shallowRef } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, shallowRef, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../api.js'
 import StockModal from '../components/StockModal.vue'
+import { usePersistentSet, readState, writeState, removeState, useScrollRestore } from '../composables/useSession.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -625,6 +626,10 @@ const sortAsc = ref(true)
 const selectedStock = ref(null)
 const showModal = ref(false)
 
+// 滚动位置保存/恢复：手机切后台被刷新后回到上次浏览位置
+const { restore: restoreScroll } = useScrollRestore('dash:scroll')
+let restoredScroll = false
+
 // Trade entry modal
 const showTradeModal = ref(false)
 const tradeStock = ref(null)
@@ -637,6 +642,26 @@ const tradeForm = ref({
   note: '',
 })
 const tradeSubmitting = ref(false)
+
+// 交易录入草稿：切后台被浏览器刷新后自动恢复正在填写的表单（6 小时内有效）
+const savedTradeDraft = readState('dash:tradeDraft', null)
+if (
+  savedTradeDraft && savedTradeDraft.stockCode &&
+  Date.now() - (savedTradeDraft.savedAt || 0) < 6 * 3600 * 1000
+) {
+  showTradeModal.value = true
+  tradeStock.value = { code: savedTradeDraft.stockCode }
+  tradeForm.value = { ...savedTradeDraft.form }
+}
+function persistTradeDraft() {
+  if (!showTradeModal.value || !tradeStock.value?.code) return
+  writeState('dash:tradeDraft', {
+    stockCode: tradeStock.value.code,
+    form: tradeForm.value,
+    savedAt: Date.now(),
+  })
+}
+watch([showTradeModal, tradeForm], persistTradeDraft, { deep: true })
 
 // Status tag quick-edit
 const statusMenuCode = ref(null)
@@ -689,17 +714,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleDocClick)
 })
 
-// Read view from URL query
-const queryView = route.query.view
-if (queryView && ['grouped', 'matrix', 'list'].includes(queryView)) {
-  viewMode.value = queryView
-}
-
-// Sync view to URL when changed
-watch(viewMode, (v) => {
-  router.replace({ query: { ...route.query, view: v } })
-})
-
 const groupMode = ref('status')
 const views = [
   { key: 'grouped', label: '分组' },
@@ -713,7 +727,46 @@ const groupModes = [
   { key: 'rating', label: '评级' }
 ]
 
-const collapsedGroups = ref(new Set())
+// 页面上下文同步到 URL（?view= / ?group= / ?watchlist= / ?holdings=），
+// 手机切后台被浏览器刷新后仍能恢复视图与筛选
+if (route.query.view && views.some(v => v.key === route.query.view)) {
+  viewMode.value = route.query.view
+}
+if (route.query.group && groupModes.some(g => g.key === route.query.group)) {
+  groupMode.value = route.query.group
+}
+if (route.query.watchlist === '1') filterWatchlist.value = true
+if (route.query.holdings === '1') filterHoldings.value = true
+
+// 若 URL 没有上下文（例如从详情页返回“/”），回退到最近一次的会话记录
+const hasUrlContext = !!(route.query.view || route.query.group || route.query.watchlist || route.query.holdings)
+if (!hasUrlContext) {
+  const savedContext = readState('dash:context', null)
+  if (savedContext) {
+    if (views.some(v => v.key === savedContext.view)) viewMode.value = savedContext.view
+    if (groupModes.some(g => g.key === savedContext.group)) groupMode.value = savedContext.group
+    if (savedContext.watchlist) filterWatchlist.value = true
+    if (savedContext.holdings) filterHoldings.value = true
+  }
+}
+
+function syncUrlState() {
+  const q = { view: viewMode.value, group: groupMode.value }
+  if (filterWatchlist.value) q.watchlist = '1'
+  if (filterHoldings.value) q.holdings = '1'
+  router.replace({ query: q })
+  writeState('dash:context', {
+    view: viewMode.value,
+    group: groupMode.value,
+    watchlist: filterWatchlist.value,
+    holdings: filterHoldings.value,
+  })
+}
+watch([viewMode, groupMode, filterWatchlist, filterHoldings], syncUrlState)
+
+// 分组折叠状态保存到 sessionStorage，刷新后不重置
+const collapsedGroups = usePersistentSet('dash:collapsed')
+const hasSavedCollapse = readState('dash:collapsed', null) !== null
 let firstLoadDone = false
 let autoTimer = null
 function toggleGroup(key) {
@@ -745,8 +798,8 @@ async function load() {
       map[h.code] = h
     }
     holdingsMap.value = map
-    // Default collapse all groups on first load
-    if (!firstLoadDone) {
+    // 首次使用（无保存记录）时默认折叠所有分组；之后记住用户选择
+    if (!firstLoadDone && !hasSavedCollapse) {
       firstLoadDone = true
       const statusSet = new Set(stocks.value.map(s => 'status-' + (s.status || 'neutral')))
       const sectorSet = new Set(stocks.value.map(s => 'sector-' + (s.sector || '未分类')))
@@ -763,6 +816,10 @@ async function load() {
     console.error(e)
   } finally {
     loading.value = false
+    if (!restoredScroll) {
+      restoredScroll = true
+      nextTick(() => restoreScroll())
+    }
   }
 }
 
@@ -836,6 +893,7 @@ function openTradeModal(stock, presetType = 'buy', presetPrice = null) {
 function closeTradeModal() {
   showTradeModal.value = false
   tradeStock.value = null
+  removeState('dash:tradeDraft')
 }
 async function submitTrade() {
   if (!tradeStock.value) return

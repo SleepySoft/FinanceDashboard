@@ -123,8 +123,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import api from '../api.js'
+import { usePersistentRef, readState, writeState, useScrollRestore } from '../composables/useSession.js'
 
 const requests = ref([])
 const stocks = ref([])
@@ -133,7 +134,7 @@ const newCode = ref('')
 const newName = ref('')
 const newSector = ref('')
 const newNote = ref('')
-const tab = ref('pending')
+const tab = usePersistentRef('home:tab', 'pending')
 
 const pending = computed(() => requests.value.filter(r => r.status === 'pending'))
 const pendingCount = computed(() => pending.value.length)
@@ -146,6 +147,31 @@ async function load() {
 }
 
 const newType = ref('full')
+
+// 新增分析请求表单草稿：切后台被刷新后自动恢复
+const savedAddDraft = readState('home:addDraft', null)
+if (savedAddDraft) {
+  showAdd.value = !!savedAddDraft.show
+  newCode.value = savedAddDraft.code || ''
+  newName.value = savedAddDraft.name || ''
+  newSector.value = savedAddDraft.sector || ''
+  newNote.value = savedAddDraft.note || ''
+  newType.value = savedAddDraft.type || 'full'
+}
+watch([showAdd, newCode, newName, newSector, newNote, newType], () => {
+  writeState('home:addDraft', {
+    show: showAdd.value,
+    code: newCode.value,
+    name: newName.value,
+    sector: newSector.value,
+    note: newNote.value,
+    type: newType.value,
+  })
+})
+
+// 滚动位置恢复
+const { restore: restoreScroll } = useScrollRestore('requests:scroll')
+let restoredScroll = false
 
 async function submit() {
   await api.requests.submit(newCode.value, newName.value, newSector.value, newNote.value, newType.value)
@@ -188,7 +214,16 @@ function isExpired(iso) {
   return iso && (Date.now() - new Date(iso).getTime()) > 7 * 86400000
 }
 
-onMounted(load)
+onMounted(async () => {
+  try {
+    await load()
+  } finally {
+    if (!restoredScroll) {
+      restoredScroll = true
+      nextTick(() => restoreScroll())
+    }
+  }
+})
 </script>
 
 <style scoped>

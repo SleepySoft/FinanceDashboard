@@ -128,13 +128,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import api from '../api.js'
+import { usePersistentSet, useScrollRestore } from '../composables/useSession.js'
 
 const loading = ref(true)
 const holdingsRaw = ref([])
 const stocksMap = ref({})
-const expanded = ref(new Set())
+const expanded = usePersistentSet('holdings:expanded')
+const { restore: restoreScroll } = useScrollRestore('holdings:scroll')
+let restoredScroll = false
 
 const holdingsList = computed(() => {
   return holdingsRaw.value
@@ -217,6 +220,10 @@ async function load() {
     console.error('Load holdings failed:', e)
   } finally {
     loading.value = false
+    if (!restoredScroll) {
+      restoredScroll = true
+      nextTick(() => restoreScroll())
+    }
   }
 }
 

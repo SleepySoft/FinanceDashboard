@@ -1,7 +1,8 @@
 <template>
   <div id="app">
     <main>
-      <router-view />
+      <!-- 按 path 复用组件，避免切换股票时复用旧组件导致参数/状态错乱 -->
+      <router-view :key="$route.path" />
     </main>
   </div>
 </template>

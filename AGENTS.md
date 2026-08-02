@@ -134,6 +134,13 @@ npm run smoke   # 冒烟测试：自动拉起前后端 → 无头 Chrome 验证�
 - 冒烟测试脚本：`frontend/tests/smoke.mjs`（playwright-core + 系统 Chrome，无需下载浏览器）
 - 修改任何 `.vue`/`.js` 后、提交前，务必跑这两个命令
 
+### Mobile State Persistence (2026-08-02)
+
+- 页面上下文同步到 URL query（`?view=` `?group=` `?watchlist=` `?holdings=`），详情页阅读位置同步到 `?open=<timeline key>`，手机切后台被浏览器刷新/分享链接后均可恢复。
+- 草稿与 UI 状态存 sessionStorage（key 前缀 `fd:`）：笔记/价格标记草稿、交易录入表单、折叠分组、展开条目、滚动位置、异动雷达日期与筛选、请求页表单。
+- 统一封装在 `frontend/src/composables/useSession.js`（`usePersistentRef` / `usePersistentSet` / `useScrollRestore` / `readState` / `writeState` / `removeState`）。
+- 路由容器按 `$route.path` 加 key，避免切换股票时复用旧组件；`main.js` 在跨页跳转时回顶。
+
 ### Adding a New Stock for Analysis
 1. User submits via frontend (`/requests`) or tells agent directly
 2. Agent calls `POST /api/requests` with code/name/sector/type

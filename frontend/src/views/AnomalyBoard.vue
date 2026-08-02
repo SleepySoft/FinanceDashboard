@@ -193,23 +193,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api.js'
+import { usePersistentRef, useScrollRestore } from '../composables/useSession.js'
 
 const router = useRouter()
 
 const dates = ref([])
-const selectedDate = ref('')
+const selectedDate = usePersistentRef('anomaly:date', '')
 const stocks = ref([])
 const sectors = ref([])
 const weekly = ref(null)
 const loading = ref(false)
 const scanning = ref(false)
 const scanResult = ref(null)
-const levelFilter = ref('all')
-const sectorFilter = ref('')
+const levelFilter = usePersistentRef('anomaly:level', 'all')
+const sectorFilter = usePersistentRef('anomaly:sector', '')
 const adding = ref({})
+const { restore: restoreScroll } = useScrollRestore('anomaly:scroll')
+let restoredScroll = false
 
 const filteredStocks = computed(() => {
   let result = stocks.value
@@ -231,10 +234,14 @@ async function loadDates() {
   try {
     const res = await api.anomalies.listDates()
     dates.value = res.dates || []
+    // 恢复的日期可能已不在列表中（如数据被清理），回退到最新日期
+    if (selectedDate.value && !dates.value.includes(selectedDate.value)) {
+      selectedDate.value = dates.value[0] || ''
+    }
     if (dates.value.length && !selectedDate.value) {
       selectedDate.value = dates.value[0]
-      await loadDate()
     }
+    await loadDate()
   } catch (e) {
     console.error('Failed to load dates:', e)
   }
@@ -317,8 +324,12 @@ async function addToDashboard(code) {
   }
 }
 
-onMounted(() => {
-  loadDates()
+onMounted(async () => {
+  await loadDates()
+  if (!restoredScroll) {
+    restoredScroll = true
+    nextTick(() => restoreScroll())
+  }
 })
 </script>
 
