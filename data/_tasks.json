@@ -348,5 +348,32 @@
       "reports": null
     },
     "error": null
+  },
+  {
+    "id": "11fef351-1e1",
+    "code": "002283.SZ",
+    "name": "天润工业",
+    "sector": "汽车零部件",
+    "note": "曲轴连杆龙头 + AIDC大缸径放量",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-08-02T09:17:33.090190+00:00",
+    "claimed_at": "2026-08-02T09:17:39.722443+00:00",
+    "completed_at": "2026-08-02T09:18:41.341246+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "天润工业基本面看好：2026Q1归母+47.7%，AIDC大缸径业务放量，2026E约20x PE；技术面处大跌后修复初期，短多中空，8.44/9.3/10.3为关键位",
+      "reports": [
+        {
+          "path": "data/002283.SZ/reports/fundamental_20260802.md",
+          "type": "fundamental"
+        },
+        {
+          "path": "data/002283.SZ/reports/technical_20260802.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
   }
 ]
