@@ -18,5 +18,75 @@
     "change_pct": 10.0,
     "amplitude": 13.08,
     "created_at": "2026-07-23T07:30:02.053578+00:00"
+  },
+  {
+    "id": "776bdcdf",
+    "date": "2026-08-03",
+    "content": "低开后震荡走低，收跌2.7%",
+    "has_value": true,
+    "price": 18.82,
+    "change_pct": -2.74,
+    "amplitude": 4.39,
+    "created_at": "2026-08-03T07:30:01.902243+00:00"
+  },
+  {
+    "id": "21dd1c91",
+    "date": "2026-08-04",
+    "content": "平开后震荡走高，收涨2.1%，振幅较大",
+    "has_value": true,
+    "price": 19.21,
+    "change_pct": 2.07,
+    "amplitude": 5.1,
+    "created_at": "2026-08-04T07:30:01.900652+00:00"
+  },
+  {
+    "id": "0d41318e",
+    "date": "2026-08-05",
+    "content": "小幅低开后震荡走高，收涨2.9%",
+    "has_value": true,
+    "price": 19.76,
+    "change_pct": 2.86,
+    "amplitude": 4.32,
+    "created_at": "2026-08-05T07:30:01.999188+00:00"
+  },
+  {
+    "id": "cf621f81",
+    "date": "2026-08-06",
+    "content": "小幅低开探底回升，微跌0.1%",
+    "has_value": true,
+    "price": 19.74,
+    "change_pct": -0.1,
+    "amplitude": 4.25,
+    "created_at": "2026-08-06T07:30:01.605512+00:00"
+  },
+  {
+    "id": "7a97b3c9",
+    "date": "2026-08-07",
+    "content": "高开后震荡走低，微跌0.7%，振幅较大",
+    "has_value": true,
+    "price": 19.6,
+    "change_pct": -0.71,
+    "amplitude": 8.05,
+    "created_at": "2026-08-07T07:30:01.878962+00:00"
+  },
+  {
+    "id": "3c26844c",
+    "date": "2026-08-10",
+    "content": "高开后震荡走高，收涨7.6%，振幅较大",
+    "has_value": true,
+    "price": 21.09,
+    "change_pct": 7.6,
+    "amplitude": 10.0,
+    "created_at": "2026-08-10T07:30:01.686721+00:00"
+  },
+  {
+    "id": "a7ee4597",
+    "date": "2026-08-11",
+    "content": "平开后震荡走高，微涨1.0%，振幅较大",
+    "has_value": true,
+    "price": 21.31,
+    "change_pct": 1.04,
+    "amplitude": 8.35,
+    "created_at": "2026-08-11T07:30:01.290328+00:00"
   }
 ]

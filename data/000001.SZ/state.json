@@ -31,6 +31,26 @@
       "change_pct": 0.91,
       "amplitude": 2.0,
       "created_at": "2026-07-23T07:30:02.052981+00:00"
+    },
+    {
+      "id": "f989b4d2",
+      "date": "2026-08-04",
+      "content": "小幅低开后震荡走低，收跌1.6%",
+      "has_value": true,
+      "price": 11.44,
+      "change_pct": -1.55,
+      "amplitude": 1.72,
+      "created_at": "2026-08-04T07:30:01.899998+00:00"
+    },
+    {
+      "id": "1917ff00",
+      "date": "2026-08-05",
+      "content": "小幅低开后震荡走低，收跌1.7%",
+      "has_value": true,
+      "price": 11.25,
+      "change_pct": -1.66,
+      "amplitude": 2.8,
+      "created_at": "2026-08-05T07:30:01.998560+00:00"
     }
   ],
   "notes": [
