@@ -26,6 +26,7 @@ export default {
     logout: () => api('/auth/logout', { method: 'POST' }),
     changePassword: (oldPassword, newPassword) => api('/auth/change-password', { method: 'POST', body: { old_password: oldPassword, new_password: newPassword } }),
     updateConfig: (patch) => api('/auth/config', { method: 'PATCH', body: patch }),
+    regenerateToken: () => api('/auth/token/regenerate', { method: 'POST' }),
   },
   requests: {
     list: () => api('/requests'),

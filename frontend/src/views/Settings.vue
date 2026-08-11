@@ -62,6 +62,27 @@
         </div>
       </div>
 
+      <!-- Agent 访问密钥 -->
+      <div class="card">
+        <h3>Agent 访问密钥</h3>
+        <p class="settings-hint">
+          本地 Agent 通过项目根目录 <code>agent_token.txt</code> 读取密钥（首次启动自动生成）。
+          重新生成后旧密钥立即失效，正在运行的 Agent 需要重新读取该文件。
+        </p>
+        <div class="info-row">
+          <span class="info-label">当前状态</span>
+          <span class="info-value">
+            {{ auth.config.value.api_key_configured ? '已配置（见 agent_token.txt）' : '未配置（点击下方生成）' }}
+          </span>
+        </div>
+        <p v-if="tokenMsg" :class="['config-msg', tokenError ? 'err' : 'ok']">{{ tokenMsg }}</p>
+        <div class="settings-actions">
+          <button class="primary" @click="generateToken" :disabled="generatingToken">
+            {{ generatingToken ? '生成中...' : '生成新 Token' }}
+          </button>
+        </div>
+      </div>
+
       <!-- 账户信息 -->
       <div class="card">
         <h3>账户信息</h3>
@@ -72,10 +93,6 @@
         <div class="info-row">
           <span class="info-label">会话有效期</span>
           <span class="info-value">{{ auth.config.value.session_ttl_hours }} 小时</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Agent 访问密钥</span>
-          <span class="info-value">{{ auth.config.value.api_key_configured ? '已配置（见 data/_config.json）' : '未配置（首次启动会自动生成）' }}</span>
         </div>
         <div class="settings-actions">
           <button class="danger" @click="doLogout">退出登录</button>
@@ -88,6 +105,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../api.js'
 import auth from '../composables/useAuth.js'
 
 const router = useRouter()
@@ -111,6 +129,28 @@ async function saveMode() {
     configMsg.value = e.message || '保存失败'
   } finally {
     savingMode.value = false
+  }
+}
+
+// Agent 访问密钥
+const tokenMsg = ref('')
+const tokenError = ref(false)
+const generatingToken = ref(false)
+
+async function generateToken() {
+  if (!window.confirm('将重新生成 Agent 访问密钥，旧密钥立即失效。继续？')) return
+  tokenMsg.value = ''
+  tokenError.value = false
+  generatingToken.value = true
+  try {
+    const res = await api.auth.regenerateToken()
+    tokenMsg.value = `${res.message}（页面不显示明文，本机 Agent 直接读取该文件）`
+    await auth.bootstrap(true)
+  } catch (e) {
+    tokenError.value = true
+    tokenMsg.value = e.message || '生成失败'
+  } finally {
+    generatingToken.value = false
   }
 }
 
@@ -184,6 +224,13 @@ async function doLogout() {
   font-size: 12px;
   color: #64748b;
   margin-bottom: 12px;
+}
+.settings-hint code {
+  background: #1e293b;
+  color: #93c5fd;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
 }
 .mode-options {
   display: flex;

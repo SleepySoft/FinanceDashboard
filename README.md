@@ -78,11 +78,20 @@ export FD_ADMIN_PASSWORD='你的密码'
 AI Agent 需要额外配置访问密钥：
 
 ```bash
-# 不设置则首次启动自动生成，并保存到 data/_config.json（启动日志会打印）
+# 不设置则首次启动自动生成，并写入项目根目录 agent_token.txt
 export FD_API_KEY='一段随机字符串'
 ```
 
 Agent 请求时携带请求头 `X-API-Key: <密钥>` 即可通过鉴权。
+
+本机 Agent 最简单的方式：登录后在「设置 → Agent 访问密钥」点击「生成新 Token」，
+后端会把密钥写入项目根目录 `agent_token.txt`（不会通过接口返回明文），
+本地 Agent 直接读取该文件即可，例如：
+
+```bash
+TOKEN=$(cat agent_token.txt)
+curl -H "X-API-Key: $TOKEN" http://localhost:8000/api/agent/tasks
+```
 
 ## 快速开始
 

@@ -32,6 +32,8 @@ DATA_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 USERS_FILE = os.path.join(DATA_DIR, "_users.json")
 SESSIONS_FILE = os.path.join(DATA_DIR, "_sessions.json")
 CONFIG_FILE = os.path.join(DATA_DIR, "_config.json")
+# Agent 访问密钥落盘位置：项目根目录（本地 Agent 直接读取，不通过接口返回明文）
+AGENT_TOKEN_FILE = os.path.join(os.path.dirname(BASE_DIR), "agent_token.txt")
 
 SESSION_COOKIE = "fd_session"
 API_KEY_HEADER = "x-api-key"
@@ -149,7 +151,26 @@ def _ensure_api_key():
         return
     cfg["api_key"] = secrets.token_urlsafe(24)
     save_config(cfg)
-    print(f"[auth] 已生成 Agent 访问密钥（保存于 data/_config.json）：{cfg['api_key']}")
+    _write_agent_token(cfg["api_key"])
+    print(f"[auth] 已生成 Agent 访问密钥：{cfg['api_key']}")
+    print(f"[auth] 已写入本地文件供 Agent 使用：{AGENT_TOKEN_FILE}")
+
+
+def _write_agent_token(token: str) -> bool:
+    """将 token 写入项目根目录 agent_token.txt，供本机 Agent 读取。
+    该文件不通过任何 API 暴露，非本机无法读取。"""
+    try:
+        with open(AGENT_TOKEN_FILE, "w", encoding="utf-8") as f:
+            f.write(token + "\n")
+        if os.name == "posix":
+            try:
+                os.chmod(AGENT_TOKEN_FILE, 0o600)
+            except Exception:
+                pass
+        return True
+    except Exception as e:
+        print(f"[auth] 写入 token 文件失败：{e}")
+        return False
 
 
 # ---------- 会话 ----------
@@ -356,4 +377,26 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_session)
         "allow_anonymous_read": cfg.get("allow_anonymous_read", False),
         "session_ttl_hours": cfg.get("session_ttl_hours", DEFAULT_CONFIG["session_ttl_hours"]),
         "api_key_configured": bool(cfg.get("api_key")),
+    }
+
+
+@router.post("/token/regenerate")
+def regenerate_token(username: str = Depends(require_session)):
+    """重新生成 Agent 访问密钥（旧密钥立即失效）。
+    密钥只写入项目根目录 agent_token.txt，不通过接口返回明文，避免远程暴露。"""
+    if os.environ.get("FD_API_KEY", ""):
+        raise HTTPException(
+            400,
+            "当前通过环境变量 FD_API_KEY 配置密钥，请直接修改环境变量；或移除该变量后使用此功能",
+        )
+    token = secrets.token_urlsafe(24)
+    cfg = load_config()
+    cfg["api_key"] = token
+    save_config(cfg)
+    if not _write_agent_token(token):
+        raise HTTPException(500, "Token 已更新，但写入项目根目录 agent_token.txt 失败，请检查目录权限")
+    return {
+        "ok": True,
+        "path": AGENT_TOKEN_FILE,
+        "message": f"已生成并保存到 {AGENT_TOKEN_FILE}，仅供本机 Agent 读取",
     }

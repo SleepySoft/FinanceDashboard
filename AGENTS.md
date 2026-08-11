@@ -71,8 +71,12 @@ data/
   - `allow_anonymous_read: false`（默认）= 完全锁定，未登录看不到任何数据
   - `allow_anonymous_read: true` = 未登录只读，可浏览但所有写操作返回 401
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
-- Agent 访问：请求头 `X-API-Key`。首次启动未设置 `FD_API_KEY` 时自动生成密钥，
-  保存到 `data/_config.json` 并打印到启动日志；也可在部署时用环境变量 `FD_API_KEY` 固定。
+- Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
+  - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_config.json`，
+    并同步写入项目根目录 `agent_token.txt`（本地 Agent 直接读取该文件）；
+  - 前端「设置 → Agent 访问密钥」可重新生成（`POST /api/auth/token/regenerate`，
+    旧密钥立即失效，接口不返回明文，避免远程暴露）；
+  - 也可在部署时用环境变量 `FD_API_KEY` 固定（优先级最高）。
   带 Key 的请求可访问全部接口（含 `/api/agent/*`，该前缀不参与"未登录只读"）。
 - 修改密码：`POST /api/auth/change-password`，修改后会吊销该用户其他会话（当前会话保留）。
 
