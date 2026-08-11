@@ -9,12 +9,24 @@ async function api(path, opts = {}) {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
+    // 会话过期/未登录：交由全局处理（main.js 根据配置决定跳登录页还是提示）
+    if (res.status === 401 && !path.startsWith('/auth/')) {
+      window.dispatchEvent(new CustomEvent('fd:unauthorized', { detail: { path } }))
+    }
     throw new Error(err.detail || `HTTP ${res.status}`)
   }
   return res.json()
 }
 
 export default {
+  auth: {
+    me: () => api('/auth/me'),
+    config: () => api('/auth/config'),
+    login: (username, password) => api('/auth/login', { method: 'POST', body: { username, password } }),
+    logout: () => api('/auth/logout', { method: 'POST' }),
+    changePassword: (oldPassword, newPassword) => api('/auth/change-password', { method: 'POST', body: { old_password: oldPassword, new_password: newPassword } }),
+    updateConfig: (patch) => api('/auth/config', { method: 'PATCH', body: patch }),
+  },
   requests: {
     list: () => api('/requests'),
     submit: (code, name, sector, note, type = 'full') => api('/requests', { method: 'POST', body: { code, name, sector, note, type } }),

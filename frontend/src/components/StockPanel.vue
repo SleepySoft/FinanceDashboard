@@ -12,7 +12,7 @@
           <span :class="['dim-badge-sm', 'dim-' + dim('timing')]">时</span>
           <span :class="['dim-badge-sm', 'dim-' + dim('risk')]">险</span>
         </div>
-        <div class="actions">
+        <div v-if="!readonly" class="actions">
           <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
             <option value="tracking">🔭 跟踪中</option>
             <option value="bullish">看好</option>
@@ -366,8 +366,8 @@ async function load() {
   tagForm.value = { watchlist: data.tags?.watchlist || false }
   statusForm.value = { status: data.status || 'neutral' }
   briefs.value = data.daily_briefs || []
-  // 用户打开面板即视为已读：清除未读标记
-  if (data.tags?.unread) {
+  // 用户打开面板即视为已读：清除未读标记（只读模式下不发起写请求）
+  if (!props.readonly && data.tags?.unread) {
     meta.value.tags.unread = false
     api.stocks.updateTags(props.code, { unread: false }).catch(() => {})
   }

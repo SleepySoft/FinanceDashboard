@@ -32,3 +32,6 @@ Thumbs.db
 
 # Data cache (auto-generated, do not commit)
 data/_dashboard.json
+data/_users.json
+data/_sessions.json
+data/_config.json

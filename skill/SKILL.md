@@ -72,6 +72,12 @@ Frontend auto-refreshes → Report appears
 
 ## How to Use the Agent
 
+> **鉴权（2026-08-11 起）**：所有 `/api/agent/*` 接口需要请求头
+> `X-API-Key: <密钥>`（后端 `FD_API_KEY` 或 `data/_config.json` 的 `api_key`，
+> 首次启动未配置时自动生成并打印到日志）。
+> 未带 Key 会返回 401。其余业务接口若后端处于「未登录只读」模式，读接口可匿名访问，
+> 写接口同样需要 Key 或登录会话。
+
 ### Direct Chat (WeChat)
 
 Users can talk to the agent directly via WeChat (openclaw-weixin channel):

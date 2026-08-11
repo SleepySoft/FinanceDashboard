@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List, Literal
 import json
@@ -10,6 +11,7 @@ import subprocess
 import urllib.request
 import re
 from datetime import datetime, timezone, timedelta
+import auth
 
 app = FastAPI(title="Stock Analyst API")
 
@@ -19,6 +21,44 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
+
+# GET 但实际会改动数据的接口：未登录一律禁止（不参与"未登录只读"）
+AUTH_REQUIRED_GETS = {"/api/prices/refresh", "/api/dashboard/refresh"}
+
+
+@app.middleware("http")
+async def permission_control(request: Request, call_next):
+    """全局权限控制：
+    - /api/auth/* 与 /api/health 公开
+    - /api/agent/* 需要登录或 X-API-Key（Agent 接口，不对外开放）
+    - 其余读接口：allow_anonymous_read=true 时未登录可读；false 时需登录
+    - 所有写接口：必须登录或 X-API-Key
+    """
+    path = request.url.path
+    if not path.startswith("/api"):
+        return await call_next(request)
+
+    method = request.method.upper()
+    if path.startswith("/api/auth") or path == "/api/health" or method == "OPTIONS":
+        return await call_next(request)
+
+    user = auth.get_current_user(request)
+    if user:
+        return await call_next(request)
+
+    if path.startswith("/api/agent"):
+        return JSONResponse({"detail": "需要登录或 API Key"}, status_code=401)
+
+    if method in ("GET", "HEAD"):
+        if path in AUTH_REQUIRED_GETS:
+            return JSONResponse({"detail": "需要登录"}, status_code=401)
+        if auth.load_config().get("allow_anonymous_read", False):
+            return await call_next(request)
+        return JSONResponse({"detail": "需要登录"}, status_code=401)
+
+    return JSONResponse({"detail": "需要登录后才能进行写操作"}, status_code=401)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPORTS_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")

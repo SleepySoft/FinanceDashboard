@@ -2,7 +2,11 @@
   <div class="home">
     <div class="header">
       <h1>分析请求池</h1>
-      <button class="primary" @click="showAdd = true">+ 提交请求</button>
+      <button v-if="canWrite" class="primary" @click="showAdd = true">+ 提交请求</button>
+    </div>
+
+    <div v-if="!canWrite" class="readonly-banner card">
+      当前为只读模式，登录后即可提交分析请求。
     </div>
 
     <div v-if="showAdd" class="add-form card">
@@ -55,7 +59,7 @@
         <p v-if="r.note" class="req-note">{{ r.note }}</p>
         <p class="req-time">{{ fmtTime(r.created_at) }}</p>
         <div class="req-actions">
-          <button class="ghost" @click="delReq(r.id)">删除</button>
+          <button v-if="canWrite" class="ghost" @click="delReq(r.id)">删除</button>
         </div>
       </div>
     </div>
@@ -114,8 +118,8 @@
         <p v-if="r.error" class="req-error">{{ r.error }}</p>
         <p v-if="r.note" class="req-note">{{ r.note }}</p>
         <div class="req-actions">
-          <button class="ghost" @click="retry(r)">重新分析</button>
-          <button class="ghost" @click="delReq(r.id)">删除</button>
+          <button v-if="canWrite" class="ghost" @click="retry(r)">重新分析</button>
+          <button v-if="canWrite" class="ghost" @click="delReq(r.id)">删除</button>
         </div>
       </div>
     </div>
@@ -126,9 +130,11 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import api from '../api.js'
 import { usePersistentRef, readState, writeState, useScrollRestore } from '../composables/useSession.js'
+import auth from '../composables/useAuth.js'
 
 const requests = ref([])
 const stocks = ref([])
+const canWrite = auth.canWrite
 const showAdd = ref(false)
 const newCode = ref('')
 const newName = ref('')
@@ -229,6 +235,15 @@ onMounted(async () => {
 <style scoped>
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .header h1 { font-size: 22px; font-weight: 600; }
+.readonly-banner {
+  font-size: 13px;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.06);
+  border: 1px dashed rgba(251, 191, 36, 0.3);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
 .add-form { margin-bottom: 20px; }
 .add-form h3 { margin-bottom: 8px; font-size: 15px; }
 .hint { font-size: 13px; color: #64748b; margin-bottom: 12px; }

@@ -15,7 +15,8 @@ This file captures the living state of the project so any AI (or future-you) can
 ```
 Uvicorn (FastAPI + StaticFiles)          Data (File-based)
     Port 80  ──────────────────────►    /root/data/FinanceDashboard/data/
-            ├── /api/*  → FastAPI routes
+            ├── /api/auth/* → 登录/会话/权限配置（backend/auth.py）
+            ├── /api/*      → FastAPI routes（全局读/写权限控制）
             └── /*      → Vue3 SPA (frontend/dist)
 ```
 
@@ -23,6 +24,7 @@ Uvicorn (FastAPI + StaticFiles)          Data (File-based)
 |-------|------|------|-------|
 | App Server | Uvicorn + FastAPI + StaticFiles | 80 | 同时 serve API 和前端静态文件 |
 | Data | JSON + Markdown | — | One dir per stock, `_dashboard.json` for prices |
+| Auth | backend/auth.py（stdlib，无新依赖） | — | PBKDF2 密码哈希 + 文件会话 + 权限配置 |
 | Gateway | OpenClaw | 18789 | localhost only, not exposed |
 
 ## Data Layout
@@ -31,6 +33,9 @@ Uvicorn (FastAPI + StaticFiles)          Data (File-based)
 data/
 ├── _dashboard.json          # Price snapshot (updated by backend via Sina API)
 ├── _tasks.json              # Pending analysis task queue
+├── _users.json              # 用户账号（PBKDF2 密码哈希；首次运行自动创建 admin）
+├── _sessions.json           # 登录会话（token → username/expires_at）
+├── _config.json             # 权限配置（allow_anonymous_read / session_ttl_hours / api_key）
 ├── _template/
 │   └── meta.json            # Template for new stock entries
 └── {CODE}/                  # One dir per stock (e.g. 002430.SZ/)
@@ -47,16 +52,40 @@ data/
 ## Key Design Decisions
 
 1. **No Authentication** — All API endpoints are public. User explicitly requested this.
+   **已变更（2026-08-11）**：接入登录与权限控制，默认未登录完全锁定。
 2. **Two-speed Data** — Real-time prices via Sina API (backend direct); deep analysis via kimi_finance/Tushare (agent tool calls).
 3. **Separate Caches** — Fundamental (30 days) and Technical (7 days) have independent expiry and refresh buttons.
 4. **Agent-triggered Analysis** — User submits request → pool → agent claims → runs analysis → writes report. No automatic polling.
 5. **File-based Storage** — No database. Everything is JSON or Markdown files.
 6. **Unread Tag** — Agent `complete` 后 `tags.unread=true`，看板显示红色「未读」徽章；用户打开个股面板/详情页时前端自动 PATCH 清除。
 
+## 登录与权限（2026-08-11 新增）
+
+- 认证实现：`backend/auth.py`（纯 stdlib：hashlib.pbkdf2_hmac + hmac + secrets），无新增依赖。
+- 登录会话：`data/_sessions.json` + HttpOnly Cookie `fd_session`（SameSite=Lax，默认 7 天）。
+- 首次运行：访问 `/api/auth/config` 时自动创建管理员账号。
+  - 用户名：环境变量 `FD_ADMIN_USERNAME`（默认 `admin`）
+  - 密码：环境变量 `FD_ADMIN_PASSWORD`；未设置则使用默认密码
+    `SleepySoft@299792458`（与 SSH 密码一致，登录后建议尽快在「设置」中修改）
+- 未登录权限配置（`data/_config.json`，可在前端「设置」页修改）：
+  - `allow_anonymous_read: false`（默认）= 完全锁定，未登录看不到任何数据
+  - `allow_anonymous_read: true` = 未登录只读，可浏览但所有写操作返回 401
+- 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
+- Agent 访问：请求头 `X-API-Key`。首次启动未设置 `FD_API_KEY` 时自动生成密钥，
+  保存到 `data/_config.json` 并打印到启动日志；也可在部署时用环境变量 `FD_API_KEY` 固定。
+  带 Key 的请求可访问全部接口（含 `/api/agent/*`，该前缀不参与"未登录只读"）。
+- 修改密码：`POST /api/auth/change-password`，修改后会吊销该用户其他会话（当前会话保留）。
+
 ## API Endpoints (Human-facing)
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
+| `/api/auth/config` | GET | 公开：权限配置（登录页/前端引导用） |
+| `/api/auth/me` | GET | 当前登录状态 |
+| `/api/auth/login` | POST | 登录（设置 HttpOnly Cookie） |
+| `/api/auth/logout` | POST | 登出 |
+| `/api/auth/change-password` | POST | 修改密码（需登录） |
+| `/api/auth/config` | PATCH | 修改未登录权限/会话时长（需登录） |
 | `/api/dashboard` | GET | All stocks with prices and mark diffs |
 | `/api/prices/refresh` | GET | Fetch live prices from Sina, update `_dashboard.json` |
 | `/api/requests` | GET/POST/DELETE | Request pool (pending analysis tasks) |
@@ -75,6 +104,8 @@ data/
 
 ## API Endpoints (Agent-facing)
 
+> Agent 请求需携带 `X-API-Key: <api_key>`（见「登录与权限」），否则返回 401。
+
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
 | `/api/agent/tasks` | GET | List pending tasks |
@@ -84,6 +115,7 @@ data/
 
 ## External Credentials
 
+- **登录账号**：首次启动自动创建，见上文「登录与权限」。可用 `FD_ADMIN_USERNAME` / `FD_ADMIN_PASSWORD` / `FD_API_KEY` 环境变量初始化。
 - **Tushare Token:** `e637c3252c1aadecdc8a215a59abd44959e70efa5bfe1b36d83447fa`
   - File: `/root/.openclaw/workspace/stock-analyst/.env` (legacy) — TODO: move to project `.env`
 - **Sina API:** No auth needed. Used for real-time price snapshots.
@@ -144,7 +176,7 @@ npm run smoke   # 冒烟测试：自动拉起前后端 → 无头 Chrome 验证�
 ### Adding a New Stock for Analysis
 1. User submits via frontend (`/requests`) or tells agent directly
 2. Agent calls `POST /api/requests` with code/name/sector/type
-3. Agent polls `GET /api/agent/tasks`, claims task
+3. Agent polls `GET /api/agent/tasks`（带 `X-API-Key`）, claims task
 4. Agent runs analysis (kimi_finance/Tushare)
 5. Agent writes report to `data/{code}/reports/`
 6. Agent calls `POST /api/agent/tasks/{id}/complete`

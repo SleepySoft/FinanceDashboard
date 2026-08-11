@@ -15,7 +15,7 @@
         <select v-model="selectedDate" @change="loadDate">
           <option v-for="d in dates" :key="d" :value="d">{{ d }}</option>
         </select>
-        <button class="primary" @click="scanNow" :disabled="scanning">
+        <button v-if="canWrite" class="primary" @click="scanNow" :disabled="scanning">
           {{ scanning ? '扫描中...' : '手动扫描' }}
         </button>
         <button class="ghost" @click="loadLatest">最新</button>
@@ -166,7 +166,7 @@
 
           <div class="stock-actions">
             <button class="ghost small" @click="openStock(stock.code)">查看详情</button>
-            <button class="primary small" @click="addToDashboard(stock.code)" :disabled="adding[stock.code]">
+            <button v-if="canWrite" class="primary small" @click="addToDashboard(stock.code)" :disabled="adding[stock.code]">
               {{ adding[stock.code] ? '已添加' : '加入看板' }}
             </button>
           </div>
@@ -179,7 +179,7 @@
       <div class="empty-icon">📡</div>
       <div class="empty-title">暂无异动信号</div>
       <div class="empty-desc">当前日期未发现满足条件的异动。这很正常——宁缺毋滥。</div>
-      <button class="primary" @click="scanNow" :disabled="scanning">
+      <button v-if="canWrite" class="primary" @click="scanNow" :disabled="scanning">
         {{ scanning ? '扫描中...' : '重新扫描' }}
       </button>
     </div>
@@ -197,8 +197,10 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api.js'
 import { usePersistentRef, useScrollRestore } from '../composables/useSession.js'
+import auth from '../composables/useAuth.js'
 
 const router = useRouter()
+const canWrite = auth.canWrite
 
 const dates = ref([])
 const selectedDate = usePersistentRef('anomaly:date', '')

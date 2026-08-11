@@ -27,6 +27,13 @@
 - 股票详情弹窗/独立页面
 - 支持手机端访问
 
+### 5. 登录与权限控制
+- 登录 / 登出 / 修改密码（前端「设置」页）
+- 未登录权限可配置：
+  - **完全锁定**（默认）：未登录看不到任何数据，一律跳转登录页
+  - **只读模式**：未登录可浏览，所有修改操作需登录
+- 会话基于 HttpOnly Cookie，默认有效期 7 天
+
 ## 技术栈
 
 - **Backend**: FastAPI + Python
@@ -49,9 +56,33 @@ FinanceDashboard/
 │   │   └── notes.md         # 笔记
 │   ├── _dashboard.json      # 价格缓存
 │   └── _tasks.json          # 分析任务队列
+│   ├── _users.json          # 用户账号（PBKDF2 密码哈希）
+│   ├── _sessions.json       # 登录会话
+│   └── _config.json         # 权限配置
 ├── skill/            # AI Agent Skill 定义
 └── docs/             # 设计文档
 ```
+
+## 登录与权限配置
+
+首次访问时后端会自动创建管理员账号：
+
+```bash
+# 可选：指定初始账号/密码（不设置则默认 admin / SleepySoft@299792458）
+export FD_ADMIN_USERNAME=admin
+export FD_ADMIN_PASSWORD='你的密码'
+```
+
+登录后在「设置」页可以修改密码，以及切换「完全锁定 / 只读模式」。
+
+AI Agent 需要额外配置访问密钥：
+
+```bash
+# 不设置则首次启动自动生成，并保存到 data/_config.json（启动日志会打印）
+export FD_API_KEY='一段随机字符串'
+```
+
+Agent 请求时携带请求头 `X-API-Key: <密钥>` 即可通过鉴权。
 
 ## 快速开始
 
