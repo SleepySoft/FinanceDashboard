@@ -8,8 +8,8 @@ import Holdings from './views/Holdings.vue'
 import AnomalyBoard from './views/AnomalyBoard.vue'
 import Login from './views/Login.vue'
 import Settings from './views/Settings.vue'
-import StrategyLibrary from './views/StrategyLibrary.vue'
-import Backtest from './views/Backtest.vue'
+import StrategyLibrary from './subsystems/backtest/views/StrategyLibrary.vue'
+import Backtest from './subsystems/backtest/views/Backtest.vue'
 import auth from './composables/useAuth.js'
 
 const routes = [

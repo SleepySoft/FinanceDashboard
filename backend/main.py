@@ -12,7 +12,7 @@ import urllib.request
 import re
 from datetime import datetime, timezone, timedelta
 import auth
-from backtest_routes import router as backtest_router
+from subsystems.backtest.routes import router as backtest_router
 
 app = FastAPI(title="Stock Analyst API")
 

@@ -38,6 +38,15 @@
       </div>
     </div>
 
+    <!-- Subsystems -->
+    <div class="subsystems-bar">
+      <span class="ss-label">🧩 子系统</span>
+      <router-link to="/backtest" class="ss-link" title="回测框架：策略回测与因子分析">
+        <span class="ss-icon">📈</span>
+        <span class="ss-name">回测</span>
+      </router-link>
+    </div>
+
     <!-- Holdings Summary Bar -->
     <div v-if="holdingsSummary.count > 0" class="holdings-summary-bar">
       <span class="hs-label">📊 持仓</span>
@@ -1446,6 +1455,47 @@ onUnmounted(stopAutoRefresh)
   .list-table th, .list-table td { padding: 8px 10px; }
   .holdings-summary-bar { font-size: 12px; gap: 8px; padding: 8px 10px; }
 }
+
+/* ── Subsystems Bar ── */
+.subsystems-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.subsystems-bar .ss-label {
+  font-weight: 600;
+  color: #94a3b8;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ss-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.ss-link:hover {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+.ss-link .ss-icon { font-size: 14px; }
+.ss-link .ss-name { font-weight: 500; }
 
 /* ── Holdings Summary Bar ── */
 .holdings-summary-bar {
