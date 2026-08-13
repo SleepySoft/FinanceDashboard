@@ -1,21 +1,36 @@
 const API_BASE = '/api'
 
+// ─── Global Toast System ───────────────────────────────────────
+// Emit toast events anywhere: window.dispatchEvent(new CustomEvent('fd:toast', { detail: { message, type, duration } }))
+
 async function api(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...opts.headers }
-  const res = await fetch(API_BASE + path, {
-    headers,
-    ...opts,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    // 会话过期/未登录：交由全局处理（main.js 根据配置决定跳登录页还是提示）
-    if (res.status === 401 && !path.startsWith('/auth/')) {
-      window.dispatchEvent(new CustomEvent('fd:unauthorized', { detail: { path } }))
+  try {
+    const headers = { 'Content-Type': 'application/json', ...opts.headers }
+    const res = await fetch(API_BASE + path, {
+      headers,
+      ...opts,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      // 会话过期/未登录：交由全局处理（main.js 根据配置决定跳登录页还是提示）
+      if (res.status === 401 && !path.startsWith('/auth/')) {
+        window.dispatchEvent(new CustomEvent('fd:unauthorized', { detail: { path } }))
+      }
+      const msg = err.detail || `HTTP ${res.status}`
+      window.dispatchEvent(new CustomEvent('fd:toast', { detail: { message: `请求失败: ${msg}`, type: 'error', duration: 5000 } }))
+      throw new Error(msg)
     }
-    throw new Error(err.detail || `HTTP ${res.status}`)
+    return res.json()
+  } catch (networkErr) {
+    // Network / CORS / DNS failure — not an HTTP error response
+    if (networkErr.name === 'TypeError' || !networkErr.message?.includes('HTTP')) {
+      window.dispatchEvent(new CustomEvent('fd:toast', {
+        detail: { message: '网络错误或后端未响应，请稍后重试', type: 'error', duration: 6000 }
+      }))
+    }
+    throw networkErr
   }
-  return res.json()
 }
 
 export default {

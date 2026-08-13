@@ -1,5 +1,14 @@
 <template>
   <div id="app">
+    <!-- 全局错误提示 -->
+    <div class="toast-container">
+      <TransitionGroup name="toast">
+        <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
+          {{ t.message }}
+        </div>
+      </TransitionGroup>
+    </div>
+
     <!-- 全局顶部栏：登录状态 / 设置入口 -->
     <div v-if="$route.path !== '/login'" class="topbar">
       <router-link to="/" class="topbar-logo">FinanceDashboard</router-link>
@@ -29,11 +38,36 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import auth from './composables/useAuth.js'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const router = useRouter()
 const isAuthenticated = auth.isAuthenticated
 const user = auth.user
 const config = auth.config
+
+// ─── Toast State ──────────────────────────────────────────────
+const toasts = ref([])
+let toastId = 0
+
+function addToast(message, type = 'info', duration = 4000) {
+  const id = ++toastId
+  toasts.value.push({ id, message, type, duration })
+  setTimeout(() => {
+    toasts.value = toasts.value.filter(t => t.id !== id)
+  }, duration)
+}
+
+let toastHandler = null
+onMounted(() => {
+  toastHandler = (e) => {
+    const d = e.detail || {}
+    addToast(d.message, d.type || 'info', d.duration || 4000)
+  }
+  window.addEventListener('fd:toast', toastHandler)
+})
+onUnmounted(() => {
+  if (toastHandler) window.removeEventListener('fd:toast', toastHandler)
+})
 
 async function doLogout() {
   await auth.logout()
@@ -148,10 +182,64 @@ button.danger { background: #dc2626; color: white; }
 .tag-red { background: #7f1d1d; color: #f87171; }
 .tag-none { background: #334155; color: #94a3b8; }
 
+/* ─── Toast Notifications ────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  pointer-events: auto;
+  word-break: break-word;
+}
+.toast.error {
+  background: #7f1d1d;
+  border: 1px solid #dc2626;
+}
+.toast.info {
+  background: #1e3a5f;
+  border: 1px solid #3b82f6;
+}
+.toast.success {
+  background: #064e3b;
+  border: 1px solid #34d399;
+}
+
+/* Toast enter/leave transitions */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
 @media (max-width: 640px) {
   #app { padding: 6px 10px 10px; }
   .card { padding: 14px; margin-bottom: 10px; }
   .nav { padding: 6px 0 2px; margin-bottom: 6px; }
   .logo { font-size: 14px; }
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
 }
 </style>
