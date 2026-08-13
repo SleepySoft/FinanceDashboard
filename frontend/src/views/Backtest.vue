@@ -2,34 +2,90 @@
   <div class="backtest-page">
     <h2>回测 Playground</h2>
 
-    <div class="backtest-form card">
-      <!-- 1. 选择策略 -->
-      <div class="form-section">
-        <label>策略</label>
-        <select v-model="form.strategy_id" @change="onStrategyChange">
-          <option value="">-- 选择策略 --</option>
-          <option v-for="s in strategies" :key="s.id" :value="s.id">{{ s.name }}</option>
-        </select>
-      </div>
+    <!-- 模式切换 -->
+    <div class="mode-tabs">
+      <button :class="{active: mode === 'strategy'}" @click="mode = 'strategy'">策略回测</button>
+      <button :class="{active: mode === 'factor'}" @click="mode = 'factor'">因子回测</button>
+    </div>
 
-      <!-- 2. 参数设置 -->
-      <div class="form-section" v-if="currentStrategy && currentStrategy.params">
-        <label>参数</label>
-        <div class="params-row">
-          <div v-for="p in currentStrategy.params" :key="p.name" class="param-input">
-            <span class="param-label">{{ p.description || p.name }}</span>
-            <input
-              v-model.number="form.params[p.name]"
-              :type="p.type === 'int' || p.type === 'float' ? 'number' : 'text'"
-              :min="p.min"
-              :max="p.max"
-              :step="p.step || 1"
-            />
+    <div class="backtest-form card">
+      <!-- ===== 策略回测模式 ===== -->
+      <template v-if="mode === 'strategy'">
+        <div class="form-section">
+          <label>策略</label>
+          <select v-model="form.strategy_id" @change="onStrategyChange">
+            <option value="">-- 选择策略 --</option>
+            <option v-for="s in strategies" :key="s.id" :value="s.id">{{ s.name }}</option>
+          </select>
+        </div>
+
+        <div class="form-section" v-if="currentStrategy && currentStrategy.params">
+          <label>参数</label>
+          <div class="params-row">
+            <div v-for="p in currentStrategy.params" :key="p.name" class="param-input">
+              <span class="param-label">{{ p.description || p.name }}</span>
+              <input v-model.number="form.params[p.name]" type="number" :min="p.min" :max="p.max" :step="p.step || 1" />
+            </div>
           </div>
         </div>
-      </div>
+      </template>
 
-      <!-- 3. 回测范围 -->
+      <!-- ===== 因子回测模式 ===== -->
+      <template v-if="mode === 'factor'">
+        <div class="factor-section">
+          <div class="factor-group">
+            <div class="factor-header">
+              <span class="factor-title">📈 买入条件</span>
+              <select v-model="factorLogic" class="logic-select">
+                <option value="and">全部满足</option>
+                <option value="or">任一满足</option>
+              </select>
+            </div>
+            <div v-for="(cond, i) in buyConditions" :key="i" class="condition-row">
+              <select v-model="cond.factor_id" @change="onFactorChange(cond)">
+                <option value="">-- 因子 --</option>
+                <option v-for="f in factors" :key="f.id" :value="f.id">{{ f.name }}</option>
+              </select>
+              <select v-model="cond.operator">
+                <option value="<">&lt;</option>
+                <option value="<=">&lt;=</option>
+                <option value=">">&gt;</option>
+                <option value=">=">&gt;=</option>
+                <option value="cross_above">上穿</option>
+                <option value="cross_below">下穿</option>
+              </select>
+              <input v-model.number="cond.value" type="number" placeholder="阈值" class="cond-value" />
+              <button class="btn-mini danger" @click="removeBuyCondition(i)">✕</button>
+            </div>
+            <button class="btn-ghost btn-small" @click="addBuyCondition">+ 添加买入条件</button>
+          </div>
+
+          <div class="factor-group">
+            <div class="factor-header">
+              <span class="factor-title">📉 卖出条件</span>
+            </div>
+            <div v-for="(cond, i) in sellConditions" :key="i" class="condition-row">
+              <select v-model="cond.factor_id" @change="onFactorChange(cond)">
+                <option value="">-- 因子 --</option>
+                <option v-for="f in factors" :key="f.id" :value="f.id">{{ f.name }}</option>
+              </select>
+              <select v-model="cond.operator">
+                <option value="<">&lt;</option>
+                <option value="<=">&lt;=</option>
+                <option value=">">&gt;</option>
+                <option value=">=">&gt;=</option>
+                <option value="cross_above">上穿</option>
+                <option value="cross_below">下穿</option>
+              </select>
+              <input v-model.number="cond.value" type="number" placeholder="阈值" class="cond-value" />
+              <button class="btn-mini danger" @click="removeSellCondition(i)">✕</button>
+            </div>
+            <button class="btn-ghost btn-small" @click="addSellCondition">+ 添加卖出条件</button>
+          </div>
+        </div>
+      </template>
+
+      <!-- ===== 公共设置 ===== -->
       <div class="form-section">
         <label>股票代码（支持多个，逗号分隔）</label>
         <input v-model="codesInput" placeholder="000001.SZ, 000002.SZ" />
@@ -54,7 +110,6 @@
         </div>
       </div>
 
-      <!-- 4. 资金设置 -->
       <div class="form-section">
         <div class="config-row">
           <div>
@@ -72,7 +127,6 @@
         </div>
       </div>
 
-      <!-- 操作 -->
       <div class="form-actions">
         <button class="primary" @click="runBacktest" :disabled="loading">
           {{ loading ? '回测中...' : '开始回测' }}
@@ -81,21 +135,20 @@
           <input type="checkbox" v-model="form.use_cache" />
           使用缓存
         </label>
-        <label class="checkbox">
+        <label v-if="mode === 'strategy'" class="checkbox">
           <input type="checkbox" v-model="frameMode" />
           逐帧模式
         </label>
       </div>
     </div>
 
-    <!-- 结果展示 -->
+    <!-- ===== 结果展示 ===== -->
     <div v-if="result" class="result card">
       <div class="result-header">
         <h3>回测结果</h3>
         <span v-if="result.from_cache" class="cache-tag">⚡ 来自缓存</span>
       </div>
 
-      <!-- 汇总指标 -->
       <div v-if="result.summary" class="metrics-grid">
         <div class="metric-box">
           <div class="metric-value" :class="result.summary.total_return >= 0 ? 'up' : 'down'">
@@ -117,20 +170,13 @@
         </div>
       </div>
 
-      <!-- 权益曲线 -->
       <div v-if="result.equity_curve && result.equity_curve.length" class="chart-section">
         <h4>权益曲线</h4>
         <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="equity-chart">
-          <polyline
-            :points="equityPoints"
-            fill="none"
-            stroke="#3b82f6"
-            stroke-width="2"
-          />
+          <polyline :points="equityPoints" fill="none" stroke="#3b82f6" stroke-width="2" />
         </svg>
       </div>
 
-      <!-- 各股票结果 -->
       <div v-if="result.results" class="stock-results">
         <h4>各股票表现</h4>
         <div v-for="(r, code) in result.results" :key="code" class="stock-result-item">
@@ -143,53 +189,24 @@
           </span>
         </div>
       </div>
-
-      <!-- 逐帧播放器 -->
-      <div v-if="frames && frames.length" class="frame-player">
-        <h4>逐帧回放</h4>
-        <div class="frame-controls">
-          <button @click="frameIndex = 0">⏮</button>
-          <button @click="prevFrame">◀</button>
-          <span class="frame-info">{{ frames[frameIndex]?.date }} ({{ frameIndex + 1 }} / {{ frames.length }})</span>
-          <button @click="nextFrame">▶</button>
-          <button @click="playFrames">{{ playing ? '⏸' : '▶' }}</button>
-        </div>
-        <div class="frame-detail">
-          <div class="frame-bar">
-            <div>O: {{ frames[frameIndex]?.bar?.open }}</div>
-            <div>H: {{ frames[frameIndex]?.bar?.high }}</div>
-            <div>L: {{ frames[frameIndex]?.bar?.low }}</div>
-            <div>C: {{ frames[frameIndex]?.bar?.close }}</div>
-          </div>
-          <div class="frame-signal" :class="signalClass(frames[frameIndex]?.signal)">
-            信号: {{ signalText(frames[frameIndex]?.signal) }}
-          </div>
-          <div class="frame-portfolio">
-            现金: {{ frames[frameIndex]?.portfolio?.cash?.toFixed(0) }}
-            | 市值: {{ frames[frameIndex]?.portfolio?.equity?.toFixed(0) }}
-            | 持仓: {{ frames[frameIndex]?.position?.quantity }}
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 
-const route = useRoute()
-
+const mode = ref('strategy') // 'strategy' | 'factor'
 const strategies = ref([])
+const factors = ref([])
 const currentStrategy = ref(null)
 const loading = ref(false)
 const result = ref(null)
-const frames = ref(null)
 const frameMode = ref(false)
-const frameIndex = ref(0)
-const playing = ref(false)
-let playTimer = null
+
+const factorLogic = ref('and')
+const buyConditions = ref([{ factor_id: '', params: {}, operator: '<', value: 30 }])
+const sellConditions = ref([{ factor_id: '', params: {}, operator: '>', value: 70 }])
 
 const chartWidth = 800
 const chartHeight = 200
@@ -200,117 +217,130 @@ const form = ref({
   start_date: '2023-01-01',
   end_date: '2024-12-31',
   adjust: 'qfq',
-  config: {
-    initial_cash: 100000,
-    commission: 0.00025,
-    size: 0.2,
-  },
+  config: { initial_cash: 100000, commission: 0.00025, size: 0.2 },
   use_cache: true,
 })
-
 const codesInput = ref('000001.SZ')
-
-// 从 URL 参数预填策略
-watch(() => route.query.strategy, (sid) => {
-  if (sid && strategies.value.length) {
-    form.value.strategy_id = sid
-    onStrategyChange()
-  }
-}, { immediate: false })
 
 async function loadStrategies() {
   try {
     const res = await fetch('/api/backtest/strategies')
     const data = await res.json()
     strategies.value = data.strategies || []
-    if (route.query.strategy) {
-      form.value.strategy_id = route.query.strategy
-      onStrategyChange()
-    }
-  } catch (e) {
-    console.error('Failed to load strategies:', e)
-  }
+  } catch (e) { console.error(e) }
+}
+
+async function loadFactors() {
+  try {
+    const res = await fetch('/api/backtest/factors')
+    const data = await res.json()
+    factors.value = data.factors || []
+  } catch (e) { console.error(e) }
 }
 
 function onStrategyChange() {
   const s = strategies.value.find(x => x.id === form.value.strategy_id)
   currentStrategy.value = s || null
-  // 重置参数为默认值
   form.value.params = {}
   if (s && s.params) {
-    for (const p of s.params) {
-      form.value.params[p.name] = p.default
-    }
+    for (const p of s.params) form.value.params[p.name] = p.default
   }
 }
 
+function onFactorChange(cond) {
+  const f = factors.value.find(x => x.id === cond.factor_id)
+  cond.params = {}
+  if (f && f.params) {
+    for (const p of f.params) cond.params[p.name] = p.default
+  }
+}
+
+function addBuyCondition() { buyConditions.value.push({ factor_id: '', params: {}, operator: '<', value: 0 }) }
+function removeBuyCondition(i) { buyConditions.value.splice(i, 1) }
+function addSellCondition() { sellConditions.value.push({ factor_id: '', params: {}, operator: '>', value: 0 }) }
+function removeSellCondition(i) { sellConditions.value.splice(i, 1) }
+
 async function runBacktest() {
   const codes = codesInput.value.split(/[,，\s]+/).filter(Boolean)
-  if (!codes.length) {
-    alert('请输入股票代码')
-    return
-  }
-  if (!form.value.strategy_id) {
-    alert('请选择策略')
-    return
-  }
-
+  if (!codes.length) { alert('请输入股票代码'); return }
   loading.value = true
   result.value = null
-  frames.value = null
 
   try {
-    if (frameMode.value && codes.length === 1) {
-      // 逐帧模式
-      const res = await fetch('/api/backtest/run/frame', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          strategy_id: form.value.strategy_id,
-          params: form.value.params,
-          code: codes[0],
-          start_date: form.value.start_date,
-          end_date: form.value.end_date,
-          adjust: form.value.adjust,
-          config: form.value.config,
-        })
-      })
-      const data = await res.json()
-      if (res.ok) {
-        frames.value = data.frames
-        frameIndex.value = 0
-        result.value = { id: data.id, from_cache: false }
-      } else {
-        alert(data.detail || '回测失败')
-      }
+    if (mode.value === 'strategy') {
+      await runStrategyBacktest(codes)
     } else {
-      // 快速回测
-      const res = await fetch('/api/backtest/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          strategy_id: form.value.strategy_id,
-          params: form.value.params,
-          codes: codes,
-          start_date: form.value.start_date,
-          end_date: form.value.end_date,
-          adjust: form.value.adjust,
-          config: form.value.config,
-          use_cache: form.value.use_cache,
-        })
-      })
-      const data = await res.json()
-      if (res.ok) {
-        result.value = data
-      } else {
-        alert(data.detail || '回测失败')
-      }
+      await runFactorBacktest(codes)
     }
   } catch (e) {
     alert('请求失败: ' + e.message)
   } finally {
     loading.value = false
   }
+}
+
+async function runStrategyBacktest(codes) {
+  if (!form.value.strategy_id) { alert('请选择策略'); return }
+
+  const payload = {
+    strategy_id: form.value.strategy_id,
+    params: form.value.params,
+    codes: codes,
+    start_date: form.value.start_date,
+    end_date: form.value.end_date,
+    adjust: form.value.adjust,
+    config: form.value.config,
+    use_cache: form.value.use_cache,
+  }
+
+  if (frameMode.value && codes.length === 1) {
+    const res = await fetch('/api/backtest/run/frame', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, code: codes[0] })
+    })
+    const data = await res.json()
+    if (!res.ok) alert(data.detail || '回测失败')
+    else result.value = data
+  } else {
+    const res = await fetch('/api/backtest/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await res.json()
+    if (!res.ok) alert(data.detail || '回测失败')
+    else result.value = data
+  }
+}
+
+async function runFactorBacktest(codes) {
+  // 过滤掉未完成的条件
+  const validBuy = buyConditions.value.filter(c => c.factor_id)
+  const validSell = sellConditions.value.filter(c => c.factor_id)
+
+  if (!validBuy.length && !validSell.length) {
+    alert('请至少设置一个买入或卖出条件')
+    return
+  }
+
+  const res = await fetch('/api/backtest/factor-run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      codes: codes,
+      buy_conditions: validBuy,
+      sell_conditions: validSell,
+      start_date: form.value.start_date,
+      end_date: form.value.end_date,
+      adjust: form.value.adjust,
+      logic: factorLogic.value,
+      config: form.value.config,
+    })
+  })
+  const data = await res.json()
+  if (!res.ok) alert(data.detail || '回测失败')
+  else result.value = data
 }
 
 const equityPoints = computed(() => {
@@ -321,7 +351,6 @@ const equityPoints = computed(() => {
   const maxV = Math.max(...values)
   const range = maxV - minV || 1
   const stepX = chartWidth / (data.length - 1 || 1)
-
   return data.map((d, i) => {
     const x = i * stepX
     const y = chartHeight - ((d.value - minV) / range) * chartHeight
@@ -329,54 +358,39 @@ const equityPoints = computed(() => {
   }).join(' ')
 })
 
-function signalText(s) {
-  if (s === 1) return '买入'
-  if (s === -1) return '卖出'
-  return '持仓'
-}
-function signalClass(s) {
-  if (s === 1) return 'signal-buy'
-  if (s === -1) return 'signal-sell'
-  return 'signal-hold'
-}
-
-function nextFrame() {
-  if (frames.value && frameIndex.value < frames.value.length - 1) frameIndex.value++
-}
-function prevFrame() {
-  if (frameIndex.value > 0) frameIndex.value--
-}
-function playFrames() {
-  if (playing.value) {
-    playing.value = false
-    clearInterval(playTimer)
-  } else {
-    playing.value = true
-    playTimer = setInterval(() => {
-      if (frameIndex.value >= (frames.value?.length || 0) - 1) {
-        playing.value = false
-        clearInterval(playTimer)
-      } else {
-        frameIndex.value++
-      }
-    }, 500)
-  }
-}
-
-onMounted(loadStrategies)
+onMounted(() => {
+  loadStrategies()
+  loadFactors()
+})
 </script>
 
 <style scoped>
-.backtest-page h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
+.backtest-page h2 { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+
+.mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mode-tabs button {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.mode-tabs button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
 }
 
 .backtest-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .form-section {
@@ -405,30 +419,20 @@ onMounted(loadStrategies)
   flex-direction: column;
   gap: 4px;
 }
-.param-input input {
-  width: 100px;
-}
-.param-label {
-  font-size: 12px;
-  color: #64748b;
-}
+.param-input input { width: 100px; }
+.param-label { font-size: 12px; color: #64748b; }
 
-.date-row,
-.config-row {
+.date-row, .config-row {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
 }
-.date-row > div,
-.config-row > div {
+.date-row > div, .config-row > div {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.date-row input,
-.config-row input {
-  width: 140px;
-}
+.date-row input, .config-row input { width: 140px; }
 
 .form-actions {
   display: flex;
@@ -451,14 +455,66 @@ onMounted(loadStrategies)
   color: #94a3b8;
   cursor: pointer;
 }
-.checkbox input {
+.checkbox input { width: auto; }
+
+/* 因子回测 */
+.factor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.factor-group {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 14px;
+}
+.factor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.factor-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.logic-select {
+  width: auto !important;
+  font-size: 12px;
+  padding: 4px 8px !important;
+}
+.condition-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.condition-row select {
   width: auto;
+  min-width: 100px;
+}
+.cond-value {
+  width: 80px !important;
+}
+.btn-mini {
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+.btn-mini.danger {
+  background: #7f1d1d;
+  color: #f87171;
+}
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
 }
 
-/* 结果区域 */
-.result {
-  margin-top: 16px;
-}
+/* 结果 */
+.result { margin-top: 16px; }
 .result-header {
   display: flex;
   justify-content: space-between;
@@ -472,7 +528,6 @@ onMounted(loadStrategies)
   padding: 2px 8px;
   border-radius: 4px;
 }
-
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -485,37 +540,25 @@ onMounted(loadStrategies)
   padding: 14px;
   text-align: center;
 }
-.metric-value {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
+.metric-value { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
 .metric-value.up { color: #34d399; }
 .metric-value.down { color: #f87171; }
-.metric-label {
-  font-size: 12px;
-  color: #64748b;
-}
+.metric-label { font-size: 12px; color: #64748b; }
 
 .chart-section h4,
-.stock-results h4,
-.frame-player h4 {
+.stock-results h4 {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 10px;
   color: #cbd5e1;
 }
-
 .equity-chart {
   width: 100%;
   height: 180px;
   background: #1e293b;
   border-radius: 8px;
 }
-
-.stock-results {
-  margin-top: 16px;
-}
+.stock-results { margin-top: 16px; }
 .stock-result-item {
   display: flex;
   justify-content: space-between;
@@ -524,60 +567,11 @@ onMounted(loadStrategies)
   border-bottom: 1px solid #334155;
   font-size: 13px;
 }
-.error-text {
-  color: #f87171;
-}
-
-/* 逐帧播放器 */
-.frame-player {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #334155;
-}
-.frame-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.frame-controls button {
-  background: #1e293b;
-  color: #e2e8f0;
-  border: 1px solid #475569;
-  padding: 4px 10px;
-  border-radius: 4px;
-}
-.frame-info {
-  font-size: 13px;
-  color: #94a3b8;
-  min-width: 180px;
-  text-align: center;
-}
-.frame-detail {
-  background: #1e293b;
-  border-radius: 8px;
-  padding: 12px;
-  font-size: 13px;
-}
-.frame-bar {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
-}
-.frame-signal {
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.signal-buy { color: #34d399; }
-.signal-sell { color: #f87171; }
-.signal-hold { color: #94a3b8; }
+.error-text { color: #f87171; }
 
 @media (max-width: 640px) {
-  .date-row, .config-row {
-    flex-direction: column;
-  }
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .date-row, .config-row, .condition-row { flex-direction: column; }
+  .condition-row select, .cond-value { width: 100% !important; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

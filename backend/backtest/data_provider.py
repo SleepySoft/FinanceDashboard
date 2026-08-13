@@ -53,12 +53,13 @@ class TushareDataSource(DataSource):
         self._stock_basic = None
 
     def get_daily_bars(self, code, start, end, adjust='qfq'):
+        import tushare as ts
         # Tushare 代码格式: 000001.SZ
         ts_code = code.upper().strip()
         adj_map = {'qfq': 'qfq', 'hfq': 'hfq', 'none': None}
         adj = adj_map.get(adjust)
 
-        df = self.pro.pro_bar(
+        df = ts.pro_bar(
             ts_code=ts_code,
             start_date=start.replace('-', ''),
             end_date=end.replace('-', ''),
@@ -157,6 +158,27 @@ class CachedDataSource(DataSource):
 def get_data_source(source_type: str = 'tushare', **kwargs) -> DataSource:
     """工厂函数：获取数据源实例"""
     if source_type == 'tushare':
+        # 自动从 .env 读取 token
+        token = kwargs.get('token')
+        if not token:
+            token = os.environ.get('TUSHARE_TOKEN')
+        if not token:
+            # 尝试读取项目目录下的 .env
+            env_paths = [
+                '/root/data/FinanceDashboard/backend/.env',
+                '/root/data/FinanceDashboard/.env',
+            ]
+            for p in env_paths:
+                if os.path.exists(p):
+                    with open(p, 'r') as f:
+                        for line in f:
+                            if line.startswith('TUSHARE_TOKEN='):
+                                token = line.strip().split('=', 1)[1].strip()
+                                break
+                if token:
+                    break
+        if token:
+            kwargs['token'] = token
         ds = TushareDataSource(**kwargs)
     else:
         raise ValueError(f"Unknown data source: {source_type}")

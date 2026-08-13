@@ -4,6 +4,7 @@ from typing import Optional
 import json
 import os
 import uuid
+import pandas as pd
 from datetime import datetime, timezone
 
 from strategy.models import CreateStrategyReq, BacktestRunReq, BacktestFrameReq
@@ -11,11 +12,163 @@ from strategy.registry import get_registry
 from backtest.engine import BacktestEngine, BacktestConfig
 from backtest.data_provider import get_data_source
 from backtest.cache import BacktestCache
+from backtest.factors import FactorEngine, BUILTIN_FACTORS
+from backtest.factor_backtest import FactorBacktestRunner, Condition
+from backtest.factor_backtest import FactorBacktestRunner, Condition
 
 router = APIRouter(prefix="/api/backtest", tags=["backtest"])
 
 # 全局实例
 cache = BacktestCache()
+
+# ─── 因子系统 ──────────────────────────────────────
+
+@router.get("/factors")
+def list_factors():
+    """列出所有可用因子"""
+    return {
+        "factors": [{
+            'id': f.id,
+            'name': f.name,
+            'category': f.category,
+            'params': f.params,
+            'description': f.description,
+        } for f in BUILTIN_FACTORS]
+    }
+
+
+@router.post("/factors/compute")
+def compute_factor(req: dict):
+    """计算单个因子"""
+    code = req.get('code', '').upper().strip()
+    factor_id = req.get('factor_id', '')
+    params = req.get('params', {})
+    start = req.get('start_date', '2023-01-01')
+    end = req.get('end_date', '2024-12-31')
+    adjust = req.get('adjust', 'qfq')
+
+    if not code or not factor_id:
+        raise HTTPException(400, "code and factor_id required")
+
+    try:
+        ds = get_data_source('tushare')
+        engine = FactorEngine(ds)
+        series = engine.compute(code, factor_id, params, start, end, adjust)
+
+        return {
+            "code": code,
+            "factor_id": factor_id,
+            "values": [
+                {"date": str(idx)[:10], "value": round(float(v), 4) if pd.notna(v) else None}
+                for idx, v in series.items()
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(500, f"Factor compute failed: {e}")
+
+
+@router.post("/factor-run")
+def run_factor_backtest(req: dict):
+    """
+    基于因子条件的简单回测
+
+    Request:
+    {
+        "codes": ["000001.SZ"],
+        "buy_conditions": [{"factor_id": "rsi", "params": {"period": 14}, "operator": "<", "value": 30}],
+        "sell_conditions": [{"factor_id": "rsi", "params": {"period": 14}, "operator": ">", "value": 70}],
+        "start_date": "2023-01-01",
+        "end_date": "2024-12-31",
+        "adjust": "qfq",
+        "logic": "and",
+        "config": {"initial_cash": 100000, "commission": 0.00025, "size": 0.2}
+    }
+    """
+    codes = req.get('codes', [])
+    buy_conds_raw = req.get('buy_conditions', [])
+    sell_conds_raw = req.get('sell_conditions', [])
+    start = req.get('start_date', '2023-01-01')
+    end = req.get('end_date', '2024-12-31')
+    adjust = req.get('adjust', 'qfq')
+    logic = req.get('logic', 'and')
+    config_raw = req.get('config', {})
+
+    if not codes:
+        raise HTTPException(400, "codes required")
+    if not buy_conds_raw and not sell_conds_raw:
+        raise HTTPException(400, "At least one buy or sell condition required")
+
+    # 构建 Condition 对象
+    buy_conditions = [Condition.from_dict(c) for c in buy_conds_raw]
+    sell_conditions = [Condition.from_dict(c) for c in sell_conds_raw]
+
+    config = BacktestConfig()
+    for k, v in config_raw.items():
+        if hasattr(config, k):
+            setattr(config, k, v)
+
+    try:
+        ds = get_data_source('tushare')
+        factor_engine = FactorEngine(ds)
+        runner = FactorBacktestRunner(factor_engine)
+
+        all_results = {}
+        combined_trades = []
+        combined_equity = None
+
+        for code in codes:
+            result = runner.run(
+                code, buy_conditions, sell_conditions,
+                start, end, adjust, config, logic
+            )
+            if 'error' in result:
+                all_results[code] = result
+                continue
+
+            all_results[code] = {
+                'metrics': result['metrics'],
+                'trades': result['trades'],
+                'trade_count': len(result['trades']),
+            }
+            combined_trades.extend(result['trades'])
+
+            if combined_equity is None:
+                combined_equity = {e['date']: e['value'] for e in result['equity_curve']}
+            else:
+                for e in result['equity_curve']:
+                    d = e['date']
+                    if d in combined_equity:
+                        combined_equity[d] = (combined_equity[d] + e['value']) / 2
+
+        total_trades = len(completed_trades := [t for t in combined_trades if 'exit_date' in t])
+        win_trades = [t for t in completed_trades if t.get('pnl', 0) > 0]
+        lose_trades = [t for t in completed_trades if t.get('pnl', 0) <= 0]
+
+        summary = {
+            'total_return': round(sum(r['metrics']['total_return'] for r in all_results.values() if 'metrics' in r) / max(len([r for r in all_results.values() if 'metrics' in r]), 1), 4),
+            'total_trades': total_trades,
+            'win_rate': round(len(win_trades) / total_trades, 4) if total_trades > 0 else 0,
+            'profit_factor': round(sum(t.get('pnl', 0) for t in win_trades) / abs(sum(t.get('pnl', 0) for t in lose_trades)), 2) if lose_trades and sum(t.get('pnl', 0) for t in lose_trades) != 0 else float('inf'),
+            'stocks_tested': len(codes),
+        }
+
+        equity_curve = sorted(
+            [{'date': k, 'value': v} for k, v in (combined_equity or {}).items()],
+            key=lambda x: x['date']
+        )
+
+        return {
+            'id': f"fb_{uuid.uuid4().hex[:8]}",
+            'status': 'success',
+            'summary': summary,
+            'results': all_results,
+            'equity_curve': equity_curve,
+            'trades': completed_trades[:100],
+        }
+
+    except Exception as e:
+        raise HTTPException(500, f"Factor backtest failed: {e}")
+
 
 # ─── 策略管理 ────────────────────────────────────────
 
