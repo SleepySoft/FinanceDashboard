@@ -3,6 +3,14 @@
     <!-- 全局顶部栏：登录状态 / 设置入口 -->
     <div v-if="$route.path !== '/login'" class="topbar">
       <router-link to="/" class="topbar-logo">FinanceDashboard</router-link>
+      <div class="topbar-nav">
+        <router-link to="/" class="nav-link">看板</router-link>
+        <router-link to="/requests" class="nav-link">待分析</router-link>
+        <router-link to="/holdings" class="nav-link">持仓</router-link>
+        <router-link to="/anomalies" class="nav-link">异动</router-link>
+        <router-link to="/strategies" class="nav-link">策略</router-link>
+        <router-link to="/backtest" class="nav-link">回测</router-link>
+      </div>
       <div class="topbar-right">
         <span v-if="isAuthenticated" class="topbar-user">{{ user }}</span>
         <span v-else-if="config.allow_anonymous_read" class="topbar-readonly" title="当前为只读模式，登录后可修改">只读浏览</span>
@@ -61,6 +69,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   align-items: center;
   gap: 10px;
   font-size: 13px;
+}
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+.nav-link {
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid transparent;
+}
+.nav-link:hover, .nav-link.router-link-active {
+  color: #e2e8f0;
+  background: #1e293b;
+  border-color: #334155;
 }
 .topbar-user {
   color: #94a3b8;

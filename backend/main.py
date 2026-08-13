@@ -12,6 +12,7 @@ import urllib.request
 import re
 from datetime import datetime, timezone, timedelta
 import auth
+from backtest_routes import router as backtest_router
 
 app = FastAPI(title="Stock Analyst API")
 
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(backtest_router)
 
 # GET 但实际会改动数据的接口：未登录一律禁止（不参与"未登录只读"）
 AUTH_REQUIRED_GETS = {"/api/prices/refresh", "/api/dashboard/refresh"}
