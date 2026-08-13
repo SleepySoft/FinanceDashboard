@@ -6,6 +6,12 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: parseInt(process.env.VITE_PORT || '80'),
+    hmr: {
+      // 支持通过反向代理访问时的HMR
+      protocol: 'ws',
+      host: 'localhost',
+      port: 80,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
