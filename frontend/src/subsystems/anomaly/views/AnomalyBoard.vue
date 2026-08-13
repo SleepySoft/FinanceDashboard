@@ -195,9 +195,9 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../api.js'
-import { usePersistentRef, useScrollRestore } from '../composables/useSession.js'
-import auth from '../composables/useAuth.js'
+import api from '../../../api.js'
+import { usePersistentRef, useScrollRestore } from '../../../composables/useSession.js'
+import auth from '../../../composables/useAuth.js'
 
 const router = useRouter()
 const canWrite = auth.canWrite

@@ -381,7 +381,8 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 def _load_meta(code: str) -> dict:
-    """Load meta.json (static) + state.json (mutable), merge and return."""
+    """Load meta.json (static) + state.json (mutable), merge and return.
+    Ensures all expected fields exist with sensible defaults to prevent downstream crashes."""
     meta_path = _meta_path(code)
     if not os.path.exists(meta_path):
         raise HTTPException(404, f"Stock {code} not found")
@@ -393,15 +394,25 @@ def _load_meta(code: str) -> dict:
     if os.path.exists(state_path):
         with open(state_path, "r", encoding="utf-8") as f:
             mutable = json.load(f)
-    else:
-        # Legacy: only meta.json exists (pre-migration) – read everything
-        # This branch can be removed once migration is done everywhere
-        pass
 
     merged = {**static, **mutable}
-    # Legacy: notes may be a string instead of array
+
+    # ─── Field normalization / crash prevention ────────────────────
+    # Ensure tags is always a dict (legacy used list or omitted)
+    if not isinstance(merged.get("tags"), dict):
+        merged["tags"] = {}
+
+    # Ensure notes is always a list
     if "notes" in merged and isinstance(merged["notes"], str):
         merged["notes"] = []
+    merged.setdefault("notes", [])
+
+    # Common optional fields that downstream expects
+    merged.setdefault("status", "neutral")
+    merged.setdefault("sector", "")
+    merged.setdefault("holdings", {})
+    merged.setdefault("price_marks", [])
+
     return merged
 
 
