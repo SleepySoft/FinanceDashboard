@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from dataclasses import asdict
 import os
 import json
 
@@ -131,4 +132,90 @@ def add_anomaly_to_dashboard(code: str):
         "name": name,
         "sector": sector,
         "message": f"Added {name}({code}) to dashboard"
+    }
+
+
+# ═══════════════════════════════════════════════════════
+#  Plugin Management (插件管理)
+# ═══════════════════════════════════════════════════════
+
+@router.get("/plugins")
+def list_plugins():
+    """列出所有可用的异动检测插件"""
+    from .plugins import DEFAULT_STOCK_PLUGINS, DEFAULT_SECTOR_PLUGINS
+
+    def describe(cls):
+        inst = cls()
+        return {
+            "name": inst.name,
+            "description": inst.description,
+            "version": getattr(inst, "version", "1.0"),
+            "class": cls.__name__,
+        }
+
+    return {
+        "stock_plugins": [describe(c) for c in DEFAULT_STOCK_PLUGINS],
+        "sector_plugins": [describe(c) for c in DEFAULT_SECTOR_PLUGINS],
+    }
+
+
+@router.post("/scan/with-plugins")
+def trigger_scan_with_plugins(req: dict):
+    """
+    使用指定插件组合执行扫描
+
+    Request:
+    {
+        "date": "2024-01-15",
+        "codes": ["000001.SZ"],
+        "plugins": ["amplitude", "volume", "breakout"],
+        "plugin_config": {
+            "amplitude": {"threshold": 4.0},
+            "volume": {"threshold": 1.5}
+        }
+    }
+    """
+    from .registry import PluginRegistry
+    from .orchestrator import AnomalyOrchestrator
+    from .plugins import (
+        AmplitudeDetector, ChangeDetector, VolumeDetector,
+        BreakoutDetector, MomentumDetector, SectorMomentumDetector,
+    )
+
+    date = req.get("date")
+    codes = req.get("codes")
+    plugin_names = req.get("plugins", [])
+    plugin_config = req.get("plugin_config", {})
+
+    # 插件名称到类的映射
+    PLUGIN_MAP = {
+        "amplitude": AmplitudeDetector,
+        "change": ChangeDetector,
+        "volume": VolumeDetector,
+        "breakout": BreakoutDetector,
+        "momentum": MomentumDetector,
+        "sector_momentum": SectorMomentumDetector,
+    }
+
+    registry = PluginRegistry()
+    # 注册指定的个股插件
+    for name in plugin_names:
+        if name in PLUGIN_MAP:
+            registry.register(PLUGIN_MAP[name], config=plugin_config.get(name, {}))
+    # 如果指定了板块插件或没指定任何插件，注册默认板块插件
+    if "sector_momentum" in plugin_names or not any(p in PLUGIN_MAP for p in plugin_names if PLUGIN_MAP[p] == SectorMomentumDetector):
+        registry.register(SectorMomentumDetector)
+
+    if not registry.stock_plugins:
+        return {"error": "No valid plugins specified"}
+
+    orch = AnomalyOrchestrator(registry=registry)
+    result = orch.scan(trade_date=date, codes=codes)
+
+    return {
+        "plugins_used": [p.name for p in registry.stock_plugins],
+        "stock_anomalies": [asdict(s) for s in result.stock_anomalies],
+        "sector_anomalies": [asdict(s) for s in result.sector_anomalies],
+        "stock_count": len(result.stock_anomalies),
+        "sector_count": len(result.sector_anomalies),
     }

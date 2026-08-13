@@ -960,73 +960,82 @@ def aggregate_weekly(date_str: str) -> Dict:
 
 def run_daily_scan(trade_date: Optional[str] = None, sample_size: Optional[int] = None, codes: Optional[List[str]] = None) -> Dict:
     """
-    执行每日异动扫描。
-    
+    执行每日异动扫描（新版：基于插件编排器）。
+
     这是主入口函数，建议通过cron在每日收盘后（15:30后）调用。
-    
+    插件化架构：每个检测算法独立为插件，可插拔、可组合、可同时运行多个。
+
     Args:
         trade_date: 扫描日期（YYYY-MM-DD），None则自动判断
         sample_size: 限制扫描数量（测试用）
         codes: 指定扫描的股票代码列表，None则扫描全市场
-    
+
     Returns:
         扫描结果摘要
     """
-    detector = AnomalyDetector()
-    
+    from .orchestrator import AnomalyOrchestrator
+    from .registry import PluginRegistry
+
+    # 创建编排器（自动注册默认插件）
+    registry = PluginRegistry()
+    registry.register_defaults()
+
+    orch = AnomalyOrchestrator(registry=registry)
+
+    # 自动判断日期
     if trade_date is None:
-        trade_date = detector._latest_trade_date()
-        trade_date = trade_date[:4] + "-" + trade_date[4:6] + "-" + trade_date[6:]
-    
-    # 先尝试获取当日全市场数据，确认数据是否可用
+        trade_date = orch._latest_trade_date()
+        trade_date = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:]}"
+
     trade_date_str = trade_date.replace("-", "")
-    df_test = detector.client.get_daily_all(trade_date_str)
-    
-    # 如果指定日期没有数据，回退到最近有数据的交易日
+
+    # 数据可用性回退
+    df_test = orch.client.get_daily_all(trade_date_str)
     if df_test is None or df_test.empty:
         print(f"[AnomalyScan] No data for {trade_date}, falling back to latest available...")
-        # 尝试前5个交易日
         for i in range(1, 6):
             fallback = (datetime.strptime(trade_date, "%Y-%m-%d") - timedelta(days=i)).strftime("%Y%m%d")
-            df_test = detector.client.get_daily_all(fallback)
+            df_test = orch.client.get_daily_all(fallback)
             if df_test is not None and not df_test.empty:
-                trade_date = fallback[:4] + "-" + fallback[4:6] + "-" + fallback[6:]
+                trade_date = f"{fallback[:4]}-{fallback[4:6]}-{fallback[6:]}"
                 print(f"[AnomalyScan] Using fallback date: {trade_date}")
                 break
-    
+
     scope = f"{len(codes)} tracked stocks" if codes else "full market"
     print(f"[AnomalyScan] Starting scan for {trade_date} ({scope})...")
-    
-    stocks, sectors = detector.scan_market(trade_date, sample_size=sample_size, codes=codes)
-    
+    print(f"[AnomalyScan] Active plugins: {[p.name for p in registry.stock_plugins]}")
+
+    result = orch.scan(trade_date=trade_date, sample_size=sample_size, codes=codes)
+
     # 保存结果
-    add_daily_anomalies(trade_date, stocks, sectors)
-    
+    add_daily_anomalies(trade_date, result.stock_anomalies, result.sector_anomalies)
+
     # 生成本周汇总
     weekly = aggregate_weekly(trade_date)
-    
+
     # 保存周汇总
     data = load_anomalies()
     week_key = weekly["week_start"]
     data["weekly"][week_key] = weekly
     save_anomalies(data)
-    
-    result = {
+
+    summary = {
         "date": trade_date,
-        "stocks_found": len(stocks),
-        "sectors_found": len(sectors),
-        "strong_signals": len([s for s in stocks if s.level == "strong"]),
-        "notable_signals": len([s for s in stocks if s.level == "notable"]),
+        "stocks_found": len(result.stock_anomalies),
+        "sectors_found": len(result.sector_anomalies),
+        "strong_signals": len([s for s in result.stock_anomalies if s.level == "strong"]),
+        "notable_signals": len([s for s in result.stock_anomalies if s.level == "notable"]),
+        "plugins_used": [p.name for p in registry.stock_plugins],
         "weekly_summary": {
             "week": f"{weekly['week_start']} ~ {weekly['week_end']}",
             "total_this_week": weekly["total_stock_anomalies"],
             "top_sectors": [s["sector"] for s in weekly["top_sectors"][:5]]
         }
     }
-    
-    print(f"[AnomalyScan] Done. Found {len(stocks)} stock anomalies, {len(sectors)} sector anomalies.")
-    
-    return result
+
+    print(f"[AnomalyScan] Done. Found {len(result.stock_anomalies)} stock anomalies, {len(result.sector_anomalies)} sector anomalies.")
+
+    return summary
 
 
 # ─── CLI ─────────────────────────────────────────────
