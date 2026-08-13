@@ -45,6 +45,10 @@
         <span class="ss-icon">📈</span>
         <span class="ss-name">回测</span>
       </router-link>
+      <router-link to="/anomalies" class="ss-link" title="异动监控：量价异常与板块共振检测">
+        <span class="ss-icon">📡</span>
+        <span class="ss-name">异动</span>
+      </router-link>
     </div>
 
     <!-- Holdings Summary Bar -->

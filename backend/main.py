@@ -13,6 +13,7 @@ import re
 from datetime import datetime, timezone, timedelta
 import auth
 from subsystems.backtest.routes import router as backtest_router
+from subsystems.anomaly.routes import router as anomaly_router
 
 app = FastAPI(title="Stock Analyst API")
 
@@ -25,6 +26,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(backtest_router)
+app.include_router(anomaly_router)
 
 # GET 但实际会改动数据的接口：未登录一律禁止（不参与"未登录只读"）
 AUTH_REQUIRED_GETS = {"/api/prices/refresh", "/api/dashboard/refresh"}
@@ -1604,118 +1606,6 @@ def list_holdings():
                 "realized_pnl": h.get("summary", {}).get("realized_pnl", 0),
             })
     return results
-
-import anomaly as anomaly_module
-
-# ═══════════════════════════════════════════════════════
-#  Anomaly Detection (异动监控)
-# ═══════════════════════════════════════════════════════
-
-class AnomalyScanReq(BaseModel):
-    date: Optional[str] = None          # YYYY-MM-DD, None=auto
-    sample_size: Optional[int] = None   # 限制扫描数量（测试用）
-    min_score: Optional[int] = 60       # 最低分数
-
-@app.get("/api/anomalies")
-def list_anomaly_dates():
-    """获取所有有异动记录的日期"""
-    dates = anomaly_module.get_all_dates()
-    return {"dates": dates, "count": len(dates)}
-
-@app.get("/api/anomalies/{date}")
-def get_anomalies_by_date(date: str):
-    """获取指定日期的异动详情。支持特殊值 'latest'"""
-    if date == "latest":
-        # 找到最近有数据的日期
-        import json
-        anomaly_file = os.path.join(REPORTS_DIR, "_anomalies.json")
-        if not os.path.exists(anomaly_file):
-            return {"date": None, "stocks": [], "sectors": []}
-        with open(anomaly_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        daily = data.get("daily", {})
-        for d in sorted(daily.keys(), reverse=True):
-            record = daily[d]
-            stocks = record.get("stocks", [])
-            sectors = record.get("sectors", [])
-            if stocks or sectors:
-                return {"date": d, "stocks": stocks, "sectors": sectors}
-        return {"date": None, "stocks": [], "sectors": []}
-    data = anomaly_module.get_daily_anomalies(date)
-    return data
-
-@app.get("/api/anomalies/weekly/{date}")
-def get_weekly_anomalies(date: str):
-    """获取指定日期所在周的异动汇总"""
-    weekly = anomaly_module.aggregate_weekly(date)
-    return weekly
-
-@app.post("/api/anomalies/scan")
-def trigger_anomaly_scan(req: AnomalyScanReq = AnomalyScanReq()):
-    """
-    手动触发异动扫描。
-    建议通过cron每日收盘后自动执行，这里提供手动触发入口。
-    """
-    try:
-        result = anomaly_module.run_daily_scan(
-            trade_date=req.date,
-            sample_size=req.sample_size
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(500, f"Scan failed: {str(e)}")
-
-@app.post("/api/anomalies/{code}/add-to-dashboard")
-def add_anomaly_to_dashboard(code: str):
-    """
-    将异动股票加入主看板（创建stock目录）。
-    这样用户就可以对其进行深入分析了。
-    """
-    code = code.upper().strip()
-    
-    # 检查是否已存在（使用main.py自己的函数）
-    if os.path.exists(_meta_path(code)):
-        return {"status": "exists", "message": f"{code} already in dashboard"}
-    
-    # 初始化股票目录
-    from anomaly import TushareClient
-    client = TushareClient()
-    df = client.get_stock_basic()
-    name = code
-    sector = ""
-    if df is not None:
-        row = df[df["ts_code"] == code]
-        if not row.empty:
-            name = row.iloc[0].get("name", code)
-            sector = row.iloc[0].get("industry", "")
-    
-    _init_stock(code, name, sector)
-    
-    return {
-        "status": "ok",
-        "code": code,
-        "name": name,
-        "sector": sector,
-        "message": f"Added {name}({code}) to dashboard"
-    }
-
-@app.get("/api/anomalies/latest")
-def get_latest_anomalies():
-    """Get latest date with actual anomaly data"""
-    anomaly_file = os.path.join(REPORTS_DIR, "_anomalies.json")
-    if not os.path.exists(anomaly_file):
-        return {"date": None, "stocks": [], "sectors": []}
-    with open(anomaly_file, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    daily = data.get("daily", {})
-    dates = sorted(daily.keys(), reverse=True)
-    for d in dates:
-        record = daily[d]
-        stocks = record.get("stocks", [])
-        sectors = record.get("sectors", [])
-        if stocks or sectors:
-            return {"date": d, "stocks": stocks, "sectors": sectors}
-    return {"date": None, "stocks": [], "sectors": []}
 
 # ═══════════════════════════════════════════════════════
 #  Report Status API (for AI agent self-check)
