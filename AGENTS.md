@@ -125,7 +125,9 @@ data/
 
 - **登录账号**：首次启动自动创建，见上文「登录与权限」。可用 `FD_ADMIN_USERNAME` / `FD_ADMIN_PASSWORD` / `FD_API_KEY` 环境变量初始化。
 - **Tushare Token:** `e637c3252c1aadecdc8a215a59abd44959e70efa5bfe1b36d83447fa`
-  - File: `/root/.openclaw/workspace/stock-analyst/.env` (legacy) — TODO: move to project `.env`
+  - 配置位置：`data/_config.json` 的 `tushare_token`（优先级：环境变量 `TUSHARE_TOKEN` → 配置文件 → 项目 `.env`）
+  - 使用点：异动扫描（`backend/subsystems/anomaly/core.py` TushareClient）、回测数据源（`backend/subsystems/backtest/backtest/data_provider.py`）
+  - Legacy: `/root/.openclaw/workspace/stock-analyst/.env`
 - **Sina API:** No auth needed. Used for real-time price snapshots.
 
 ## Development Workflow
@@ -219,7 +221,7 @@ npm run smoke   # 冒烟测试：自动拉起前后端 → 无头 Chrome 验证�
 
 - [x] **Separate fundamental/technical reports** — Backend API now supports `reports` array in complete endpoint. Agent MUST generate two files for `full` analysis.
 - [x] **Holdings & T-trade tracking** — Smart FIFO + intraday LIFO matching, trade entry modal, holdings display on cards
-- [ ] Move `.env` from legacy path to `/root/data/FinanceDashboard/.env`
+- [x] Tushare token 迁入 `data/_config.json`（`tushare_token`），代码统一从配置读取
 - [x] Windows startup scripts (`start_all.bat`, `backend/start.bat`, `frontend/start.bat`) and dependency docs (`docs/windows-setup.md`)
 - [ ] Frontend Markdown rendering: add marked.js for proper tables/code blocks
 - [ ] Add stock code validation/normalization (A-share format auto-correction)

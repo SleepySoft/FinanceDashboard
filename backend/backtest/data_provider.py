@@ -2,6 +2,18 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 import os
+import sys
+
+
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+while not os.path.exists(os.path.join(_APP_DIR, "requirements.txt")):
+    _parent = os.path.dirname(_APP_DIR)
+    if _parent == _APP_DIR:
+        break
+    _APP_DIR = _parent
+if _APP_DIR not in sys.path:
+    sys.path.insert(0, _APP_DIR)
+from tushare_config import get_tushare_token
 
 
 class DataSource(ABC):
@@ -158,25 +170,8 @@ class CachedDataSource(DataSource):
 def get_data_source(source_type: str = 'tushare', **kwargs) -> DataSource:
     """工厂函数：获取数据源实例"""
     if source_type == 'tushare':
-        # 自动从 .env 读取 token
-        token = kwargs.get('token')
-        if not token:
-            token = os.environ.get('TUSHARE_TOKEN')
-        if not token:
-            # 尝试读取项目目录下的 .env
-            env_paths = [
-                '/root/data/FinanceDashboard/backend/.env',
-                '/root/data/FinanceDashboard/.env',
-            ]
-            for p in env_paths:
-                if os.path.exists(p):
-                    with open(p, 'r') as f:
-                        for line in f:
-                            if line.startswith('TUSHARE_TOKEN='):
-                                token = line.strip().split('=', 1)[1].strip()
-                                break
-                if token:
-                    break
+        # 环境变量 → data/_config.json → 项目 .env
+        token = kwargs.get('token') or get_tushare_token()
         if token:
             kwargs['token'] = token
         ds = TushareDataSource(**kwargs)

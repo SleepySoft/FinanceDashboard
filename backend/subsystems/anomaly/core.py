@@ -21,6 +21,7 @@ Anomaly Detection Module for FinanceDashboard
 import os
 import json
 import math
+import sys
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Tuple
@@ -30,8 +31,12 @@ import pandas as pd
 import tushare as ts
 
 # ─── Configuration ───────────────────────────────────
-# Tushare token from environment (never hardcode)
-TUSHARE_TOKEN = os.environ.get("TUSHARE_TOKEN", "")
+# Tushare token: 环境变量 → data/_config.json → 项目 .env
+_APP_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _APP_DIR not in sys.path:
+    sys.path.insert(0, _APP_DIR)
+from tushare_config import get_tushare_token
+TUSHARE_TOKEN = get_tushare_token()
 
 # 数据目录
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -53,16 +58,6 @@ def _sanitize_json(obj):
     return obj
 
 # 尝试从.env文件加载（如果环境变量未设置）
-if not TUSHARE_TOKEN:
-    env_path = os.path.join(BASE_DIR, ".env")
-    if os.path.exists(env_path):
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("TUSHARE_TOKEN="):
-                    TUSHARE_TOKEN = line[len("TUSHARE_TOKEN="):].strip()
-                    break
-
 # ─── Thresholds ──────────────────────────────────────
 # 这些阈值决定了"什么算异动"。调松了噪音多，调严了错过信号。
 # 当前设定偏向"宁缺毋滥"。
