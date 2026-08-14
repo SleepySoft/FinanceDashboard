@@ -1,14 +1,16 @@
 {
-  "code": "000988.SZ",
-  "name": "华工科技",
-  "sector": "通信设备",
-  "added_at": "2026-08-13T04:37:00+00:00",
+  "status": "unassessed",
   "tags": {
+    "unread": true,
+    "watchlist": false,
     "overall": "yellow",
     "quality": "yellow",
     "valuation": "yellow",
     "timing": "yellow",
     "risk": "yellow",
     "verdict": "yellow"
-  }
+  },
+  "notes": [],
+  "holdings": {},
+  "price_marks": []
 }

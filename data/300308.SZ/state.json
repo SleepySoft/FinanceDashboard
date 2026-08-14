@@ -1,0 +1,21 @@
+{
+  "tags": {
+    "unread": false,
+    "watchlist": false,
+    "overall": "red",
+    "quality": "green",
+    "valuation": "red",
+    "timing": "red",
+    "risk": "red",
+    "verdict": "red"
+  },
+  "status": "avoid",
+  "notes": [
+    {
+      "time": "2026-08-14 04:00",
+      "content": "没什么说的，炒太高。"
+    }
+  ],
+  "holdings": {},
+  "price_marks": []
+}

@@ -408,7 +408,7 @@ def _load_meta(code: str) -> dict:
     merged.setdefault("notes", [])
 
     # Common optional fields that downstream expects
-    merged.setdefault("status", "neutral")
+    merged.setdefault("status", "unassessed")
     merged.setdefault("sector", "")
     merged.setdefault("holdings", {})
     merged.setdefault("price_marks", [])
@@ -635,7 +635,7 @@ class PriceMarkReq(BaseModel):
     type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell"] = "mark"
 
 class StatusReq(BaseModel):
-    status: Literal["tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "waiting", "archive", "core_position"]
+    status: Literal["unassessed", "tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "waiting", "archive", "core_position"]
 
 class HoldingsReq(BaseModel):
     cost: Optional[float] = None

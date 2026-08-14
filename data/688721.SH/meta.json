@@ -3,5 +3,12 @@
   "name": "龙图光罩",
   "sector": "半导体",
   "added_at": "2026-07-21T14:49:10.592084+00:00",
-  "tags": {}
+  "tags": {
+    "overall": "none",
+    "quality": "none",
+    "valuation": "none",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "none"
+  }
 }

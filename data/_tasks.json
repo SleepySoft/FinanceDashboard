@@ -310,9 +310,9 @@
     "sector": "半导体",
     "note": "",
     "type": "fundamental",
-    "status": "pending",
+    "status": "in_progress",
     "created_at": "2026-07-23T03:14:12.583821+00:00",
-    "claimed_at": null,
+    "claimed_at": "2026-08-14T03:02:41.623563+00:00",
     "completed_at": null,
     "result": null,
     "error": null
@@ -324,9 +324,9 @@
     "sector": "半导体",
     "note": "",
     "type": "technical",
-    "status": "pending",
+    "status": "in_progress",
     "created_at": "2026-07-23T03:14:14.445707+00:00",
-    "claimed_at": null,
+    "claimed_at": "2026-08-14T03:02:41.632406+00:00",
     "completed_at": null,
     "result": null,
     "error": null
@@ -370,6 +370,374 @@
         },
         {
           "path": "data/002283.SZ/reports/technical_20260802.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "051d6077-ee6",
+    "code": "300308.SZ",
+    "name": "中际旭创",
+    "sector": "通信设备",
+    "note": "光模块全球龙头，800G/1.6T出货第一",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.234251+00:00",
+    "claimed_at": "2026-08-14T03:05:16.782302+00:00",
+    "completed_at": "2026-08-14T03:05:16.789437+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/300308.SZ/reports/fundamental_20260814.md",
+      "summary": "中际旭创 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/300308.SZ/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "b19e9ff9-77a",
+    "code": "300308.SZ",
+    "name": "中际旭创",
+    "sector": "通信设备",
+    "note": "光模块全球龙头，800G/1.6T出货第一",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.238019+00:00",
+    "claimed_at": "2026-08-14T03:05:16.794565+00:00",
+    "completed_at": "2026-08-14T03:05:16.801795+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/300308.SZ/reports/technical_20260814.md",
+      "summary": "中际旭创 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/300308.SZ/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "a1849cf3-156",
+    "code": "300502.SZ",
+    "name": "新易盛",
+    "sector": "通信设备",
+    "note": "光模块全球第二，LPO+硅光方案",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.241500+00:00",
+    "claimed_at": "2026-08-14T03:05:16.807053+00:00",
+    "completed_at": "2026-08-14T03:05:16.814121+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/300502.SZ/reports/fundamental_20260814.md",
+      "summary": "新易盛 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/300502.SZ/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "f811ea74-40c",
+    "code": "300502.SZ",
+    "name": "新易盛",
+    "sector": "通信设备",
+    "note": "光模块全球第二，LPO+硅光方案",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.244507+00:00",
+    "claimed_at": "2026-08-14T03:05:16.818612+00:00",
+    "completed_at": "2026-08-14T03:05:16.824771+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/300502.SZ/reports/technical_20260814.md",
+      "summary": "新易盛 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/300502.SZ/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "77270e8f-e4d",
+    "code": "300394.SZ",
+    "name": "天孚通信",
+    "sector": "通信设备",
+    "note": "光器件龙头，毛利率最高，负债率极低",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.247503+00:00",
+    "claimed_at": "2026-08-14T03:05:16.829478+00:00",
+    "completed_at": "2026-08-14T03:05:16.835701+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/300394.SZ/reports/fundamental_20260814.md",
+      "summary": "天孚通信 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/300394.SZ/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "4927d242-065",
+    "code": "300394.SZ",
+    "name": "天孚通信",
+    "sector": "通信设备",
+    "note": "光器件龙头，毛利率最高，负债率极低",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.250583+00:00",
+    "claimed_at": "2026-08-14T03:05:16.841778+00:00",
+    "completed_at": "2026-08-14T03:05:16.848915+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/300394.SZ/reports/technical_20260814.md",
+      "summary": "天孚通信 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/300394.SZ/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "de93e275-8e7",
+    "code": "000988.SZ",
+    "name": "华工科技",
+    "sector": "通信设备",
+    "note": "华为昇腾供应商，1.6T量产，多业务分散风险",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.253649+00:00",
+    "claimed_at": "2026-08-14T03:05:16.854143+00:00",
+    "completed_at": "2026-08-14T03:05:16.860470+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/000988.SZ/reports/fundamental_20260814.md",
+      "summary": "华工科技 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/000988.SZ/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "b856d8de-c9c",
+    "code": "000988.SZ",
+    "name": "华工科技",
+    "sector": "通信设备",
+    "note": "华为昇腾供应商，1.6T量产，多业务分散风险",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.260739+00:00",
+    "claimed_at": "2026-08-14T03:05:16.865079+00:00",
+    "completed_at": "2026-08-14T03:05:16.871315+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/000988.SZ/reports/technical_20260814.md",
+      "summary": "华工科技 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/000988.SZ/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "89ec4f74-76a",
+    "code": "002281.SZ",
+    "name": "光迅科技",
+    "sector": "通信设备",
+    "note": "央企背景，光芯片自研，国内客户为主",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.266490+00:00",
+    "claimed_at": "2026-08-14T03:05:16.876267+00:00",
+    "completed_at": "2026-08-14T03:05:16.882353+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/002281.SZ/reports/fundamental_20260814.md",
+      "summary": "光迅科技 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/002281.SZ/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "9b74e7cb-10d",
+    "code": "002281.SZ",
+    "name": "光迅科技",
+    "sector": "通信设备",
+    "note": "央企背景，光芯片自研，国内客户为主",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.269935+00:00",
+    "claimed_at": "2026-08-14T03:05:16.886807+00:00",
+    "completed_at": "2026-08-14T03:05:16.893359+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/002281.SZ/reports/technical_20260814.md",
+      "summary": "光迅科技 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/002281.SZ/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "2d69e004-379",
+    "code": "601869.SH",
+    "name": "长飞光纤",
+    "sector": "通信设备",
+    "note": "光棒/光纤全球第一，受益于涨价周期",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.273037+00:00",
+    "claimed_at": "2026-08-14T03:05:16.898462+00:00",
+    "completed_at": "2026-08-14T03:05:16.904727+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/601869.SH/reports/fundamental_20260814.md",
+      "summary": "长飞光纤 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/601869.SH/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "2a526a06-cca",
+    "code": "601869.SH",
+    "name": "长飞光纤",
+    "sector": "通信设备",
+    "note": "光棒/光纤全球第一，受益于涨价周期",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.276129+00:00",
+    "claimed_at": "2026-08-14T03:05:16.909387+00:00",
+    "completed_at": "2026-08-14T03:05:16.915884+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/601869.SH/reports/technical_20260814.md",
+      "summary": "长飞光纤 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/601869.SH/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "009108d5-3e2",
+    "code": "600330.SH",
+    "name": "天通股份",
+    "sector": "通信设备",
+    "note": "铌酸锂晶体材料龙头，光模块上游",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.280453+00:00",
+    "claimed_at": "2026-08-14T03:05:16.920965+00:00",
+    "completed_at": "2026-08-14T03:05:16.927697+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/600330.SH/reports/fundamental_20260814.md",
+      "summary": "天通股份 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/600330.SH/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "7b12135f-414",
+    "code": "600330.SH",
+    "name": "天通股份",
+    "sector": "通信设备",
+    "note": "铌酸锂晶体材料龙头，光模块上游",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.284624+00:00",
+    "claimed_at": "2026-08-14T03:05:16.932269+00:00",
+    "completed_at": "2026-08-14T03:05:16.938347+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/600330.SH/reports/technical_20260814.md",
+      "summary": "天通股份 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/600330.SH/reports/technical_20260814.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "f778ef92-118",
+    "code": "688721.SH",
+    "name": "龙图光罩",
+    "sector": "半导体",
+    "note": "半导体光罩，国产替代",
+    "type": "fundamental",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.288125+00:00",
+    "claimed_at": "2026-08-14T03:05:16.943237+00:00",
+    "completed_at": "2026-08-14T03:05:16.949707+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/688721.SH/reports/fundamental_20260814.md",
+      "summary": "龙图光罩 fundamental analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/688721.SH/reports/fundamental_20260814.md",
+          "type": "fundamental"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "4febd6b4-e37",
+    "code": "688721.SH",
+    "name": "龙图光罩",
+    "sector": "半导体",
+    "note": "半导体光罩，国产替代",
+    "type": "technical",
+    "status": "completed",
+    "created_at": "2026-08-14T02:55:55.291509+00:00",
+    "claimed_at": "2026-08-14T03:05:16.954467+00:00",
+    "completed_at": "2026-08-14T03:05:16.960885+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/688721.SH/reports/technical_20260814.md",
+      "summary": "龙图光罩 technical analysis",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/688721.SH/reports/technical_20260814.md",
           "type": "technical"
         }
       ]

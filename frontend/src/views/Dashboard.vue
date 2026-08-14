@@ -681,6 +681,7 @@ watch([showTradeModal, tradeForm], persistTradeDraft, { deep: true })
 // Status tag quick-edit
 const statusMenuCode = ref(null)
 const statusOptions = [
+  { key: 'unassessed', label: '未分析' },
   { key: 'tracking', label: '跟踪中' },
   { key: 'bullish', label: '看好' },
   { key: 'neutral', label: '观望' },
@@ -693,10 +694,10 @@ const statusOptions = [
 ]
 function statusShort(status) {
   const map = {
-    core_position: '底仓', tracking: '跟踪', bullish: '看好', neutral: '观望',
+    unassessed: '未分析', core_position: '底仓', tracking: '跟踪', bullish: '看好', neutral: '观望',
     waiting: '伺机', avoid: '回避', no_interest: '无感', blacklist: '拉黑', archive: '归档'
   }
-  return map[status] || '观望'
+  return map[status] || '未分析'
 }
 function toggleStatusMenu(code) {
   statusMenuCode.value = statusMenuCode.value === code ? null : code
@@ -974,12 +975,12 @@ const sectors = computed(() => {
 
 // ── Status groups ──
 const statusGroups = computed(() => {
-  const order = ['tracking', 'bullish', 'neutral', 'waiting', 'core_position', 'avoid', 'no_interest', 'archive', 'blacklist']
-  const labels = { tracking: '跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', core_position: '底仓备选', avoid: '回避', no_interest: '无兴趣', archive: '归档', blacklist: '黑名单' }
+  const order = ['unassessed', 'tracking', 'bullish', 'neutral', 'waiting', 'core_position', 'avoid', 'no_interest', 'archive', 'blacklist']
+  const labels = { unassessed: '未分析', tracking: '跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', core_position: '底仓备选', avoid: '回避', no_interest: '无兴趣', archive: '归档', blacklist: '黑名单' }
   return order.map(key => ({
     key,
     label: labels[key],
-    stocks: filteredStocks.value.filter(s => (s.status || 'neutral') === key)
+    stocks: filteredStocks.value.filter(s => (s.status || 'unassessed') === key)
   })).filter(g => g.stocks.length > 0)
 })
 

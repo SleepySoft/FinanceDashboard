@@ -1,4 +1,14 @@
 {
+  "tags": {
+    "overall": "none",
+    "watchlist": false,
+    "quality": "none",
+    "valuation": "none",
+    "timing": "none",
+    "risk": "yellow",
+    "verdict": "none",
+    "unread": true
+  },
   "dimension_reasons": {
     "quality": "技术节点落后（90nm vs 国际28nm以下），毛利率从58%暴跌至45%显示竞争力退化",
     "valuation": "PE 52倍、PB 4.3倍，对于ROE仅4.6%的公司明显偏贵",
@@ -6,17 +16,8 @@
     "risk": "28nm技术失败可能导致永久性资本损失，定增稀释30%",
     "verdict": "好赛道里的困难公司，当前不具备风险收益比优势"
   },
-  "tags": {
-    "overall": "red",
-    "watchlist": false,
-    "quality": "red",
-    "valuation": "red",
-    "timing": "red",
-    "risk": "yellow",
-    "verdict": "red"
-  },
   "notes": [],
-  "status": "waiting",
+  "status": "unassessed",
   "daily_briefs": [
     {
       "id": "19893b19",
@@ -108,5 +109,7 @@
       "amplitude": 7.39,
       "created_at": "2026-08-11T07:30:01.300625+00:00"
     }
-  ]
+  ],
+  "holdings": {},
+  "price_marks": []
 }
