@@ -11,7 +11,7 @@ export default defineConfig(({ command }) => ({
       // 支持通过反向代理访问时的HMR
       protocol: 'ws',
       host: 'localhost',
-      port: 80,
+      port: parseInt(process.env.VITE_PORT || '80'),
     },
     proxy: {
       '/api': {

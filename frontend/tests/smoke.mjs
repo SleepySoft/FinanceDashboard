@@ -18,7 +18,7 @@ const BACKEND_DIR = path.resolve(FRONTEND_DIR, '..', 'backend')
 const FRONTEND_URL = process.env.SMOKE_FRONTEND_URL || 'http://localhost:5173'
 const BACKEND_URL = process.env.SMOKE_BACKEND_URL || 'http://localhost:8000'
 const SMOKE_USERNAME = 'admin'
-const SMOKE_PASSWORD = 'smoke123456'
+const SMOKE_PASSWORD = 'SleepySoft@299792458'
 
 const children = []
 

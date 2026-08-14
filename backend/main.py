@@ -12,6 +12,7 @@ import urllib.request
 import re
 from datetime import datetime, timezone, timedelta
 import auth
+from providers import router as providers_router
 from subsystems.backtest.routes import router as backtest_router
 from subsystems.anomaly.routes import router as anomaly_router
 
@@ -27,6 +28,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(backtest_router)
 app.include_router(anomaly_router)
+app.include_router(providers_router)
 
 # GET 但实际会改动数据的接口：未登录一律禁止（不参与"未登录只读"）
 AUTH_REQUIRED_GETS = {"/api/prices/refresh", "/api/dashboard/refresh"}

@@ -29,6 +29,12 @@ def list_anomaly_dates():
     return {"dates": dates, "count": len(dates)}
 
 
+@router.get("")
+def list_anomaly_dates_compat():
+    dates = get_all_dates()
+    return {"dates": dates, "count": len(dates)}
+
+
 @router.get("/{date}")
 def get_anomalies_by_date(date: str):
     """获取指定日期的异动详情。支持特殊值 'latest'"""

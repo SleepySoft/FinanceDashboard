@@ -1,0 +1,70 @@
+{
+  "default_provider": "xueqiu",
+  "providers": [
+    {
+      "id": "eastmoney",
+      "name": "东方财富",
+      "icon": "📈",
+      "links": {
+        "quote": "https://quote.eastmoney.com/{symbol_eastmoney}.html"
+      }
+    },
+    {
+      "id": "sina",
+      "name": "新浪财经",
+      "icon": "📰",
+      "links": {
+        "quote": "https://finance.sina.com.cn/realstock/company/{symbol_sina}/nc.shtml"
+      }
+    },
+    {
+      "id": "xueqiu",
+      "name": "雪球",
+      "icon": "⛄",
+      "links": {
+        "quote": "https://xueqiu.com/S/{symbol_xueqiu}"
+      }
+    },
+    {
+      "id": "10jqka",
+      "name": "同花顺",
+      "icon": "🌸",
+      "links": {
+        "quote": "https://stockpage.10jqka.com.cn/{symbol_10jqka}/"
+      }
+    },
+    {
+      "id": "futu",
+      "name": "富途牛牛",
+      "icon": "🐂",
+      "links": {
+        "quote": "https://www.futunn.com/stock/{symbol_futu}"
+      }
+    },
+    {
+      "id": "tradingview",
+      "name": "TradingView",
+      "icon": "📊",
+      "links": {
+        "chart": "https://www.tradingview.com/chart/?symbol={symbol_escaped}",
+        "symbol_page": "https://www.tradingview.com/symbols/{symbol_dash}/"
+      }
+    },
+    {
+      "id": "yahoo",
+      "name": "Yahoo Finance",
+      "icon": "💼",
+      "links": {
+        "quote": "https://finance.yahoo.com/quote/{symbol_yahoo}"
+      }
+    },
+    {
+      "id": "google",
+      "name": "Google Finance",
+      "icon": "🔍",
+      "links": {
+        "quote": "https://www.google.com/finance/quote/{symbol_google}"
+      }
+    }
+  ]
+}

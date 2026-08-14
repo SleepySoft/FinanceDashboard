@@ -20,6 +20,7 @@ Anomaly Detection Module for FinanceDashboard
 
 import os
 import json
+import math
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Tuple
@@ -34,9 +35,22 @@ TUSHARE_TOKEN = os.environ.get("TUSHARE_TOKEN", "")
 
 # 数据目录
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-REPORTS_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(BASE_DIR)))
+REPORTS_DIR = os.path.join(PROJECT_ROOT, "data")
 ANOMALY_FILE = os.path.join(REPORTS_DIR, "_anomalies.json")
 DASHBOARD_FILE = os.path.join(REPORTS_DIR, "_dashboard.json")
+
+
+def _sanitize_json(obj):
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_json(v) for v in obj]
+    return obj
 
 # 尝试从.env文件加载（如果环境变量未设置）
 if not TUSHARE_TOKEN:
@@ -833,7 +847,7 @@ def load_anomalies() -> Dict:
     if os.path.exists(ANOMALY_FILE):
         try:
             with open(ANOMALY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                return _sanitize_json(json.load(f))
         except:
             pass
     return {"daily": {}, "weekly": {}, "last_scan": None}

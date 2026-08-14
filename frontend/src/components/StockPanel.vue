@@ -12,6 +12,13 @@
           <span :class="['dim-badge-sm', 'dim-' + dim('timing')]">时</span>
           <span :class="['dim-badge-sm', 'dim-' + dim('risk')]">险</span>
         </div>
+        <div v-if="providerOptions.length" class="provider-jump">
+          <select v-model="selectedProvider" class="pj-select" title="选择数据网站">
+            <option v-for="l in providerOptions" :key="l.id" :value="l.id">{{ l.icon }} {{ l.name }}</option>
+          </select>
+          <a v-if="selectedLink" class="pj-open" :href="selectedLink.url" target="_blank" rel="noopener">跳转 ↗</a>
+          <button v-if="!readonly && selectedLink && selectedProvider !== providerDefault" class="pj-set" @click="setDefaultProvider" title="设为默认跳转网站">★</button>
+        </div>
         <div v-if="!readonly" class="actions">
           <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
             <option value="tracking">🔭 跟踪中</option>
@@ -52,6 +59,13 @@
         <span :class="['verdict-badge', 'verdict-' + (meta.dimensions?.verdict || meta.overall)]">
           {{ verdictLabel }}
         </span>
+      </div>
+      <div v-if="providerOptions.length" class="provider-jump">
+        <select v-model="selectedProvider" class="pj-select" title="选择数据网站">
+          <option v-for="l in providerOptions" :key="l.id" :value="l.id">{{ l.icon }} {{ l.name }}</option>
+        </select>
+        <a v-if="selectedLink" class="pj-open" :href="selectedLink.url" target="_blank" rel="noopener">跳转 ↗</a>
+        <button v-if="!readonly && selectedLink && selectedProvider !== providerDefault" class="pj-set" @click="setDefaultProvider" title="设为默认跳转网站">★</button>
       </div>
     </div>
 
@@ -301,6 +315,43 @@ const generatingBrief = ref(false)
 const holdingsData = ref({ trades: [], summary: null })
 const showHoldings = ref(false)
 
+const providerLinks = ref([])
+const providerDefault = ref('')
+const selectedProvider = ref('')
+
+const providerOptions = computed(() => {
+  const seen = new Set()
+  const out = []
+  for (const l of providerLinks.value) {
+    if (seen.has(l.id)) continue
+    seen.add(l.id)
+    out.push(l)
+  }
+  return out
+})
+const selectedLink = computed(() => providerOptions.value.find(l => l.id === selectedProvider.value) || null)
+
+async function loadProviders() {
+  try {
+    const res = await api.providers.links(props.code)
+    providerLinks.value = res.links || []
+    providerDefault.value = res.default_provider || ''
+    selectedProvider.value = providerDefault.value || ''
+  } catch {
+    providerLinks.value = []
+  }
+}
+
+async function setDefaultProvider() {
+  if (!selectedProvider.value) return
+  try {
+    const res = await api.providers.setDefault(selectedProvider.value)
+    providerDefault.value = res.default_provider
+  } catch {
+    // error toast already shown by api.js
+  }
+}
+
 const todayBriefExists = computed(() => {
   const today = new Date().toISOString().slice(0, 10)
   return briefs.value.some(b => b.date === today)
@@ -363,6 +414,7 @@ function statusLabel(status) {
 async function load() {
   const data = await api.stocks.get(props.code)
   meta.value = data
+  await loadProviders()
   tagForm.value = { watchlist: data.tags?.watchlist || false }
   statusForm.value = { status: data.status || 'neutral' }
   briefs.value = data.daily_briefs || []
@@ -760,6 +812,36 @@ onMounted(handleCodeChange)
 .dim-none { background: #334155; color: #64748b; }
 
 .actions { display: flex; gap: 10px; align-items: center; }
+.provider-jump { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pj-select {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 12px;
+  max-width: 150px;
+}
+.pj-open {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  color: #93c5fd;
+  font-size: 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pj-open:hover { background: #1e293b; border-color: #475569; color: white; }
+.pj-set {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #fbbf24;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.pj-set:hover { background: #713f12; }
 .tag-toggle { padding: 6px 14px; border-radius: 6px; border: 1px solid #475569; background: transparent; color: #94a3b8; font-size: 13px; cursor: pointer; }
 .tag-toggle.active { background: #fbbf24; color: #1e293b; border-color: #fbbf24; }
 
@@ -785,6 +867,7 @@ onMounted(handleCodeChange)
 .verdict-yellow { background: #713f12; color: #fbbf24; }
 .verdict-red { background: #7f1d1d; color: #f87171; }
 .verdict-none { background: #334155; color: #64748b; }
+.info-bar .provider-jump { margin-left: auto; }
 
 /* Analysis */
 .analysis-grid { display: flex; flex-direction: column; gap: 12px; }

@@ -36,6 +36,7 @@ data/
 ├── _users.json              # 用户账号（PBKDF2 密码哈希；首次运行自动创建 admin）
 ├── _sessions.json           # 登录会话（token → username/expires_at）
 ├── _config.json             # 权限配置（allow_anonymous_read / session_ttl_hours / api_key）
+├── _providers.json          # 交易数据网站跳转配置（网站 + URL 模板 + 默认网站）
 ├── _template/
 │   └── meta.json            # Template for new stock entries
 └── {CODE}/                  # One dir per stock (e.g. 002430.SZ/)
@@ -105,6 +106,9 @@ data/
 | `/api/holdings/{code}/trades` | POST | Record a trade (buy/sell) |
 | `/api/holdings/{code}/trades/{id}` | DELETE | Remove a trade and rebuild |
 | `/api/holdings/{code}/adjust` | POST | Corporate action (split/bonus/dividend) |
+| `/api/providers` | GET | 交易数据网站列表（含默认网站） |
+| `/api/providers/links/{code}` | GET | 指定股票在各网站的跳转链接 |
+| `/api/providers/default` | PATCH | 设置默认跳转网站（写入 `_providers.json`） |
 
 ## API Endpoints (Agent-facing)
 
