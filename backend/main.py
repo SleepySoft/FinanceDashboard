@@ -4,19 +4,45 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List, Literal
+import asyncio
 import json
 import os
-import uuid
-import subprocess
-import urllib.request
 import re
+import subprocess
+import time
+import uuid
+import urllib.request
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone, timedelta
 import auth
 from providers import router as providers_router
 from subsystems.backtest.routes import router as backtest_router
 from subsystems.anomaly.routes import router as anomaly_router
 
-app = FastAPI(title="Stock Analyst API")
+# ─── 定时任务（价格刷新 / 异动扫描） ───────────────────────────
+SCHEDULER_TASKS = ("price_refresh", "anomaly_scan")
+
+_scheduler_state = {
+    "price_refresh": {"last_run": None, "last_result": "", "last_error": "", "next_run_at": None, "running": False},
+    "anomaly_scan": {"last_run": None, "last_result": "", "last_error": "", "next_run_at": None, "running": False},
+}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用启动时拉起后台定时任务，关闭时优雅取消。"""
+    task = asyncio.create_task(_scheduler_loop())
+    print("[scheduler] 后台定时任务已启动")
+    try:
+        yield
+    finally:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+        print("[scheduler] 后台定时任务已停止")
+
+
+app = FastAPI(title="Stock Analyst API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -249,6 +275,80 @@ def _update_dashboard_prices(prices: dict):
     dashboard["last_update"] = _now()
     with open(DASHBOARD_FILE, "w", encoding="utf-8") as f:
         json.dump(dashboard, f, ensure_ascii=False, indent=2)
+
+
+# ─── 定时任务实现 ─────────────────────────────────────────────
+
+_INTERVAL_KEYS = {
+    "price_refresh": "price_refresh_interval_min",
+    "anomaly_scan": "anomaly_scan_interval_min",
+}
+
+
+def _summarize_result(result) -> str:
+    if isinstance(result, dict):
+        parts = []
+        for key in ("updated", "stocks_found", "sectors_found", "message"):
+            if key in result:
+                parts.append(f"{key}={result[key]}")
+        return ", ".join(parts) if parts else str(result)[:200]
+    return str(result)[:200]
+
+
+def _run_price_refresh_job() -> dict:
+    codes = _get_stock_codes()
+    if not codes:
+        return {"updated": 0, "message": "没有跟踪的股票"}
+    prices = _fetch_prices_sina(codes)
+    _update_dashboard_prices(prices)
+    return {"updated": len(prices), "message": f"已更新 {len(prices)} 只股票价格"}
+
+
+def _run_anomaly_scan_job() -> dict:
+    from subsystems.anomaly.core import run_daily_scan
+    return run_daily_scan(trade_date=None)
+
+
+_JOBS = {
+    "price_refresh": _run_price_refresh_job,
+    "anomaly_scan": _run_anomaly_scan_job,
+}
+
+
+async def _scheduler_loop():
+    """每 10 秒检查一次配置；按间隔触发任务（独立线程执行，不阻塞事件循环）。"""
+    while True:
+        try:
+            cfg = auth.load_config()
+            now = time.monotonic()
+            for name in SCHEDULER_TASKS:
+                interval = int(cfg.get(_INTERVAL_KEYS[name]) or 0)
+                state = _scheduler_state[name]
+                if interval <= 0:
+                    state["_next_run"] = None
+                    state["_interval"] = None
+                    state["next_run_at"] = None
+                    state["running"] = False
+                    continue
+                if state.get("_next_run") is None or interval != state.get("_interval"):
+                    state["_interval"] = interval
+                    state["_next_run"] = now + interval * 60
+                    state["next_run_at"] = (datetime.now() + timedelta(seconds=interval * 60)).isoformat(timespec="seconds")
+                if state.get("_next_run", 0) <= now and not state.get("running"):
+                    state["running"] = True
+                    state["_next_run"] = now + interval * 60
+                    state["next_run_at"] = (datetime.now() + timedelta(seconds=interval * 60)).isoformat(timespec="seconds")
+                    try:
+                        result = await asyncio.to_thread(_JOBS[name])
+                        state["last_result"] = _summarize_result(result)
+                        state["last_error"] = ""
+                    except Exception as e:
+                        state["last_error"] = f"{type(e).__name__}: {e}"
+                    state["last_run"] = datetime.now().isoformat(timespec="seconds")
+                    state["running"] = False
+        except Exception as e:
+            print(f"[scheduler] 调度循环异常: {e}")
+        await asyncio.sleep(10)
 
 # ─── Helpers ──────────────────────────────────────────
 
@@ -1235,6 +1335,53 @@ def refresh_prices():
         "source": "sina",
         "message": f"Updated {len(prices)} stock prices from Sina Finance"
     }
+
+
+@app.get("/api/scheduler/status")
+def scheduler_status():
+    """定时任务运行状态（设置页展示：是否启用、间隔、上次/下次运行）。"""
+    cfg = auth.load_config()
+    tasks = {}
+    for name in SCHEDULER_TASKS:
+        interval = int(cfg.get(_INTERVAL_KEYS[name]) or 0)
+        st = _scheduler_state[name]
+        tasks[name] = {
+            "enabled": interval > 0,
+            "interval_min": interval,
+            "running": bool(st.get("running")),
+            "last_run": st.get("last_run"),
+            "next_run": st.get("next_run_at"),
+            "last_result": st.get("last_result", ""),
+            "last_error": st.get("last_error", ""),
+        }
+    return {"tasks": tasks}
+
+
+class TushareTestReq(BaseModel):
+    token: Optional[str] = None
+
+
+@app.post("/api/tushare/test")
+def test_tushare(req: Optional[TushareTestReq] = None):
+    """测试 Tushare token 连通性（不保存，仅验证）。"""
+    token = ""
+    if req and req.token:
+        token = req.token.strip()
+    if not token:
+        token = (auth.load_config().get("tushare_token") or "").strip()
+    if not token:
+        token = os.environ.get("TUSHARE_TOKEN", "").strip()
+    if not token:
+        raise HTTPException(400, "未配置 Tushare token")
+    try:
+        import tushare as ts
+        pro = ts.pro_api(token)
+        today = datetime.now().strftime("%Y%m%d")
+        df = pro.trade_cal(exchange="SSE", start_date=today, end_date=today)
+        ok = df is not None and len(df) > 0
+        return {"ok": ok, "message": "Tushare token 有效" if ok else "Tushare token 无效或权限不足"}
+    except Exception as e:
+        return {"ok": False, "message": f"Tushare 连接失败：{e}"}
 
 # ─── Health ───────────────────────────────────────────
 

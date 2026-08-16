@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url'
 const FRONTEND_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const BACKEND_DIR = path.resolve(FRONTEND_DIR, '..', 'backend')
 const FRONTEND_URL = process.env.SMOKE_FRONTEND_URL || 'http://localhost:5173'
-const BACKEND_URL = process.env.SMOKE_BACKEND_URL || 'http://localhost:8000'
+const BACKEND_URL = process.env.SMOKE_BACKEND_URL || 'http://localhost:8010'
 const SMOKE_USERNAME = 'admin'
 const SMOKE_PASSWORD = 'SleepySoft@299792458'
 
@@ -63,7 +63,7 @@ async function ensureServers() {
     log('后端已在运行，复用')
   } else {
     const python = path.join(BACKEND_DIR, 'venv', 'Scripts', 'python.exe')
-    startServer('backend', python, ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', '8000'], BACKEND_DIR, {
+    startServer('backend', python, ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', '8010'], BACKEND_DIR, {
       FD_ADMIN_USERNAME: SMOKE_USERNAME,
       FD_ADMIN_PASSWORD: SMOKE_PASSWORD,
     })

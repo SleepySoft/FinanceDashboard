@@ -35,7 +35,6 @@ _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 if _APP_DIR not in sys.path:
     sys.path.insert(0, _APP_DIR)
 from tushare_config import get_tushare_token
-TUSHARE_TOKEN = get_tushare_token()
 
 # 数据目录
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -132,15 +131,15 @@ class TushareClient:
     
     @property
     def pro(self):
-        """延迟初始化，避免导入时触发"""
+        """延迟初始化；token 每次重新读取（支持设置页修改后热生效）"""
         if self._pro is None:
-            if not TUSHARE_TOKEN:
+            token = get_tushare_token()
+            if not token:
                 raise RuntimeError(
-                    "TUSHARE_TOKEN environment variable not set. "
-                    "Get one at https://tushare.pro/register"
+                    "Tushare token 未配置。请在「设置 → Tushare 数据源配置」中填写，"
+                    "或设置环境变量 TUSHARE_TOKEN"
                 )
-            ts.set_token(TUSHARE_TOKEN)
-            self._pro = ts.pro_api()
+            self._pro = ts.pro_api(token)
         return self._pro
     
     def _throttle(self):

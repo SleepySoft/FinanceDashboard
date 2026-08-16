@@ -59,6 +59,8 @@ data/
 4. **Agent-triggered Analysis** — User submits request → pool → agent claims → runs analysis → writes report. No automatic polling.
 5. **File-based Storage** — No database. Everything is JSON or Markdown files.
 6. **Unread Tag** — Agent `complete` 后 `tags.unread=true`，看板显示红色「未读」徽章；用户打开个股面板/详情页时前端自动 PATCH 清除。
+7. **后台定时任务（2026-08-16 新增）** — 后端内置 asyncio 调度器：价格刷新（默认每 5 分钟）与异动扫描（默认关闭），
+   间隔在「设置 → 自动更新」页配置，存于 `data/_config.json`，修改后下个周期生效，无需重启。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -71,6 +73,10 @@ data/
 - 未登录权限配置（`data/_config.json`，可在前端「设置」页修改）：
   - `allow_anonymous_read: false`（默认）= 完全锁定，未登录看不到任何数据
   - `allow_anonymous_read: true` = 未登录只读，可浏览但所有写操作返回 401
+- 其他配置项（「设置」页可修改）：
+  - `tushare_token`：Tushare Pro token（优先级：环境变量 `TUSHARE_TOKEN` → 配置 → 项目 `.env`），接口不回显明文
+  - `price_refresh_interval_min`：价格自动刷新间隔（分钟，默认 5，0=关闭）
+  - `anomaly_scan_interval_min`：异动自动扫描间隔（分钟，默认 0=关闭，需先配置 Tushare token）
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
 - Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
   - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_config.json`，
@@ -85,14 +91,16 @@ data/
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/auth/config` | GET | 公开：权限配置（登录页/前端引导用） |
+| `/api/auth/config` | GET | 公开：权限配置 + Tushare/定时任务配置状态（登录页/前端引导用） |
 | `/api/auth/me` | GET | 当前登录状态 |
 | `/api/auth/login` | POST | 登录（设置 HttpOnly Cookie） |
 | `/api/auth/logout` | POST | 登出 |
 | `/api/auth/change-password` | POST | 修改密码（需登录） |
-| `/api/auth/config` | PATCH | 修改未登录权限/会话时长（需登录） |
+| `/api/auth/config` | PATCH | 修改权限/Tushare token/定时任务间隔（需登录） |
 | `/api/dashboard` | GET | All stocks with prices and mark diffs |
 | `/api/prices/refresh` | GET | Fetch live prices from Sina, update `_dashboard.json` |
+| `/api/scheduler/status` | GET | 定时任务运行状态（间隔、上次/下次运行、结果/错误） |
+| `/api/tushare/test` | POST | 测试 Tushare token 连通性（需登录，不保存） |
 | `/api/requests` | GET/POST/DELETE | Request pool (pending analysis tasks) |
 | `/api/stocks` | GET | List all analyzed stocks |
 | `/api/stocks/{code}` | GET | Stock detail (meta + injected price) |
@@ -146,10 +154,11 @@ nohup uvicorn main:app --host 0.0.0.0 --port 80 > /tmp/uvicorn.log 2>&1 &
 #### Windows
 项目根目录提供一键脚本（自动创建虚拟环境、安装依赖并启动前后端）：
 ```cmd
-start_all.bat      :: 启动后端(8000) + 前端(默认80，可传端口参数)
+start_all.bat      :: 启动后端(8010) + 前端(默认80，可传端口参数)
 stop_all.bat       :: 停止前后端（含 --reload 派生的 worker 进程）
 restart_all.bat    :: 重启（可传前端端口参数，如 restart_all.bat 5173）
 ```
+> 说明：本机 8000 端口曾被其他项目占用，本地开发后端统一改用 8010；生产环境仍是 80。
 单独启动：
 ```cmd
 cd backend && start.bat
@@ -225,7 +234,7 @@ npm run smoke   # 冒烟测试：自动拉起前后端 → 无头 Chrome 验证�
 - [x] Windows startup scripts (`start_all.bat`, `backend/start.bat`, `frontend/start.bat`) and dependency docs (`docs/windows-setup.md`)
 - [ ] Frontend Markdown rendering: add marked.js for proper tables/code blocks
 - [ ] Add stock code validation/normalization (A-share format auto-correction)
-- [ ] Consider adding cron for periodic price refresh (currently only manual + frontend poll)
+- [x] 价格自动刷新定时任务（后台 asyncio 调度器 + 设置页可配置间隔，2026-08-16）
 - [ ] Test end-to-end: web submit request → agent claim → analysis → report display
 - [ ] Add search/filter to Dashboard
 - [ ] OCR trade entry from screenshots (user uploads screenshot → auto-recognize price/qty)

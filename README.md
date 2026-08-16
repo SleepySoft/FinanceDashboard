@@ -90,7 +90,7 @@ Agent 请求时携带请求头 `X-API-Key: <密钥>` 即可通过鉴权。
 
 ```bash
 TOKEN=$(cat agent_token.txt)
-curl -H "X-API-Key: $TOKEN" http://localhost:8000/api/agent/tasks
+curl -H "X-API-Key: $TOKEN" http://localhost:8010/api/agent/tasks
 ```
 
 ## 快速开始

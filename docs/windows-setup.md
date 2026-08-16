@@ -64,7 +64,7 @@ start_all.bat
 
 该脚本会依次启动后端和前端，分别在新窗口中运行：
 
-- 后端：`http://localhost:8000`
+- 后端：`http://localhost:8010`
 - 前端：`http://localhost:80`
 
 > 注意：前端 Vite 开发服务器配置在 80 端口，Windows 下需要管理员权限。如果无法启动，请右键 `start_all.bat` 选择「以管理员身份运行」。
@@ -94,7 +94,7 @@ cd frontend
 start.bat
 ```
 
-前端开发服务器会通过 `vite.config.js` 中的代理将 `/api/*` 请求转发到 `http://localhost:8000`。
+前端开发服务器会通过 `vite.config.js` 中的代理将 `/api/*` 请求转发到 `http://localhost:8010`。
 
 ## 生产部署
 
@@ -122,7 +122,7 @@ start_production.bat
 
 ### 1. 端口被占用
 
-- 后端默认 `8000`，前端开发服务器默认 `80`。
+- 后端默认 `8010`（本机 8000 被其他项目占用），前端开发服务器默认 `80`。
 - 可在 `backend/start.bat` 或 `frontend/vite.config.js` 中修改端口。
 
 ### 2. 80 端口需要管理员权限

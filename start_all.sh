@@ -1,5 +1,5 @@
 #!/bin/bash
-# FinanceDashboard - start backend (8000) + frontend dev server in background
+# FinanceDashboard - start backend (8010) + frontend dev server in background
 cd "$(dirname "$0")"
 
 FRONTEND_PORT="${1:-80}"
@@ -9,7 +9,7 @@ echo
 
 # Backend
 nohup ./backend/start.sh > /tmp/fin-backend.log 2>&1 &
-echo "  Backend  -> http://localhost:8000  (log: /tmp/fin-backend.log)"
+echo "  Backend  -> http://localhost:8010  (log: /tmp/fin-backend.log)"
 
 sleep 3
 

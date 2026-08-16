@@ -43,6 +43,12 @@ export default {
     updateConfig: (patch) => api('/auth/config', { method: 'PATCH', body: patch }),
     regenerateToken: () => api('/auth/token/regenerate', { method: 'POST' }),
   },
+  scheduler: {
+    status: () => api('/scheduler/status'),
+  },
+  tushare: {
+    test: (token) => api('/tushare/test', { method: 'POST', body: { token } }),
+  },
   requests: {
     list: () => api('/requests'),
     submit: (code, name, sector, note, type = 'full') => api('/requests', { method: 'POST', body: { code, name, sector, note, type } }),

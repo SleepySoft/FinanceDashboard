@@ -83,6 +83,66 @@
         </div>
       </div>
 
+      <!-- Tushare 数据源配置 -->
+      <div class="card">
+        <h3>Tushare 数据源配置</h3>
+        <p class="settings-hint">
+          异动扫描与回测使用 Tushare Pro 数据。Token 仅保存在本机 <code>data/_config.json</code>，接口不会回显明文。
+        </p>
+        <div class="info-row">
+          <span class="info-label">当前状态</span>
+          <span class="info-value">
+            {{ tushareConfigured ? '已配置' : '未配置' }}
+            <template v-if="tushareSource === 'env'">（由环境变量 TUSHARE_TOKEN 提供，优先级最高）</template>
+            <template v-else-if="tushareSource === 'config'">（保存在配置文件中）</template>
+          </span>
+        </div>
+        <div class="form-row">
+          <label>新 Token（留空不修改）</label>
+          <input v-model="tushareToken" type="password" autocomplete="off" placeholder="输入新的 Tushare token" />
+        </div>
+        <p v-if="tushareMsg" :class="['config-msg', tushareError ? 'err' : 'ok']">{{ tushareMsg }}</p>
+        <div class="settings-actions">
+          <button class="primary" @click="saveTushare" :disabled="savingTushare">保存 Token</button>
+          <button class="ghost" @click="testTushare" :disabled="testingTushare">
+            {{ testingTushare ? '测试中...' : '测试连接' }}
+          </button>
+          <button v-if="tushareSource === 'config' && tushareConfigured" class="ghost danger-text" @click="clearTushare" :disabled="savingTushare">
+            清除已保存 Token
+          </button>
+        </div>
+      </div>
+
+      <!-- 自动更新（定时任务） -->
+      <div class="card">
+        <h3>自动更新（定时任务）</h3>
+        <p class="settings-hint">
+          价格刷新默认每 5 分钟自动执行；异动扫描会调用 Tushare 全市场数据，需先配置 Token，默认关闭。
+        </p>
+        <div class="form-row">
+          <label>价格刷新间隔（分钟，0=关闭）</label>
+          <input v-model.number="priceInterval" type="number" min="0" max="1440" />
+        </div>
+        <div class="form-row">
+          <label>异动扫描间隔（分钟，0=关闭）</label>
+          <input v-model.number="anomalyInterval" type="number" min="0" max="1440" />
+        </div>
+        <p v-if="schedMsg" :class="['config-msg', schedError ? 'err' : 'ok']">{{ schedMsg }}</p>
+        <div class="info-row" v-for="(task, name) in schedulerTasks" :key="name">
+          <span class="info-label">{{ name === 'price_refresh' ? '价格刷新' : '异动扫描' }}</span>
+          <span class="info-value">
+            <template v-if="task.enabled">
+              上次 {{ task.last_run || '—' }} · 下次 {{ task.next_run || '—' }}
+            </template>
+            <template v-else>未启用</template>
+          </span>
+        </div>
+        <div class="settings-actions">
+          <button class="primary" @click="saveScheduler" :disabled="savingSched">保存定时设置</button>
+          <button class="ghost" @click="loadSchedulerStatus" :disabled="loadingSched">刷新状态</button>
+        </div>
+      </div>
+
       <!-- 账户信息 -->
       <div class="card">
         <h3>账户信息</h3>
@@ -103,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api.js'
 import auth from '../composables/useAuth.js'
@@ -153,6 +213,110 @@ async function generateToken() {
     generatingToken.value = false
   }
 }
+
+// Tushare 数据源配置
+const tushareToken = ref('')
+const tushareMsg = ref('')
+const tushareError = ref(false)
+const savingTushare = ref(false)
+const testingTushare = ref(false)
+const tushareConfigured = computed(() => !!auth.config.value.tushare_token_configured)
+const tushareSource = computed(() => auth.config.value.tushare_token_source || 'none')
+
+async function saveTushare() {
+  tushareMsg.value = ''
+  tushareError.value = false
+  savingTushare.value = true
+  try {
+    const patch = tushareToken.value ? { tushare_token: tushareToken.value } : {}
+    const cfg = await auth.updateConfig(patch)
+    await auth.bootstrap(true)
+    tushareToken.value = ''
+    tushareMsg.value = cfg.tushare_token_configured ? 'Token 已保存' : '当前仍未配置 Token'
+  } catch (e) {
+    tushareError.value = true
+    tushareMsg.value = e.message || '保存失败'
+  } finally {
+    savingTushare.value = false
+  }
+}
+
+async function clearTushare() {
+  if (!window.confirm('将清除配置文件中保存的 Tushare token，继续？')) return
+  tushareMsg.value = ''
+  tushareError.value = false
+  savingTushare.value = true
+  try {
+    await auth.updateConfig({ tushare_token: '' })
+    await auth.bootstrap(true)
+    tushareMsg.value = '已清除配置文件中的 Token'
+  } catch (e) {
+    tushareError.value = true
+    tushareMsg.value = e.message || '清除失败'
+  } finally {
+    savingTushare.value = false
+  }
+}
+
+async function testTushare() {
+  tushareMsg.value = ''
+  tushareError.value = false
+  testingTushare.value = true
+  try {
+    const res = await api.tushare.test(tushareToken.value || '')
+    tushareError.value = !res.ok
+    tushareMsg.value = res.message
+  } catch (e) {
+    tushareError.value = true
+    tushareMsg.value = e.message || '测试失败'
+  } finally {
+    testingTushare.value = false
+  }
+}
+
+// 自动更新（定时任务）
+const priceInterval = ref(auth.config.value.price_refresh_interval_min ?? 5)
+const anomalyInterval = ref(auth.config.value.anomaly_scan_interval_min ?? 0)
+const schedulerTasks = ref({})
+const schedMsg = ref('')
+const schedError = ref(false)
+const savingSched = ref(false)
+const loadingSched = ref(false)
+
+async function loadSchedulerStatus() {
+  loadingSched.value = true
+  try {
+    const res = await api.scheduler.status()
+    schedulerTasks.value = res.tasks || {}
+  } catch {
+    // 状态获取失败不打断页面
+  } finally {
+    loadingSched.value = false
+  }
+}
+
+async function saveScheduler() {
+  schedMsg.value = ''
+  schedError.value = false
+  savingSched.value = true
+  try {
+    const cfg = await auth.updateConfig({
+      price_refresh_interval_min: Number(priceInterval.value) || 0,
+      anomaly_scan_interval_min: Number(anomalyInterval.value) || 0,
+    })
+    priceInterval.value = cfg.price_refresh_interval_min
+    anomalyInterval.value = cfg.anomaly_scan_interval_min
+    schedMsg.value = '定时设置已保存，将在下个周期生效'
+    await loadSchedulerStatus()
+  } catch (e) {
+    schedError.value = true
+    schedMsg.value = e.message || '保存失败'
+  } finally {
+    savingSched.value = false
+  }
+}
+
+onMounted(loadSchedulerStatus)
 
 // 修改密码
 const oldPassword = ref('')
@@ -297,6 +461,26 @@ async function doLogout() {
 .settings-actions {
   display: flex;
   gap: 10px;
+}
+button.ghost {
+  padding: 8px 14px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+}
+button.ghost:hover {
+  color: #e2e8f0;
+  border-color: #475569;
+}
+button.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button.ghost.danger-text {
+  color: #f87171;
 }
 .info-row {
   display: flex;

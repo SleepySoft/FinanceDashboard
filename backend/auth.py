@@ -27,6 +27,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 
+from tushare_config import get_tushare_token_source
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 USERS_FILE = os.path.join(DATA_DIR, "_users.json")
@@ -45,6 +47,9 @@ DEFAULT_CONFIG = {
     "allow_anonymous_read": False,
     "session_ttl_hours": 24 * 7,
     "api_key": "",
+    "tushare_token": "",
+    "price_refresh_interval_min": 5,
+    "anomaly_scan_interval_min": 0,
 }
 
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -283,6 +288,28 @@ class ChangePasswordReq(BaseModel):
 class ConfigUpdateReq(BaseModel):
     allow_anonymous_read: Optional[bool] = None
     session_ttl_hours: Optional[int] = None
+    tushare_token: Optional[str] = None
+    price_refresh_interval_min: Optional[int] = None
+    anomaly_scan_interval_min: Optional[int] = None
+
+
+def _config_payload(cfg: dict) -> dict:
+    """对外暴露的配置视图（不含敏感明文 token）。"""
+    token_source = get_tushare_token_source()
+    return {
+        "initialized": True,
+        "allow_anonymous_read": cfg.get("allow_anonymous_read", False),
+        "session_ttl_hours": cfg.get("session_ttl_hours", DEFAULT_CONFIG["session_ttl_hours"]),
+        "api_key_configured": bool(cfg.get("api_key")),
+        "tushare_token_configured": token_source != "none",
+        "tushare_token_source": token_source,
+        "price_refresh_interval_min": int(
+            cfg.get("price_refresh_interval_min", DEFAULT_CONFIG["price_refresh_interval_min"]) or 0
+        ),
+        "anomaly_scan_interval_min": int(
+            cfg.get("anomaly_scan_interval_min", DEFAULT_CONFIG["anomaly_scan_interval_min"]) or 0
+        ),
+    }
 
 
 @router.get("/config")
@@ -291,12 +318,7 @@ def get_config(request: Request):
     _ensure_admin_user()
     _ensure_api_key()
     cfg = load_config()
-    return {
-        "initialized": True,
-        "allow_anonymous_read": cfg.get("allow_anonymous_read", False),
-        "session_ttl_hours": cfg.get("session_ttl_hours", DEFAULT_CONFIG["session_ttl_hours"]),
-        "api_key_configured": bool(cfg.get("api_key")),
-    }
+    return _config_payload(cfg)
 
 
 @router.get("/me")
@@ -372,12 +394,18 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_session)
         if not (1 <= req.session_ttl_hours <= 24 * 30):
             raise HTTPException(400, "session_ttl_hours 需在 1~720 之间")
         cfg["session_ttl_hours"] = req.session_ttl_hours
+    if req.tushare_token is not None:
+        cfg["tushare_token"] = req.tushare_token.strip()
+    if req.price_refresh_interval_min is not None:
+        if not (0 <= req.price_refresh_interval_min <= 1440):
+            raise HTTPException(400, "price_refresh_interval_min 需在 0~1440 之间")
+        cfg["price_refresh_interval_min"] = req.price_refresh_interval_min
+    if req.anomaly_scan_interval_min is not None:
+        if not (0 <= req.anomaly_scan_interval_min <= 1440):
+            raise HTTPException(400, "anomaly_scan_interval_min 需在 0~1440 之间")
+        cfg["anomaly_scan_interval_min"] = req.anomaly_scan_interval_min
     save_config(cfg)
-    return {
-        "allow_anonymous_read": cfg.get("allow_anonymous_read", False),
-        "session_ttl_hours": cfg.get("session_ttl_hours", DEFAULT_CONFIG["session_ttl_hours"]),
-        "api_key_configured": bool(cfg.get("api_key")),
-    }
+    return _config_payload(cfg)
 
 
 @router.post("/token/regenerate")

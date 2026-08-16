@@ -19,7 +19,7 @@ start "FinanceDashboard Frontend" cmd /k "cd /d frontend && start.bat %FRONTEND_
 
 echo.
 echo Services started in new windows:
-echo   - Backend: http://localhost:8000
+echo   - Backend: http://localhost:8010
 echo   - Frontend: http://localhost:%FRONTEND_PORT%
 if "%FRONTEND_PORT%"=="80" (
     echo   (port 80 may require admin rights)

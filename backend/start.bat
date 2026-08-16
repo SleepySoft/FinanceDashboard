@@ -25,6 +25,6 @@ if not exist "venv\Scripts\activate.bat" (
 )
 
 echo.
-echo Starting Uvicorn dev server (http://localhost:8000) ...
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+echo Starting Uvicorn dev server (http://localhost:8010) ...
+uvicorn main:app --host 0.0.0.0 --port 8010 --reload
 pause

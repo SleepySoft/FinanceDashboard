@@ -38,3 +38,30 @@ def get_tushare_token() -> str:
             except Exception:
                 pass
     return ""
+
+
+def get_tushare_token_source() -> str:
+    """返回当前 token 的来源：env（环境变量）/ config（配置文件或 .env）/ none。"""
+    if os.environ.get("TUSHARE_TOKEN", "").strip():
+        return "env"
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        if str(cfg.get("tushare_token", "") or "").strip():
+            return "config"
+    except Exception:
+        pass
+    for env_path in (
+        os.path.join(PROJECT_ROOT, ".env"),
+        os.path.join(BASE_DIR, ".env"),
+    ):
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.strip().startswith("TUSHARE_TOKEN="):
+                            if line.strip().split("=", 1)[1].strip():
+                                return "config"
+            except Exception:
+                pass
+    return "none"
