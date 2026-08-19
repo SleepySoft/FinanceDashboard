@@ -61,6 +61,14 @@ data/
 6. **Unread Tag** — Agent `complete` 后 `tags.unread=true`，看板显示红色「未读」徽章；用户打开个股面板/详情页时前端自动 PATCH 清除。
 7. **后台定时任务（2026-08-16 新增）** — 后端内置 asyncio 调度器：价格刷新（默认每 5 分钟）与异动扫描（默认关闭），
    间隔在「设置 → 自动更新」页配置，存于 `data/_config.json`，修改后下个周期生效，无需重启。
+8. **数据文件防护（2026-08-19 新增）** — 原则：任何单个数据文件损坏都不能让接口 500。
+   - 读取统一走 `main.py:_safe_json_load()`（解析失败/类型不符 → 返回默认值并打 `[data-guard]` 日志）；
+   - 写入统一走 `_atomic_json_dump()`（临时文件 + `os.replace`，杜绝写盘半截留下坏 JSON；`auth.py:_save_json` 同样原子写）；
+   - `/api/dashboard`、`/api/stocks`、`/api/holdings` 逐个股票隔离：单股数据异常只跳过该股票；
+   - `_scan_reports` 对文件名日期段做校验，非法日期 `created_at` 置空，`id` 直接用文件名主干；
+   - FastAPI 全局 `exception_handler` 把未处理异常转为结构化 500 JSON 并打印堆栈；
+   - 前端主页加载失败显示错误横幅 + 重试按钮，不再白屏；
+   - 回归测试脚本：`scripts/fault_injection_test.ps1`（注入坏文件验证接口仍 200，自动恢复数据）。
 
 ## 登录与权限（2026-08-11 新增）
 

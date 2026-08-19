@@ -72,8 +72,11 @@ def _load_json(path: str, default):
 
 
 def _save_json(path: str, data):
-    with open(path, "w", encoding="utf-8") as f:
+    """原子写：先写临时文件再替换，避免写盘半截留下损坏 JSON。"""
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
 
 
 # ---------- 密码 ----------

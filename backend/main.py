@@ -10,6 +10,7 @@ import os
 import re
 import subprocess
 import time
+import traceback
 import uuid
 import urllib.request
 from contextlib import asynccontextmanager, suppress
@@ -92,6 +93,43 @@ async def permission_control(request: Request, call_next):
 
     return JSONResponse({"detail": "需要登录后才能进行写操作"}, status_code=401)
 
+# ─── 数据文件防护 ─────────────────────────────────────
+# 原则：任何一个数据文件损坏/格式异常，都不能让整个接口 500。
+# 读取一律走 _safe_json_load（出错返回默认值并打日志），
+# 写入一律走 _atomic_json_dump（临时文件 + os.replace，杜绝半截文件）。
+
+def _safe_json_load(path: str, default):
+    """读取 JSON 文件；损坏/编码错误/类型不符时返回 default，绝不抛异常。"""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if default is not None and not isinstance(data, type(default)):
+            print(f"[data-guard] {os.path.basename(path)} 类型不符(期望 {type(default).__name__})，使用默认值")
+            return default
+        return data
+    except Exception as e:
+        print(f"[data-guard] 读取 {path} 失败: {type(e).__name__}: {e}，使用默认值")
+        return default
+
+
+def _atomic_json_dump(path: str, data):
+    """原子写 JSON：先写同目录临时文件再 os.replace，避免写盘半截留下损坏文件。"""
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """兜底：任何未处理异常返回结构化 500 并打印堆栈，而不是让连接直接断掉。"""
+    traceback.print_exc()
+    return JSONResponse(
+        {"detail": f"服务器内部错误: {type(exc).__name__}: {exc}"},
+        status_code=500,
+    )
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPORTS_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 TASKS_FILE = os.path.join(REPORTS_DIR, "_tasks.json")
@@ -128,23 +166,18 @@ def _build_reports_cache() -> dict:
     return cache
 
 def _load_reports_cache() -> dict:
-    """Load cached report index. Rebuild from disk if missing."""
+    """Load cached report index. Rebuild from disk if missing/corrupt."""
     if os.path.exists(REPORTS_CACHE_FILE):
-        try:
-            with open(REPORTS_CACHE_FILE, "r", encoding="utf-8") as f:
-                cache = json.load(f)
-            if cache:
-                return cache
-        except Exception:
-            pass
+        cache = _safe_json_load(REPORTS_CACHE_FILE, {})
+        if cache:
+            return cache
     # Missing or corrupt: rebuild from disk
     cache = _build_reports_cache()
     _save_reports_cache(cache)
     return cache
 
 def _save_reports_cache(cache: dict):
-    with open(REPORTS_CACHE_FILE, "w", encoding="utf-8") as f:
-        json.dump(cache, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(REPORTS_CACHE_FILE, cache)
 
 def _update_reports_cache(code: str, name: str = ""):
     """Incrementally update cache for one stock after new report written."""
@@ -261,20 +294,13 @@ def _fetch_prices_sina(codes: list) -> dict:
 
 def _update_dashboard_prices(prices: dict):
     """Update _dashboard.json with new prices."""
-    dashboard = {"prices": {}, "last_update": _now()}
-    if os.path.exists(DASHBOARD_FILE):
-        try:
-            with open(DASHBOARD_FILE, "r", encoding="utf-8") as f:
-                dashboard = json.load(f)
-        except:
-            pass
+    dashboard = _safe_json_load(DASHBOARD_FILE, {"prices": {}, "last_update": None})
     if "prices" not in dashboard:
         dashboard["prices"] = {}
     for code, data in prices.items():
         dashboard["prices"][code] = data
     dashboard["last_update"] = _now()
-    with open(DASHBOARD_FILE, "w", encoding="utf-8") as f:
-        json.dump(dashboard, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(DASHBOARD_FILE, dashboard)
 
 
 # ─── 定时任务实现 ─────────────────────────────────────────────
@@ -365,7 +391,9 @@ def _reports_dir(code: str) -> str:
     return os.path.join(_stock_dir(code), "reports")
 
 def _scan_reports(code: str) -> list:
-    """Scan reports directory for report files. First source of truth."""
+    """Scan reports directory for report files. First source of truth.
+    文件名格式异常（日期段不是8位数字）时仍收录，但 created_at 置空，
+    避免非法日期串流入 fromisoformat 导致详情页 500。"""
     d = _reports_dir(code)
     if not os.path.exists(d):
         return []
@@ -376,14 +404,17 @@ def _scan_reports(code: str) -> list:
         parts = fname.replace(".md", "").split("_")
         if len(parts) >= 2:
             rtype = parts[0]
-            rdate = parts[1]
-            if len(rdate) == 8:
+            rdate = parts[-1]
+            if len(rdate) == 8 and rdate.isdigit():
                 rdate = f"{rdate[:4]}-{rdate[4:6]}-{rdate[6:]}"
+            else:
+                print(f"[data-guard] {code}/reports/{fname} 文件名日期段异常，created_at 置空")
+                rdate = ""
         else:
             rtype = "full"
             rdate = ""
         reports.append({
-            "id": f"{rtype}_{parts[1]}",
+            "id": fname[:-3],
             "filename": fname,
             "type": rtype,
             "created_at": rdate
@@ -392,7 +423,7 @@ def _scan_reports(code: str) -> list:
 
 def _last_analysis(reports: list) -> str:
     """Get last fundamental analysis date from scanned reports."""
-    dates = [r["created_at"] for r in reports if r["type"] in ("fundamental", "full")]
+    dates = [r["created_at"] for r in reports if r["type"] in ("fundamental", "full") and r["created_at"]]
     return max(dates) if dates else None
 
 def _notes_path(code: str) -> str:
@@ -405,14 +436,12 @@ def _load_briefs(code: str) -> list:
     path = _briefs_path(code)
     if not os.path.exists(path):
         return []
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return _safe_json_load(path, [])
 
 def _save_briefs(code: str, briefs: list):
     path = _briefs_path(code)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(briefs, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(path, briefs)
 
 def _generate_brief_text(data: dict) -> tuple:
     """Generate daily brief text. Returns (text, has_value)."""
@@ -484,20 +513,23 @@ def _now() -> str:
 
 def _load_meta(code: str) -> dict:
     """Load meta.json (static) + state.json (mutable), merge and return.
-    Ensures all expected fields exist with sensible defaults to prevent downstream crashes."""
+    Ensures all expected fields exist with sensible defaults to prevent downstream crashes.
+    单个文件损坏时降级为默认值，绝不抛 JSON 解析异常。"""
     meta_path = _meta_path(code)
     if not os.path.exists(meta_path):
         raise HTTPException(404, f"Stock {code} not found")
-    with open(meta_path, "r", encoding="utf-8") as f:
-        static = json.load(f)
+    static = _safe_json_load(meta_path, {})
 
     state_path = _state_path(code)
     mutable = {}
     if os.path.exists(state_path):
-        with open(state_path, "r", encoding="utf-8") as f:
-            mutable = json.load(f)
+        mutable = _safe_json_load(state_path, {})
 
     merged = {**static, **mutable}
+
+    # code/name 兜底：缺失时用目录名，避免下游 KeyError 拖垮整个列表接口
+    merged.setdefault("code", code)
+    merged.setdefault("name", merged["code"])
 
     # ─── Field normalization / crash prevention ────────────────────
     # Ensure tags is always a dict (legacy used list or omitted)
@@ -519,12 +551,16 @@ def _load_meta(code: str) -> dict:
 
 
 def _get_latest_note(code: str) -> Optional[dict]:
-    """Get the latest note from notes.md."""
+    """Get the latest note from notes.md. 文件读取失败（编码损坏等）返回 None。"""
     path = _notes_path(code)
     if not os.path.exists(path):
         return None
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read().strip()
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+    except Exception as e:
+        print(f"[data-guard] 读取 {path} 失败: {type(e).__name__}: {e}")
+        return None
     if not content:
         return None
     # Parse the first entry (most recent, since we prepend)
@@ -587,12 +623,10 @@ def _save_meta(code: str, meta: dict):
 
     meta_path = _meta_path(code)
     os.makedirs(os.path.dirname(meta_path), exist_ok=True)
-    with open(meta_path, "w", encoding="utf-8") as f:
-        json.dump(static, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(meta_path, static)
 
     state_path = _state_path(code)
-    with open(state_path, "w", encoding="utf-8") as f:
-        json.dump(mutable, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(state_path, mutable)
 
 
 def _normalize_dimensions(meta: dict) -> dict:
@@ -635,18 +669,18 @@ def _normalize_dimensions(meta: dict) -> dict:
 def _load_tasks() -> list:
     if not os.path.exists(TASKS_FILE):
         return []
-    with open(TASKS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return _safe_json_load(TASKS_FILE, [])
 
 def _save_tasks(tasks: list):
-    with open(TASKS_FILE, "w", encoding="utf-8") as f:
-        json.dump(tasks, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(TASKS_FILE, tasks)
 
 def _load_dashboard() -> dict:
     if not os.path.exists(DASHBOARD_FILE):
         return {"prices": {}, "last_update": None}
-    with open(DASHBOARD_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    dashboard = _safe_json_load(DASHBOARD_FILE, {"prices": {}, "last_update": None})
+    if not isinstance(dashboard.get("prices"), dict):
+        dashboard["prices"] = {}
+    return dashboard
 
 def _fetch_stock_name(code: str) -> str:
     """Fetch stock name from Sina API."""
@@ -939,27 +973,32 @@ def list_stocks():
             meta = _load_meta(entry)
         except Exception:
             continue
-        code = meta["code"]
+        code = meta.get("code", entry)
         p = prices.get(code, {})
         cached = cache.get(code, {})
-        stocks.append({
-            "code": code,
-            "name": meta["name"],
-            "sector": meta.get("sector", ""),
-            "tags": meta["tags"],
-            "status": meta.get("status", "neutral"),
-            "holdings": meta.get("holdings"),
-            "dimensions": _normalize_dimensions(meta),
-            "watchlist": meta["tags"].get("watchlist", False),
-            "overall": meta["tags"].get("overall", "none"),
-            "price_marks": meta.get("price_marks", []),
-            "report_count": cached.get("report_count", 0),
-            "last_analysis": cached.get("last_analysis"),
-            "latest_note": _get_latest_note(entry),
-            "last_price": p.get("price"),
-            "change_pct": p.get("change_pct"),
-            "price_updated": p.get("updated_at")
-        })
+        try:
+            stocks.append({
+                "code": code,
+                "name": meta.get("name", code),
+                "sector": meta.get("sector", ""),
+                "tags": meta.get("tags", {}),
+                "status": meta.get("status", "neutral"),
+                "holdings": meta.get("holdings"),
+                "dimensions": _normalize_dimensions(meta),
+                "watchlist": meta.get("tags", {}).get("watchlist", False),
+                "overall": meta.get("tags", {}).get("overall", "none"),
+                "price_marks": meta.get("price_marks", []),
+                "report_count": cached.get("report_count", 0),
+                "last_analysis": cached.get("last_analysis"),
+                "latest_note": _get_latest_note(entry),
+                "last_price": p.get("price"),
+                "change_pct": p.get("change_pct"),
+                "price_updated": p.get("updated_at")
+            })
+        except Exception as e:
+            # 单个股票数据异常只跳过该股票，不影响整个列表
+            print(f"[data-guard] /api/stocks 跳过 {entry}: {type(e).__name__}: {e}")
+            continue
     return stocks
 
 @app.get("/api/stocks/{code}")
@@ -978,13 +1017,20 @@ def get_stock(code: str):
         "fundamental": {"last": last_fund, "valid_until": None},
         "technical": {"last": last_tech, "valid_until": None}
     }
-    # Compute valid_until from report dates
+    # Compute valid_until from report dates（日期串异常时跳过，不影响详情页）
+    def _parse_dt(s):
+        try:
+            return datetime.fromisoformat(s.replace("Z", "+00:00"))
+        except Exception:
+            return None
     if last_fund:
-        fund_dt = datetime.fromisoformat(last_fund.replace("Z", "+00:00"))
-        meta["cache"]["fundamental"]["valid_until"] = (fund_dt + timedelta(days=90)).isoformat()
+        fund_dt = _parse_dt(last_fund)
+        if fund_dt:
+            meta["cache"]["fundamental"]["valid_until"] = (fund_dt + timedelta(days=90)).isoformat()
     if last_tech:
-        tech_dt = datetime.fromisoformat(last_tech.replace("Z", "+00:00"))
-        meta["cache"]["technical"]["valid_until"] = (tech_dt + timedelta(days=7)).isoformat()
+        tech_dt = _parse_dt(last_tech)
+        if tech_dt:
+            meta["cache"]["technical"]["valid_until"] = (tech_dt + timedelta(days=7)).isoformat()
     # Compute expired
     now = datetime.now(timezone.utc)
     for key in ["fundamental", "technical"]:
@@ -992,7 +1038,10 @@ def get_stock(code: str):
         if not vu:
             meta["cache"][key]["expired"] = True
         else:
-            vu_dt = datetime.fromisoformat(vu)
+            vu_dt = _parse_dt(vu)
+            if vu_dt is None:
+                meta["cache"][key]["expired"] = True
+                continue
             if vu_dt.tzinfo is None:
                 vu_dt = vu_dt.replace(tzinfo=timezone.utc)
             meta["cache"][key]["expired"] = vu_dt < now
@@ -1072,7 +1121,7 @@ def get_report(code: str, report_id: str):
     path = os.path.join(_reports_dir(code), filename)
     if not os.path.exists(path):
         raise HTTPException(404, "Report file missing")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
     return {"meta": rpt, "content": content}
 
@@ -1269,42 +1318,53 @@ def get_dashboard():
             meta = _load_meta(entry)
         except Exception:
             continue
-        code = meta["code"]
+        code = meta.get("code", entry)
         p = prices.get(code, {})
         current_price = p.get("price")
         cached = cache.get(code, {})
-        
-        # Calculate diffs for price marks
-        marks_with_diff = []
-        for m in meta.get("price_marks", []):
-            diff = None
-            diff_pct = None
-            if current_price is not None and current_price > 0:
-                diff = current_price - m["price"]
-                diff_pct = (diff / m["price"]) * 100
-            marks_with_diff.append({
-                **m,
-                "diff": diff,
-                "diff_pct": diff_pct
+
+        try:
+            # Calculate diffs for price marks（单个标记异常只跳过该标记）
+            marks_with_diff = []
+            for m in meta.get("price_marks", []):
+                if not isinstance(m, dict):
+                    continue
+                diff = None
+                diff_pct = None
+                try:
+                    mark_price = float(m.get("price"))
+                except (TypeError, ValueError):
+                    mark_price = None
+                if current_price is not None and current_price > 0 and mark_price:
+                    diff = current_price - mark_price
+                    diff_pct = (diff / mark_price) * 100
+                marks_with_diff.append({
+                    **m,
+                    "diff": diff,
+                    "diff_pct": diff_pct
+                })
+
+            stocks.append({
+                "code": code,
+                "name": meta.get("name", code),
+                "sector": meta.get("sector", ""),
+                "tags": meta.get("tags", {}),
+                "status": meta.get("status", "neutral"),
+                "dimensions": _normalize_dimensions(meta),
+                "watchlist": meta.get("tags", {}).get("watchlist", False),
+                "overall": meta.get("tags", {}).get("overall", "none"),
+                "price_marks": marks_with_diff,
+                "report_count": cached.get("report_count", 0),
+                "last_analysis": cached.get("last_analysis"),
+                "latest_note": _get_latest_note(entry),
+                "last_price": current_price,
+                "change_pct": p.get("change_pct"),
+                "price_updated": p.get("updated_at")
             })
-        
-        stocks.append({
-            "code": code,
-            "name": meta["name"],
-            "sector": meta.get("sector", ""),
-            "tags": meta["tags"],
-            "status": meta.get("status", "neutral"),
-            "dimensions": _normalize_dimensions(meta),
-            "watchlist": meta["tags"].get("watchlist", False),
-            "overall": meta["tags"].get("overall", "none"),
-            "price_marks": marks_with_diff,
-            "report_count": cached.get("report_count", 0),
-            "last_analysis": cached.get("last_analysis"),
-            "latest_note": _get_latest_note(entry),
-            "last_price": current_price,
-            "change_pct": p.get("change_pct"),
-            "price_updated": p.get("updated_at")
-        })
+        except Exception as e:
+            # 单个股票数据异常只跳过该股票，不影响整个看板
+            print(f"[data-guard] /api/dashboard 跳过 {entry}: {type(e).__name__}: {e}")
+            continue
     
     return {
         "stocks": stocks,
@@ -1423,13 +1483,11 @@ def _load_holdings(code: str) -> dict:
     p = _holdings_path(code)
     if not os.path.exists(p):
         return {"trades": [], "t_trades": [], "adj_events": [], "summary": {}}
-    with open(p, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return _safe_json_load(p, {"trades": [], "t_trades": [], "adj_events": [], "summary": {}})
 
 def _save_holdings(code: str, data: dict):
     p = _holdings_path(code)
-    with open(p, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(p, data)
 
 def _calc_fee(price: float, quantity: int) -> float:
     amount = price * quantity
@@ -1781,8 +1839,10 @@ def list_holdings():
             continue
         h_path = os.path.join(REPORTS_DIR, entry, "holdings.json")
         if os.path.exists(h_path):
-            with open(h_path, "r", encoding="utf-8") as f:
-                h = json.load(f)
+            h = _safe_json_load(h_path, None)
+            if not isinstance(h, dict):
+                print(f"[data-guard] /api/holdings 跳过 {entry}: holdings.json 损坏")
+                continue
             results.append({
                 "code": entry,
                 "quantity": h.get("summary", {}).get("total_quantity", 0),

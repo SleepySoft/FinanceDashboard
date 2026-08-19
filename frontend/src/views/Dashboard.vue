@@ -62,6 +62,12 @@
     <!-- Loading -->
     <div v-if="loading && stocks.length === 0" class="card empty">加载中...</div>
 
+    <!-- 加载失败提示（接口异常时不白屏） -->
+    <div v-if="loadError" class="card empty load-error">
+      ⚠️ 数据加载失败：{{ loadError }}
+      <button class="retry-btn" @click="load">重试</button>
+    </div>
+
     <!-- VIEW 1: Grouped -->
     <template v-if="viewMode === 'grouped'">
       <!-- By Status -->
@@ -617,6 +623,7 @@ const canWrite = auth.canWrite
 
 const stocks = shallowRef([])
 const loading = ref(false)
+const loadError = ref('')
 const lastRefresh = ref(null)
 const viewMode = ref('grouped')
 const filterSector = ref('')
@@ -784,6 +791,7 @@ const holdingsMap = ref({})
 
 async function load() {
   loading.value = true
+  loadError.value = ''
   try {
     console.log('[Dashboard] Loading...')
     const [data, hList] = await Promise.all([
@@ -817,6 +825,7 @@ async function load() {
     }
   } catch (e) {
     console.error(e)
+    loadError.value = e?.response?.data?.detail || e?.message || '网络错误'
   } finally {
     loading.value = false
     if (!restoredScroll) {
@@ -1422,6 +1431,8 @@ onUnmounted(stopAutoRefresh)
 .dim-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 
 .empty { text-align: center; padding: 40px; color: #64748b; }
+.load-error { color: #b91c1c; }
+.retry-btn { margin-left: 12px; padding: 4px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; }
 
 /* Mobile */
 @media (max-width: 768px) {
