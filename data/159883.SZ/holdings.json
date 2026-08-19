@@ -21,6 +21,50 @@
       "note": "",
       "idempotent_key": "2026-01-13_14:16:11_0.551_3900_buy",
       "id": "t_d39b3795"
+    },
+    {
+      "date": "2026-07-23",
+      "time": "10:15:33",
+      "type": "buy",
+      "price": 0.427,
+      "quantity": 10000,
+      "fee": 5.0,
+      "note": "截图录入",
+      "idempotent_key": "2026-07-23_10:15:33_0.427_10000_buy",
+      "id": "t_408ef20a"
+    },
+    {
+      "date": "2026-08-18",
+      "time": "10:23:30",
+      "type": "sell",
+      "price": 0.446,
+      "quantity": 600,
+      "fee": 5.0,
+      "note": "截图录入",
+      "idempotent_key": "2026-08-18_10:23:30_0.446_600_sell",
+      "id": "t_71086a20"
+    },
+    {
+      "date": "2026-08-18",
+      "time": "10:23:30",
+      "type": "sell",
+      "price": 0.446,
+      "quantity": 6700,
+      "fee": 5.0,
+      "note": "截图录入",
+      "idempotent_key": "2026-08-18_10:23:30_0.446_6700_sell",
+      "id": "t_290cdb42"
+    },
+    {
+      "date": "2026-08-18",
+      "time": "10:23:30",
+      "type": "sell",
+      "price": 0.446,
+      "quantity": 2700,
+      "fee": 5.0,
+      "note": "截图录入",
+      "idempotent_key": "2026-08-18_10:23:30_0.446_2700_sell",
+      "id": "t_eeeb06bf"
     }
   ],
   "adj_events": [],
@@ -28,17 +72,60 @@
     "total_quantity": 11100,
     "avg_cost": 0.543,
     "total_cost": 6022.5,
-    "realized_pnl": 0.0,
+    "realized_pnl": 190.0,
     "open_short": 0,
     "last_trade": {
-      "date": "2026-01-13",
-      "time": "14:16:11",
-      "type": "buy",
-      "price": 0.551,
-      "quantity": 3900
+      "date": "2026-08-18",
+      "time": "10:23:30",
+      "type": "sell",
+      "price": 0.446,
+      "quantity": 2700
     },
-    "last_buy_price": 0.551,
-    "last_sell_price": null
+    "last_buy_price": 0.427,
+    "last_sell_price": 0.446
   },
-  "t_trades": []
+  "t_trades": [
+    {
+      "id": "tt_c9cf333e",
+      "type": "正T(跨天)",
+      "buy_date": "2026-07-23",
+      "buy_time": "10:15:33",
+      "buy_price": 0.427,
+      "sell_date": "2026-08-18",
+      "sell_time": "10:23:30",
+      "sell_price": 0.446,
+      "quantity": 600,
+      "profit": 11.4,
+      "buy_trade_id": "t_408ef20a",
+      "sell_trade_id": "t_71086a20"
+    },
+    {
+      "id": "tt_5fba72d8",
+      "type": "正T(跨天)",
+      "buy_date": "2026-07-23",
+      "buy_time": "10:15:33",
+      "buy_price": 0.427,
+      "sell_date": "2026-08-18",
+      "sell_time": "10:23:30",
+      "sell_price": 0.446,
+      "quantity": 6700,
+      "profit": 127.3,
+      "buy_trade_id": "t_408ef20a",
+      "sell_trade_id": "t_290cdb42"
+    },
+    {
+      "id": "tt_79a1892b",
+      "type": "正T(跨天)",
+      "buy_date": "2026-07-23",
+      "buy_time": "10:15:33",
+      "buy_price": 0.427,
+      "sell_date": "2026-08-18",
+      "sell_time": "10:23:30",
+      "sell_price": 0.446,
+      "quantity": 2700,
+      "profit": 51.3,
+      "buy_trade_id": "t_408ef20a",
+      "sell_trade_id": "t_eeeb06bf"
+    }
+  ]
 }

@@ -42,9 +42,10 @@
   },
   "t_trades": [
     {
-      "id": "tt_de30996c",
-      "type": "底仓卖出",
+      "id": "tt_c9ff14a8",
+      "type": "正T(跨天)",
       "buy_date": "2026-05-28",
+      "buy_time": "10:41:07",
       "buy_price": 57.03,
       "sell_date": "2026-07-17",
       "sell_time": "13:38:32",

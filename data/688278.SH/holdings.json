@@ -36,13 +36,16 @@
       "type": "sell",
       "price": 58.26,
       "quantity": 47
-    }
+    },
+    "last_buy_price": 54.71,
+    "last_sell_price": 58.26
   },
   "t_trades": [
     {
-      "id": "tt_9a423dca",
-      "type": "底仓卖出",
+      "id": "tt_f7157bea",
+      "type": "正T(跨天)",
       "buy_date": "2026-07-01",
+      "buy_time": "10:35:51",
       "buy_price": 54.71,
       "sell_date": "2026-07-03",
       "sell_time": "09:36:04",

@@ -10,22 +10,50 @@
       "note": "",
       "idempotent_key": "2026-07-21_09:37:50_14.380_200_buy",
       "id": "t_08aff37f"
+    },
+    {
+      "date": "2026-08-18",
+      "time": "10:13:24",
+      "type": "sell",
+      "price": 19.43,
+      "quantity": 200,
+      "fee": 5.0,
+      "note": "截图录入",
+      "idempotent_key": "2026-08-18_10:13:24_19.430_200_sell",
+      "id": "t_dac4bf14"
     }
   ],
-  "t_trades": [],
+  "t_trades": [
+    {
+      "id": "tt_1bff492c",
+      "type": "正T(跨天)",
+      "buy_date": "2026-07-21",
+      "buy_time": "09:37:50",
+      "buy_price": 14.38,
+      "sell_date": "2026-08-18",
+      "sell_time": "10:13:24",
+      "sell_price": 19.43,
+      "quantity": 200,
+      "profit": 1010.0,
+      "buy_trade_id": "t_08aff37f",
+      "sell_trade_id": "t_dac4bf14"
+    }
+  ],
   "adj_events": [],
   "summary": {
-    "total_quantity": 200,
-    "avg_cost": 14.38,
-    "total_cost": 2876.0,
-    "realized_pnl": 0.0,
+    "total_quantity": 0,
+    "avg_cost": 0,
+    "total_cost": 0.0,
+    "realized_pnl": 1010.0,
     "open_short": 0,
     "last_trade": {
-      "date": "2026-07-21",
-      "time": "09:37:50",
-      "type": "buy",
-      "price": 14.38,
+      "date": "2026-08-18",
+      "time": "10:13:24",
+      "type": "sell",
+      "price": 19.43,
       "quantity": 200
-    }
+    },
+    "last_buy_price": 14.38,
+    "last_sell_price": 19.43
   }
 }

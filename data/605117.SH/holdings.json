@@ -25,7 +25,9 @@
       "type": "buy",
       "price": 95.31,
       "quantity": 100
-    }
+    },
+    "last_buy_price": 95.31,
+    "last_sell_price": null
   },
   "t_trades": []
 }

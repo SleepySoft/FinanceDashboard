@@ -42,9 +42,10 @@
   },
   "t_trades": [
     {
-      "id": "tt_88ac497d",
-      "type": "底仓卖出",
+      "id": "tt_a3bcb8a8",
+      "type": "正T(跨天)",
       "buy_date": "2025-08-19",
+      "buy_time": "09:30:00",
       "buy_price": 25.63,
       "sell_date": "2026-01-13",
       "sell_time": "14:15:07",

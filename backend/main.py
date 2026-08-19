@@ -1496,12 +1496,11 @@ def _rebuild_holdings(data: dict) -> dict:
 
             # Step 1: 日内LIFO匹配 — 同一天内，先买后卖
             if sell_qty > 0:
-                # 找同一天、时间更早、remaining > 0 的买入，按时间倒序（LIFO）
                 same_day_buys = [
                     (i, p) for i, p in enumerate(positions)
                     if p["buy_date"] == sell_date and p["remaining"] > 0 and p["buy_time"] < sell_time
                 ]
-                same_day_buys.sort(key=lambda x: x[1]["buy_time"], reverse=True)  # 时间倒序 = LIFO
+                same_day_buys.sort(key=lambda x: x[1]["buy_time"], reverse=True)
 
                 for idx, pos in same_day_buys:
                     if sell_qty <= 0:
@@ -1524,7 +1523,36 @@ def _rebuild_holdings(data: dict) -> dict:
                         "sell_trade_id": trade_id,
                     })
 
-            # Step 2: 跨天/底仓FIFO匹配
+            # Step 1.5: 跨天最近批次优先 — 做T卖出日期最近的买入（非同日）
+            if sell_qty > 0:
+                recent_buys = [
+                    (i, p) for i, p in enumerate(positions)
+                    if p["buy_date"] != sell_date and p["remaining"] > 0
+                ]
+                recent_buys.sort(key=lambda x: x[1]["buy_date"], reverse=True)
+
+                for idx, pos in recent_buys:
+                    if sell_qty <= 0:
+                        break
+                    match_qty = min(sell_qty, pos["remaining"])
+                    pos["remaining"] -= match_qty
+                    sell_qty -= match_qty
+
+                    profit = match_qty * (sell_price - pos["price"])
+                    realized_pnl += profit
+
+                    t_trades.append({
+                        "id": f"tt_{uuid.uuid4().hex[:8]}",
+                        "type": "正T(跨天)",
+                        "buy_date": pos["buy_date"], "buy_time": pos["buy_time"], "buy_price": pos["price"],
+                        "sell_date": sell_date, "sell_time": sell_time, "sell_price": sell_price,
+                        "quantity": match_qty,
+                        "profit": round(profit, 2),
+                        "buy_trade_id": pos["from_trade"],
+                        "sell_trade_id": trade_id,
+                    })
+
+            # Step 2: 底仓FIFO匹配（剩余部分）
             if sell_qty > 0:
                 for pos in positions:
                     if sell_qty <= 0:
@@ -1538,8 +1566,6 @@ def _rebuild_holdings(data: dict) -> dict:
                     profit = match_qty * (sell_price - pos["price"])
                     realized_pnl += profit
 
-                    # 判断是否是正T（虽然是FIFO，但如果是同一天且时间合理，已经在上面处理了）
-                    # 这里主要是底仓卖出
                     t_trades.append({
                         "id": f"tt_{uuid.uuid4().hex[:8]}",
                         "type": "底仓卖出",
@@ -1550,8 +1576,6 @@ def _rebuild_holdings(data: dict) -> dict:
                         "buy_trade_id": pos["from_trade"],
                         "sell_trade_id": trade_id,
                     })
-
-            # 如果还有剩余卖出量 → 超卖/反T
             if sell_qty > 0:
                 # 记录为融券/反T
                 t_trades.append({
