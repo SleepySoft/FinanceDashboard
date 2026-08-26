@@ -1,0 +1,16 @@
+{
+  "code": "300122.SZ",
+  "name": "智飞生物",
+  "sector": "生物医药",
+  "added_at": "2026-08-26T02:13:30.105773+00:00",
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "red",
+    "valuation": "yellow",
+    "timing": "yellow",
+    "risk": "red",
+    "verdict": "yellow"
+  },
+  "status": "waiting"
+}

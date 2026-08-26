@@ -1,0 +1,24 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "red",
+    "valuation": "yellow",
+    "timing": "yellow",
+    "risk": "red",
+    "verdict": "yellow"
+  },
+  "status": "waiting",
+  "price_marks": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {
+      "last": "2026-08-26",
+      "valid_until": "20261126"
+    },
+    "technical": {
+      "last": "2026-08-26",
+      "valid_until": "20260902"
+    }
+  }
+}

@@ -641,22 +641,29 @@
   },
   "600330.SH": {
     "name": "天通股份",
+    "report_count": 0,
+    "last_analysis": null,
+    "reports": [],
+    "updated_at": "2026-08-19T14:43:49.397286+00:00"
+  },
+  "300122.SZ": {
+    "name": "智飞生物",
     "report_count": 2,
-    "last_analysis": "2026-08-14",
+    "last_analysis": "2026-08-26",
     "reports": [
       {
-        "id": "fundamental_20260814",
-        "filename": "fundamental_20260814.md",
+        "id": "fundamental_20260826",
+        "filename": "fundamental_20260826.md",
         "type": "fundamental",
-        "created_at": "2026-08-14"
+        "created_at": "2026-08-26"
       },
       {
-        "id": "technical_20260814",
-        "filename": "technical_20260814.md",
+        "id": "technical_20260826",
+        "filename": "technical_20260826.md",
         "type": "technical",
-        "created_at": "2026-08-14"
+        "created_at": "2026-08-26"
       }
     ],
-    "updated_at": "2026-08-14T03:05:16.940003+00:00"
+    "updated_at": "2026-08-26T02:20:33.582421+00:00"
   }
 }
