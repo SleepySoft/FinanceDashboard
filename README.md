@@ -95,20 +95,22 @@ curl -H "X-API-Key: $TOKEN" http://localhost:8010/api/agent/tasks
 
 ## 快速开始
 
-### Linux / macOS
+### Linux / macOS 开发
 
 ```bash
 # 构建前端（如有代码改动）
 cd frontend
 npm run build
 
-# 启动后端（同时 serve API + 前端静态文件）
+# 启动开发后端
 cd backend
 source venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 80
+uvicorn main:app --host 127.0.0.1 --port 8010 --reload
 ```
 
-Linux 生产服务器使用 systemd 管理后端。首次部署或服务配置更新后执行：
+### Linux 生产部署
+
+生产服务器使用 systemd 管理后端。首次部署或服务配置更新后执行：
 
 ```bash
 cd /root/data/FinanceDashboard
@@ -123,6 +125,10 @@ sudo ./scripts/install_systemd_service.sh
 systemctl status financedashboard
 journalctl -u financedashboard -f
 ```
+
+当前公网通过另一台 Tailscale 主机反向代理发布，应用主机 Nginx 将 `/api/`
+转发到 `127.0.0.1:8010`。完整拓扑、前端发布、更新和 502 排查步骤见
+[Linux 生产部署](docs/linux-deployment.md)。
 
 ### Windows
 

@@ -192,24 +192,25 @@ Holdings stored in `data/{code}/holdings.json`:
 
 ## Deployment
 
-### Current Deployment (Single VM)
+### Current Deployment
 
 ```
-Tencent Cloud VM (VM-47-161-ubuntu)
-├── Port 80  → Uvicorn (FastAPI + StaticFiles, 同时 serve API 和前端)
-└── Port 22  → SSH
+Internet → public Nginx → Tailscale → application Nginx :80
+                                      ├── /api/* → Uvicorn 127.0.0.1:8010
+                                      └── /*     → Vue static files
 ```
 
 **Start:**
 ```bash
-cd /root/data/FinanceDashboard/backend
-source venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 80
+cd /root/data/FinanceDashboard
+sudo ./scripts/install_systemd_service.sh
 ```
 
 - 前端代码改动后需要重新构建：`cd frontend && npm run build`
-- 后端使用 `StaticFiles(directory="../frontend/dist", html=True)` 直接 serve 前端
-- 已移除 Nginx，不再使用 Vite dev server 或双端口架构
+- systemd 单元为 `financedashboard.service`，生产模式禁止 `--reload`
+- 后端仅监听 `127.0.0.1:8010`；应用主机 Nginx 的 `/api/` 必须反代到该端口
+- 公网入口位于另一台 Tailscale 主机，发布地址为 `https://www.sleepysoft.dev/dashboard/`
+- 完整部署说明见 `docs/linux-deployment.md`
 
 ### Data Persistence
 

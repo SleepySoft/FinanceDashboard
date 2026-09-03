@@ -13,16 +13,25 @@ This file captures the living state of the project so any AI (or future-you) can
 ## Architecture
 
 ```
-Uvicorn (FastAPI + StaticFiles)          Data (File-based)
-    Port 80  ──────────────────────►    /root/data/FinanceDashboard/data/
-            ├── /api/auth/* → 登录/会话/权限配置（backend/auth.py）
-            ├── /api/*      → FastAPI routes（全局读/写权限控制）
-            └── /*      → Vue3 SPA (frontend/dist)
+Internet: https://www.sleepysoft.dev/dashboard/
+  │
+  ▼
+公网入口 Nginx（经 Tailscale 反代）
+  │
+  ▼
+应用主机 100.105.210.96:80（Nginx）
+  ├── /api/* → 127.0.0.1:8010（systemd + Uvicorn + FastAPI）
+  └── /*     → /var/www/financedashboard（Vue3 静态文件）
+                │
+                ▼
+          /root/data/FinanceDashboard/data/
 ```
 
 | Layer | Tech | Port | Notes |
 |-------|------|------|-------|
-| App Server | Uvicorn + FastAPI + StaticFiles | 80 | 同时 serve API 和前端静态文件 |
+| Public Gateway | Nginx on remote Tailscale host | 443 | 发布 `/dashboard/`，API 仍使用 `/api/*` |
+| App Gateway | Nginx | 80 | 静态文件 + `/api/` 反代 |
+| App Server | systemd + Uvicorn + FastAPI | 127.0.0.1:8010 | 单元 `financedashboard.service`，禁止生产使用 `--reload` |
 | Data | JSON + Markdown | — | One dir per stock, `_dashboard.json` for prices |
 | Auth | backend/auth.py（stdlib，无新依赖） | — | PBKDF2 密码哈希 + 文件会话 + 权限配置 |
 | Gateway | OpenClaw | 18789 | localhost only, not exposed |
@@ -170,7 +179,7 @@ start_all.bat      :: 启动后端(8010) + 前端(默认80，可传端口参数)
 stop_all.bat       :: 停止前后端（含 --reload 派生的 worker 进程）
 restart_all.bat    :: 重启（可传前端端口参数，如 restart_all.bat 5173）
 ```
-> 说明：本机 8000 端口曾被其他项目占用，本地开发后端统一改用 8010；生产环境仍是 80。
+> 说明：本机 8000 端口曾被其他项目占用，开发和生产后端统一使用 8010；生产入口 80 端口由 Nginx 监听。
 单独启动：
 ```cmd
 cd backend && start.bat
@@ -182,6 +191,8 @@ cd frontend && build.bat
 cd backend && start_production.bat
 ```
 详见 [docs/windows-setup.md](docs/windows-setup.md)。
+
+Linux 生产拓扑、发布和故障排查详见 [docs/linux-deployment.md](docs/linux-deployment.md)。
 
 ### Dependency Files
 - 后端：`backend/requirements.txt`（FastAPI + Uvicorn + Pydantic）
