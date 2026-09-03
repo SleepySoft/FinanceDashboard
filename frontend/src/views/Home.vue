@@ -8,6 +8,10 @@
     <div v-if="!canWrite" class="readonly-banner card">
       当前为只读模式，登录后即可提交分析请求。
     </div>
+    <div v-if="loadError" class="card empty load-error">
+      数据加载不完整：{{ loadError }}
+      <button class="ghost" @click="load">重试</button>
+    </div>
 
     <div v-if="showAdd" class="add-form card">
       <h3>提交分析请求</h3>
@@ -134,6 +138,7 @@ import auth from '../composables/useAuth.js'
 
 const requests = ref([])
 const stocks = ref([])
+const loadError = ref('')
 const canWrite = auth.canWrite
 const showAdd = ref(false)
 const newCode = ref('')
@@ -148,8 +153,25 @@ const failed = computed(() => requests.value.filter(r => r.status === 'failed'))
 const failedCount = computed(() => failed.value.length)
 
 async function load() {
-  requests.value = await api.requests.list()
-  stocks.value = await api.stocks.list()
+  loadError.value = ''
+  const [requestResult, stockResult] = await Promise.allSettled([
+    api.requests.list(),
+    api.stocks.list(),
+  ])
+  const errors = []
+  if (requestResult.status === 'fulfilled' && Array.isArray(requestResult.value)) {
+    requests.value = requestResult.value
+  } else {
+    requests.value = []
+    errors.push('请求池')
+  }
+  if (stockResult.status === 'fulfilled' && Array.isArray(stockResult.value)) {
+    stocks.value = stockResult.value
+  } else {
+    stocks.value = []
+    errors.push('股票列表')
+  }
+  if (errors.length) loadError.value = `${errors.join('、')}暂不可用`
 }
 
 const newType = ref('full')

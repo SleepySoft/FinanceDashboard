@@ -81,19 +81,32 @@ def load_providers() -> dict:
         try:
             with open(PROVIDERS_FILE, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
-            if cfg.get("providers"):
-                return cfg
-        except Exception:
-            pass
+            if not isinstance(cfg, dict):
+                raise TypeError("root must be an object")
+            providers = []
+            for provider in cfg.get("providers", []):
+                if not isinstance(provider, dict) or not isinstance(provider.get("id"), str):
+                    continue
+                links = provider.get("links")
+                if not isinstance(links, dict):
+                    continue
+                provider = {**provider, "links": {key: value for key, value in links.items() if isinstance(key, str) and isinstance(value, str)}}
+                providers.append(provider)
+            if providers:
+                return {**cfg, "providers": providers}
+        except Exception as exc:
+            print(f"[data-guard] 读取 {PROVIDERS_FILE} 失败: {type(exc).__name__}: {exc}")
     save_providers(DEFAULT_CONFIG)
     return json.loads(json.dumps(DEFAULT_CONFIG))
 
 
 def save_providers(cfg: dict):
     os.makedirs(DATA_DIR, exist_ok=True)
-    with open(PROVIDERS_FILE, "w", encoding="utf-8") as f:
+    tmp = PROVIDERS_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)
         f.write("\n")
+    os.replace(tmp, PROVIDERS_FILE)
 
 
 def symbol_vars(code: str) -> Dict[str, str]:

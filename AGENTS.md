@@ -66,9 +66,10 @@ data/
    - 写入统一走 `_atomic_json_dump()`（临时文件 + `os.replace`，杜绝写盘半截留下坏 JSON；`auth.py:_save_json` 同样原子写）；
    - `/api/dashboard`、`/api/stocks`、`/api/holdings` 逐个股票隔离：单股数据异常只跳过该股票；
    - `_scan_reports` 对文件名日期段做校验，非法日期 `created_at` 置空，`id` 直接用文件名主干；
+  - 注册子系统同样隔离坏文件：异动与交易网站配置使用安全读取和原子写，回测策略元数据/记录使用项目相对路径、类型校验和原子写；
    - FastAPI 全局 `exception_handler` 把未处理异常转为结构化 500 JSON 并打印堆栈；
-   - 前端主页加载失败显示错误横幅 + 重试按钮，不再白屏；
-   - 回归测试脚本：`scripts/fault_injection_test.ps1`（注入坏文件验证接口仍 200，自动恢复数据）。
+  - 前端主页、请求池和持仓页加载失败显示错误横幅 + 重试按钮；股票面板对笔记、持仓、供应商等附属接口逐项降级，不再因单项失败白屏；
+  - 回归测试脚本：`scripts/fault_injection_test.ps1`（仓库相对路径，注入坏 JSON、错误字段类型、非 UTF-8 notes 和异常报告名，验证接口仍 200 并自动恢复数据）；`frontend/tests/smoke.mjs` 同时模拟附属接口返回损坏 JSON。
 
 ## 登录与权限（2026-08-11 新增）
 

@@ -11,7 +11,7 @@ class StrategyRegistry:
 
     def __init__(self, custom_dir: str = None):
         self.strategies = {}  # {strategy_id: StrategyClass}
-        self.custom_dir = custom_dir or '/root/data/FinanceDashboard/backend/strategy/custom'
+        self.custom_dir = custom_dir or str(Path(__file__).resolve().parent / "custom")
         self._load_builtin()
         self._load_custom()
 

@@ -436,7 +436,11 @@ def _load_briefs(code: str) -> list:
     path = _briefs_path(code)
     if not os.path.exists(path):
         return []
-    return _safe_json_load(path, [])
+    briefs = _safe_json_load(path, [])
+    valid = [brief for brief in briefs if isinstance(brief, dict)]
+    if len(valid) != len(briefs):
+        print(f"[data-guard] {code}/briefs.json 跳过 {len(briefs) - len(valid)} 条非法记录")
+    return valid
 
 def _save_briefs(code: str, briefs: list):
     path = _briefs_path(code)
@@ -536,17 +540,17 @@ def _load_meta(code: str) -> dict:
     if not isinstance(merged.get("tags"), dict):
         merged["tags"] = {}
 
-    # Ensure notes is always a list
-    if "notes" in merged and isinstance(merged["notes"], str):
+    # Ensure collection/object fields always match downstream expectations.
+    if not isinstance(merged.get("notes"), list):
         merged["notes"] = []
-    merged.setdefault("notes", [])
+    if not isinstance(merged.get("holdings"), dict):
+        merged["holdings"] = {}
+    if not isinstance(merged.get("price_marks"), list):
+        merged["price_marks"] = []
 
     # Common optional fields that downstream expects
     merged.setdefault("status", "unassessed")
     merged.setdefault("sector", "")
-    merged.setdefault("holdings", {})
-    merged.setdefault("price_marks", [])
-
     return merged
 
 
@@ -669,7 +673,16 @@ def _normalize_dimensions(meta: dict) -> dict:
 def _load_tasks() -> list:
     if not os.path.exists(TASKS_FILE):
         return []
-    return _safe_json_load(TASKS_FILE, [])
+    tasks = _safe_json_load(TASKS_FILE, [])
+    valid = [
+        task for task in tasks
+        if isinstance(task, dict)
+        and isinstance(task.get("id"), str)
+        and isinstance(task.get("status"), str)
+    ]
+    if len(valid) != len(tasks):
+        print(f"[data-guard] _tasks.json 跳过 {len(tasks) - len(valid)} 条非法记录")
+    return valid
 
 def _save_tasks(tasks: list):
     _atomic_json_dump(TASKS_FILE, tasks)
@@ -680,6 +693,12 @@ def _load_dashboard() -> dict:
     dashboard = _safe_json_load(DASHBOARD_FILE, {"prices": {}, "last_update": None})
     if not isinstance(dashboard.get("prices"), dict):
         dashboard["prices"] = {}
+    else:
+        dashboard["prices"] = {
+            code: price
+            for code, price in dashboard["prices"].items()
+            if isinstance(code, str) and isinstance(price, dict)
+        }
     return dashboard
 
 def _fetch_stock_name(code: str) -> str:
@@ -1154,7 +1173,7 @@ def get_notes(code: str):
     path = _notes_path(code)
     if not os.path.exists(path):
         return {"notes": []}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
     entries = []
     current = {"time": None, "lines": []}
@@ -1194,7 +1213,7 @@ def delete_note(code: str, note_time: str):
     path = _notes_path(code)
     if not os.path.exists(path):
         raise HTTPException(404, "Note not found")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
     # Rebuild file without entries matching note_time
     blocks = []
@@ -1483,7 +1502,16 @@ def _load_holdings(code: str) -> dict:
     p = _holdings_path(code)
     if not os.path.exists(p):
         return {"trades": [], "t_trades": [], "adj_events": [], "summary": {}}
-    return _safe_json_load(p, {"trades": [], "t_trades": [], "adj_events": [], "summary": {}})
+    data = _safe_json_load(p, {"trades": [], "t_trades": [], "adj_events": [], "summary": {}})
+    for key in ("trades", "t_trades", "adj_events"):
+        values = data.get(key)
+        if not isinstance(values, list):
+            data[key] = []
+            continue
+        data[key] = [value for value in values if isinstance(value, dict)]
+    if not isinstance(data.get("summary"), dict):
+        data["summary"] = {}
+    return data
 
 def _save_holdings(code: str, data: dict):
     p = _holdings_path(code)

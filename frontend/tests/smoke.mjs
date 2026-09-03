@@ -108,6 +108,47 @@ async function assertDashboard(page, data) {
   if (rows === 0) throw new Error('切换列表视图后无数据行——响应式更新失效')
 }
 
+async function assertStockModal(page, canWrite) {
+  const firstRow = page.locator('table tbody tr').first()
+  const stockCode = await firstRow.locator('.cell-code').textContent()
+  await page.route('**/api/stocks/*/notes', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: '{broken json',
+  }))
+  await firstRow.click()
+  await page.waitForSelector('.modal-content', { timeout: 10000 })
+
+  const editAreaCount = await page.locator('.modal-content .timeline-note-input').count()
+  if ((editAreaCount > 0) !== canWrite) {
+    throw new Error(canWrite ? '登录后股票弹窗仍为只读' : '匿名只读模式暴露了编辑控件')
+  }
+  if (!page.url().includes(`stock=${encodeURIComponent(stockCode)}`)) {
+    throw new Error('股票弹窗未同步到 URL，刷新后将无法恢复')
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  const savedScroll = await page.locator('.modal-body').evaluate(element => {
+    element.scrollTop = Math.min(300, element.scrollHeight - element.clientHeight)
+    element.dispatchEvent(new Event('scroll'))
+    return element.scrollTop
+  })
+  await page.waitForTimeout(300)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.modal-content', { timeout: 15000 })
+
+  if (savedScroll > 0) {
+    await page.waitForFunction(
+      expected => globalThis.document.querySelector('.modal-body')?.scrollTop >= expected - 5,
+      savedScroll,
+      { timeout: 10000 },
+    )
+  }
+  const restoredCode = await page.locator('.modal-code').textContent()
+  if (restoredCode !== stockCode) throw new Error('手机尺寸刷新后恢复到了错误的股票弹窗')
+  log(`股票弹窗权限与移动端恢复通过: ${stockCode}`)
+}
+
 async function main() {
   await ensureServers()
 
@@ -125,6 +166,7 @@ async function main() {
     const needsLogin = !cfg.allow_anonymous_read
     log(needsLogin ? '未登录访问被锁定，走 UI 登录流程' : '未登录只读模式，直接进入看板')
 
+    let canWrite = false
     if (needsLogin) {
       const dashboardResponse = page.waitForResponse(
         res => res.url().includes('/api/dashboard') && res.ok(),
@@ -152,6 +194,7 @@ async function main() {
       }
       const data = await res.json()
       await assertDashboard(page, data)
+      canWrite = true
     } else {
       log(`打开 ${FRONTEND_URL}/#/`)
       const dashboardResponse = page.waitForResponse(
@@ -163,6 +206,8 @@ async function main() {
       const data = await res.json()
       await assertDashboard(page, data)
     }
+
+    await assertStockModal(page, canWrite)
 
     if (pageErrors.length > 0) {
       throw new Error(`页面存在 JS 错误:\n${pageErrors.join('\n')}`)

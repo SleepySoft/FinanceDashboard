@@ -1,5 +1,9 @@
 <template>
   <div class="stock-panel">
+    <div v-if="loadError" class="card empty">
+      数据加载失败：{{ loadError }}
+      <button class="ghost" @click="load">重试</button>
+    </div>
     <!-- Header -->
     <div v-if="!embedded" class="panel-header card">
       <div class="title-row compact">
@@ -59,6 +63,21 @@
         <span :class="['verdict-badge', 'verdict-' + (meta.dimensions?.verdict || meta.overall)]">
           {{ verdictLabel }}
         </span>
+      </div>
+      <div v-if="!readonly" class="actions">
+        <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
+          <option value="tracking">🔭 跟踪中</option>
+          <option value="bullish">看好</option>
+          <option value="neutral">观望</option>
+          <option value="waiting">伺机</option>
+          <option value="avoid">回避</option>
+          <option value="no_interest">无兴趣</option>
+          <option value="blacklist">黑名单</option>
+          <option value="archive">📁 归档</option>
+        </select>
+        <button :class="['tag-toggle', { active: tagForm.watchlist }]" @click="toggleWatchlist">
+          {{ tagForm.watchlist ? '已关注' : '关注' }}
+        </button>
       </div>
       <div v-if="providerOptions.length" class="provider-jump">
         <select v-model="selectedProvider" class="pj-select" title="选择数据网站">
@@ -286,12 +305,13 @@ const props = defineProps({
 const emit = defineEmits(['loaded'])
 const route = useRoute()
 const router = useRouter()
-// 仅在完整详情页（非弹窗只读模式）保存会话状态
+// 独立详情页额外把展开项同步到 URL；弹窗只使用会话状态，避免覆盖看板 query。
 const isStandalone = !props.embedded
 
 const meta = ref({ cache: { fundamental: {}, technical: {} }, price_marks: [], reports: [] })
 const notes = ref([])
 const analyzing = ref({ fundamental: false, technical: false })
+const loadError = ref('')
 
 const fundamentalContent = ref('')
 const technicalContent = ref('')
@@ -412,7 +432,18 @@ function statusLabel(status) {
 }
 
 async function load() {
-  const data = await api.stocks.get(props.code)
+  loadError.value = ''
+  let data
+  try {
+    data = await api.stocks.get(props.code)
+    if (!data || Array.isArray(data) || typeof data !== 'object') {
+      throw new Error('股票详情响应格式错误')
+    }
+  } catch (error) {
+    loadError.value = error.message || '无法加载股票详情'
+    emit('loaded')
+    return
+  }
   meta.value = data
   await loadProviders()
   tagForm.value = { watchlist: data.tags?.watchlist || false }
@@ -423,8 +454,12 @@ async function load() {
     meta.value.tags.unread = false
     api.stocks.updateTags(props.code, { unread: false }).catch(() => {})
   }
-  const n = await api.stocks.getNotes(props.code)
-  notes.value = n.notes
+  try {
+    const noteData = await api.stocks.getNotes(props.code)
+    notes.value = Array.isArray(noteData?.notes) ? noteData.notes : []
+  } catch {
+    notes.value = []
+  }
   // Load holdings
   try {
     const h = await api.holdings.get(props.code)
@@ -438,7 +473,7 @@ async function load() {
   }
   await loadLatestFundamental()
   await loadLatestTechnical()
-  if (isStandalone) emit('loaded')
+  emit('loaded')
 }
 
 // Timeline report functions
@@ -754,10 +789,9 @@ function panelKey(name) {
 }
 
 function restorePanelState() {
-  if (!isStandalone) return
   newNote.value = readState(panelKey('note'), '')
   newMark.value = readState(panelKey('mark'), { label: '', price: null, type: 'mark' })
-  const urlOpen = typeof route.query.open === 'string' ? route.query.open : ''
+  const urlOpen = isStandalone && typeof route.query.open === 'string' ? route.query.open : ''
   const savedExpanded = readState(panelKey('expanded'), null)
   expandedTimelineId.value = urlOpen || savedExpanded
   if (expandedTimelineId.value && expandedTimelineId.value.startsWith('report-')) {
@@ -768,15 +802,14 @@ function restorePanelState() {
 }
 
 function persistPanelState() {
-  if (!isStandalone) return
   writeState(panelKey('note'), newNote.value)
   writeState(panelKey('mark'), newMark.value)
   writeState(panelKey('expanded'), expandedTimelineId.value)
   writeState(panelKey('holdings'), showHoldings.value)
 }
 
+watch([newNote, newMark, expandedTimelineId, showHoldings], persistPanelState, { deep: true })
 if (isStandalone) {
-  watch([newNote, newMark, expandedTimelineId, showHoldings], persistPanelState, { deep: true })
   // 阅读位置写入 URL（?open=...），刷新/分享后可直达同一条目
   watch(expandedTimelineId, (v) => {
     router.replace({ query: v ? { open: v } : {} })

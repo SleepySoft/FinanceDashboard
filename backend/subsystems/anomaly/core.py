@@ -841,17 +841,26 @@ def load_anomalies() -> Dict:
     if os.path.exists(ANOMALY_FILE):
         try:
             with open(ANOMALY_FILE, "r", encoding="utf-8") as f:
-                return _sanitize_json(json.load(f))
-        except:
-            pass
+                data = _sanitize_json(json.load(f))
+            if not isinstance(data, dict):
+                raise TypeError("root must be an object")
+            for key in ("daily", "weekly"):
+                if not isinstance(data.get(key), dict):
+                    data[key] = {}
+            data.setdefault("last_scan", None)
+            return data
+        except Exception as exc:
+            print(f"[data-guard] 读取 {ANOMALY_FILE} 失败: {type(exc).__name__}: {exc}")
     return {"daily": {}, "weekly": {}, "last_scan": None}
 
 
 def save_anomalies(data: Dict):
     """保存异动记录"""
     os.makedirs(os.path.dirname(ANOMALY_FILE), exist_ok=True)
-    with open(ANOMALY_FILE, "w", encoding="utf-8") as f:
+    tmp = ANOMALY_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, ANOMALY_FILE)
 
 
 def add_daily_anomalies(

@@ -764,6 +764,7 @@ function syncUrlState() {
   const q = { view: viewMode.value, group: groupMode.value }
   if (filterWatchlist.value) q.watchlist = '1'
   if (filterHoldings.value) q.holdings = '1'
+  if (showModal.value && selectedStock.value?.code) q.stock = selectedStock.value.code
   router.replace({ query: q })
   writeState('dash:context', {
     view: viewMode.value,
@@ -798,14 +799,25 @@ async function load() {
       api.dashboard.get(),
       api.holdings.list().catch(() => [])
     ])
+    if (!data || !Array.isArray(data.stocks)) {
+      throw new Error('看板响应格式错误')
+    }
     console.log('[Dashboard] API returned', data.stocks?.length || 0, 'stocks')
     console.log('[Dashboard] data type:', typeof data, 'isArray:', Array.isArray(data), 'keys:', Object.keys(data || {}))
     console.log('[Dashboard] data.stocks type:', typeof data.stocks, 'isArray:', Array.isArray(data.stocks), 'length:', data.stocks?.length)
-    stocks.value = data.stocks || []
+    stocks.value = data.stocks
     lastRefresh.value = data.price_data_time || data.last_update
+    const requestedStock = typeof route.query.stock === 'string' ? route.query.stock : ''
+    if (requestedStock) {
+      const stock = stocks.value.find(s => s.code === requestedStock)
+      if (stock) {
+        selectedStock.value = stock
+        showModal.value = true
+      }
+    }
     // Build holdings map
     const map = {}
-    for (const h of hList) {
+    for (const h of Array.isArray(hList) ? hList : []) {
       map[h.code] = h
     }
     holdingsMap.value = map
@@ -860,6 +872,7 @@ function openStock(code) {
   if (stock) {
     selectedStock.value = stock
     showModal.value = true
+    syncUrlState()
   }
 }
 
@@ -887,6 +900,7 @@ function closeModal() {
   if (selectedStock.value?.tags) selectedStock.value.tags.unread = false
   showModal.value = false
   selectedStock.value = null
+  syncUrlState()
 }
 
 // ── Trade Entry ──

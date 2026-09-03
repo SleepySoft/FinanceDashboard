@@ -9,21 +9,18 @@
         </div>
         <button class="modal-close" @click="close">✕</button>
       </div>
-      <div class="modal-body">
-        <StockPanel :code="stock.code" embedded readonly />
-        <div class="modal-footer">
-          <router-link :to="'/stock/' + stock.code" class="btn-primary" @click="close">
-            进入完整页面 →
-          </router-link>
-        </div>
+      <div ref="modalBody" class="modal-body" @scroll.passive="queueScrollSave">
+        <StockPanel :code="stock.code" embedded :readonly="!canWrite" @loaded="restoreScroll" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import StockPanel from './StockPanel.vue'
+import auth from '../composables/useAuth.js'
+import { readState, writeState } from '../composables/useSession.js'
 
 const props = defineProps({
   show: Boolean,
@@ -32,8 +29,56 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const isMobile = computed(() => window.innerWidth <= 768)
+const canWrite = auth.canWrite
+const modalBody = ref(null)
+let scrollSaveTimer = null
+
+function scrollKey() {
+  return `stock:modalScroll:${props.stock?.code}`
+}
+
+function saveScroll() {
+  if (props.show && props.stock?.code && modalBody.value) {
+    writeState(scrollKey(), modalBody.value.scrollTop)
+  }
+}
+
+function queueScrollSave() {
+  if (scrollSaveTimer) return
+  scrollSaveTimer = setTimeout(() => {
+    scrollSaveTimer = null
+    saveScroll()
+  }, 200)
+}
+
+function restoreScroll() {
+  nextTick(() => {
+    const saved = props.stock?.code ? readState(scrollKey(), 0) : 0
+    if (modalBody.value && typeof saved === 'number') modalBody.value.scrollTop = saved
+  })
+}
+
+function onVisibilityChange() {
+  if (document.visibilityState === 'hidden') saveScroll()
+}
+
+watch(() => [props.show, props.stock?.code], ([show]) => {
+  if (show) restoreScroll()
+})
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('pagehide', saveScroll)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+  window.removeEventListener('pagehide', saveScroll)
+  if (scrollSaveTimer) clearTimeout(scrollSaveTimer)
+})
 
 function close() {
+  saveScroll()
   emit('close')
 }
 </script>
@@ -74,18 +119,6 @@ function close() {
   flex: 1;
   min-width: 0;
 }
-.modal-footer { text-align: center; padding: 14px 0 4px; border-top: 1px solid #334155; margin-top: 12px; }
-.btn-primary {
-  display: inline-block;
-  padding: 8px 20px;
-  background: #1e3a5f;
-  color: #60a5fa;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-}
-.btn-primary:hover { background: #2563eb; color: white; }
 
 @media (max-width: 640px) {
   .modal-overlay { padding: 0; }

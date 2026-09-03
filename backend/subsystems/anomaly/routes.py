@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from dataclasses import asdict
+from datetime import datetime, timezone
 import os
 import json
 
@@ -41,8 +42,7 @@ def get_anomalies_by_date(date: str):
     if date == "latest":
         if not os.path.exists(ANOMALY_FILE):
             return {"date": None, "stocks": [], "sectors": []}
-        with open(ANOMALY_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = load_anomalies()
         daily = data.get("daily", {})
         for d in sorted(daily.keys(), reverse=True):
             record = daily[d]
@@ -81,8 +81,7 @@ def get_latest_anomalies():
     """获取最新有数据的异动"""
     if not os.path.exists(ANOMALY_FILE):
         return {"date": None, "stocks": [], "sectors": []}
-    with open(ANOMALY_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    data = load_anomalies()
     daily = data.get("daily", {})
     dates = sorted(daily.keys(), reverse=True)
     for d in dates:
@@ -100,8 +99,7 @@ def add_anomaly_to_dashboard(code: str):
     code = code.upper().strip()
 
     # 项目数据目录
-    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '..', '..', 'data')
-    stock_dir = os.path.join(data_dir, code)
+    stock_dir = os.path.join(REPORTS_DIR, code)
     meta_file = os.path.join(stock_dir, "meta.json")
 
     # 检查是否已存在
@@ -129,8 +127,10 @@ def add_anomaly_to_dashboard(code: str):
         "added_at": datetime.now(timezone.utc).isoformat(),
         "status": "tracking",
     }
-    with open(meta_file, "w", encoding="utf-8") as f:
+    tmp = meta_file + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, meta_file)
 
     return {
         "status": "ok",

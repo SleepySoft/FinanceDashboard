@@ -1,7 +1,6 @@
 {
-  "status": "unassessed",
   "tags": {
-    "unread": true,
+    "unread": false,
     "watchlist": false,
     "overall": "red",
     "quality": "green",
@@ -10,6 +9,7 @@
     "risk": "red",
     "verdict": "red"
   },
+  "status": "unassessed",
   "notes": [],
   "holdings": {},
   "price_marks": []

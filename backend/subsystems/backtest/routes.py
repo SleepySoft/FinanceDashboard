@@ -17,6 +17,33 @@ from .backtest.factor_backtest import FactorBacktestRunner, Condition
 
 router = APIRouter(prefix="/api/backtest", tags=["backtest"])
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+STRATEGIES_FILE = os.path.join(DATA_DIR, "_strategies.json")
+RECORDS_FILE = os.path.join(DATA_DIR, "_backtest_records.json")
+
+
+def _safe_json_load(path: str, default):
+    if not os.path.exists(path):
+        return default
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        if not isinstance(data, type(default)):
+            raise TypeError(f"expected {type(default).__name__}")
+        return data
+    except Exception as exc:
+        print(f"[data-guard] 读取 {path} 失败: {type(exc).__name__}: {exc}")
+        return default
+
+
+def _atomic_json_dump(path: str, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
+
 # 全局实例
 cache = BacktestCache()
 
@@ -192,11 +219,7 @@ def create_strategy(req: CreateStrategyReq):
     registry.save_custom(strategy_id, req.source)
 
     # 保存元数据
-    strategies_file = '/root/data/FinanceDashboard/data/_strategies.json'
-    strategies = {}
-    if os.path.exists(strategies_file):
-        with open(strategies_file, 'r', encoding='utf-8') as f:
-            strategies = json.load(f)
+    strategies = _safe_json_load(STRATEGIES_FILE, {})
 
     strategies[strategy_id] = {
         'id': strategy_id,
@@ -210,8 +233,7 @@ def create_strategy(req: CreateStrategyReq):
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }
 
-    with open(strategies_file, 'w', encoding='utf-8') as f:
-        json.dump(strategies, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(STRATEGIES_FILE, strategies)
 
     return {"id": strategy_id, "status": "created"}
 
@@ -230,12 +252,10 @@ def get_strategy(strategy_id: str):
     info['type'] = 'builtin' if registry._is_builtin(strategy_id) else 'custom'
 
     # 读取笔记
-    strategies_file = '/root/data/FinanceDashboard/data/_strategies.json'
-    if os.path.exists(strategies_file):
-        with open(strategies_file, 'r', encoding='utf-8') as f:
-            strategies = json.load(f)
-        if strategy_id in strategies:
-            info['notes'] = strategies[strategy_id].get('notes', '')
+    strategies = _safe_json_load(STRATEGIES_FILE, {})
+    metadata = strategies.get(strategy_id)
+    if isinstance(metadata, dict):
+        info['notes'] = metadata.get('notes', '')
 
     return info
 
@@ -249,11 +269,7 @@ def update_strategy(strategy_id: str, req: CreateStrategyReq):
 
     registry.save_custom(strategy_id, req.source)
 
-    strategies_file = '/root/data/FinanceDashboard/data/_strategies.json'
-    strategies = {}
-    if os.path.exists(strategies_file):
-        with open(strategies_file, 'r', encoding='utf-8') as f:
-            strategies = json.load(f)
+    strategies = _safe_json_load(STRATEGIES_FILE, {})
 
     strategies[strategy_id] = {
         'id': strategy_id,
@@ -266,8 +282,7 @@ def update_strategy(strategy_id: str, req: CreateStrategyReq):
         'updated_at': datetime.now(timezone.utc).isoformat(),
     }
 
-    with open(strategies_file, 'w', encoding='utf-8') as f:
-        json.dump(strategies, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(STRATEGIES_FILE, strategies)
 
     return {"id": strategy_id, "status": "updated"}
 
@@ -281,13 +296,10 @@ def delete_strategy(strategy_id: str):
 
     registry.delete_custom(strategy_id)
 
-    strategies_file = '/root/data/FinanceDashboard/data/_strategies.json'
-    if os.path.exists(strategies_file):
-        with open(strategies_file, 'r', encoding='utf-8') as f:
-            strategies = json.load(f)
+    if os.path.exists(STRATEGIES_FILE):
+        strategies = _safe_json_load(STRATEGIES_FILE, {})
         strategies.pop(strategy_id, None)
-        with open(strategies_file, 'w', encoding='utf-8') as f:
-            json.dump(strategies, f, ensure_ascii=False, indent=2)
+        _atomic_json_dump(STRATEGIES_FILE, strategies)
 
     return {"status": "deleted"}
 
@@ -472,12 +484,7 @@ def run_frame_backtest(req: BacktestFrameReq):
 @router.get("/records")
 def list_records(limit: int = 50):
     """列出回测记录"""
-    records_file = '/root/data/FinanceDashboard/data/_backtest_records.json'
-    if not os.path.exists(records_file):
-        return {"records": [], "count": 0}
-
-    with open(records_file, 'r', encoding='utf-8') as f:
-        records = json.load(f)
+    records = [record for record in _safe_json_load(RECORDS_FILE, []) if isinstance(record, dict)]
 
     # 按时间倒序
     records = sorted(records, key=lambda x: x.get('created_at', ''), reverse=True)
@@ -487,12 +494,7 @@ def list_records(limit: int = 50):
 @router.get("/records/{record_id}")
 def get_record(record_id: str):
     """获取回测记录详情"""
-    records_file = '/root/data/FinanceDashboard/data/_backtest_records.json'
-    if not os.path.exists(records_file):
-        raise HTTPException(404, "Record not found")
-
-    with open(records_file, 'r', encoding='utf-8') as f:
-        records = json.load(f)
+    records = [record for record in _safe_json_load(RECORDS_FILE, []) if isinstance(record, dict)]
 
     for r in records:
         if r.get('id') == record_id:
@@ -504,17 +506,14 @@ def get_record(record_id: str):
 @router.delete("/records/{record_id}")
 def delete_record(record_id: str):
     """删除回测记录"""
-    records_file = '/root/data/FinanceDashboard/data/_backtest_records.json'
-    if not os.path.exists(records_file):
+    if not os.path.exists(RECORDS_FILE):
         return {"status": "ok"}
 
-    with open(records_file, 'r', encoding='utf-8') as f:
-        records = json.load(f)
+    records = [record for record in _safe_json_load(RECORDS_FILE, []) if isinstance(record, dict)]
 
     records = [r for r in records if r.get('id') != record_id]
 
-    with open(records_file, 'w', encoding='utf-8') as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(RECORDS_FILE, records)
 
     return {"status": "deleted"}
 
@@ -523,16 +522,11 @@ def delete_record(record_id: str):
 
 def _save_backtest_record(record: dict):
     """保存回测记录到文件"""
-    records_file = '/root/data/FinanceDashboard/data/_backtest_records.json'
-    records = []
-    if os.path.exists(records_file):
-        with open(records_file, 'r', encoding='utf-8') as f:
-            records = json.load(f)
+    records = [item for item in _safe_json_load(RECORDS_FILE, []) if isinstance(item, dict)]
 
     records.append(record)
 
     # 保留最近 200 条
     records = sorted(records, key=lambda x: x.get('created_at', ''), reverse=True)[:200]
 
-    with open(records_file, 'w', encoding='utf-8') as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
+    _atomic_json_dump(RECORDS_FILE, records)

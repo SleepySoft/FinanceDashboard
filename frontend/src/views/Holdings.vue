@@ -4,6 +4,10 @@
       <h2>📦 持仓管理</h2>
       <router-link to="/" class="btn-ghost">← 返回大盘</router-link>
     </div>
+    <div v-if="loadError" class="card empty">
+      数据加载不完整：{{ loadError }}
+      <button class="btn-ghost" @click="load">重试</button>
+    </div>
 
     <!-- Summary Bar -->
     <div v-if="summary.count > 0" class="hp-summary-bar card">
@@ -133,6 +137,7 @@ import api from '../api.js'
 import { usePersistentSet, useScrollRestore } from '../composables/useSession.js'
 
 const loading = ref(true)
+const loadError = ref('')
 const holdingsRaw = ref([])
 const stocksMap = ref({})
 const expanded = usePersistentSet('holdings:expanded')
@@ -197,14 +202,25 @@ function toggleExpand(code) {
 
 async function load() {
   loading.value = true
+  loadError.value = ''
   try {
-    // Get all stocks with prices
-    const dash = await api.dashboard.get()
-    for (const s of dash.stocks || []) {
-      stocksMap.value[s.code] = s
+    const [dashboardResult, holdingsResult] = await Promise.allSettled([
+      api.dashboard.get(),
+      api.holdings.list(),
+    ])
+    const errors = []
+    stocksMap.value = {}
+    if (dashboardResult.status === 'fulfilled' && Array.isArray(dashboardResult.value?.stocks)) {
+      for (const stock of dashboardResult.value.stocks) stocksMap.value[stock.code] = stock
+    } else {
+      errors.push('行情')
     }
-    // Get holdings
-    const hlist = await api.holdings.list()
+    const hlist = holdingsResult.status === 'fulfilled' && Array.isArray(holdingsResult.value)
+      ? holdingsResult.value
+      : []
+    if (holdingsResult.status !== 'fulfilled' || !Array.isArray(holdingsResult.value)) {
+      errors.push('持仓')
+    }
     const enriched = []
     for (const h of hlist) {
       if (h.quantity <= 0) continue
@@ -216,6 +232,7 @@ async function load() {
       }
     }
     holdingsRaw.value = enriched
+    if (errors.length) loadError.value = `${errors.join('、')}暂不可用`
   } catch (e) {
     console.error('Load holdings failed:', e)
   } finally {
