@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Literal
 import asyncio
 import json
+import math
 import os
 import re
 import subprocess
@@ -390,6 +391,39 @@ def _state_path(code: str) -> str:
 def _reports_dir(code: str) -> str:
     return os.path.join(_stock_dir(code), "reports")
 
+def _load_record_prices(code: str) -> dict:
+    state = _safe_json_load(_state_path(code), {})
+    snapshots = state.get("record_prices", {}) if isinstance(state, dict) else {}
+    if not isinstance(snapshots, dict):
+        snapshots = {}
+    def valid_prices(record_type: str) -> dict:
+        values = snapshots.get(record_type, {})
+        if not isinstance(values, dict):
+            return {}
+        result = {}
+        for key, price in values.items():
+            if not isinstance(key, str) or isinstance(price, bool):
+                continue
+            try:
+                value = float(price)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(value) and value > 0:
+                result[key] = value
+        return result
+
+    return {"notes": valid_prices("notes"), "reports": valid_prices("reports")}
+
+def _current_stock_price(code: str) -> Optional[float]:
+    price = _load_dashboard().get("prices", {}).get(code.upper(), {}).get("price")
+    if isinstance(price, bool):
+        return None
+    try:
+        value = float(price)
+    except (TypeError, ValueError):
+        return None
+    return value if math.isfinite(value) and value > 0 else None
+
 def _scan_reports(code: str) -> list:
     """Scan reports directory for report files. First source of truth.
     文件名格式异常（日期段不是8位数字）时仍收录，但 created_at 置空，
@@ -397,6 +431,7 @@ def _scan_reports(code: str) -> list:
     d = _reports_dir(code)
     if not os.path.exists(d):
         return []
+    report_prices = _load_record_prices(code)["reports"]
     reports = []
     for fname in sorted(os.listdir(d)):
         if not fname.endswith(".md"):
@@ -417,7 +452,8 @@ def _scan_reports(code: str) -> list:
             "id": fname[:-3],
             "filename": fname,
             "type": rtype,
-            "created_at": rdate
+            "created_at": rdate,
+            "price": report_prices.get(fname[:-3]),
         })
     return reports
 
@@ -464,6 +500,11 @@ def _load_meta(code: str) -> dict:
         merged["holdings"] = {}
     if not isinstance(merged.get("price_marks"), list):
         merged["price_marks"] = []
+    if not isinstance(merged.get("record_prices"), dict):
+        merged["record_prices"] = {}
+    for record_type in ("notes", "reports"):
+        if not isinstance(merged["record_prices"].get(record_type), dict):
+            merged["record_prices"][record_type] = {}
 
     # Common optional fields that downstream expects
     merged.setdefault("status", "unassessed")
@@ -816,6 +857,7 @@ def list_stocks():
 def get_stock(code: str):
     meta = _load_meta(code)
     meta.pop("daily_briefs", None)
+    meta.pop("record_prices", None)
     # Derive reports from disk scan (first source of truth)
     reports = _scan_reports(code)
     meta["reports"] = reports
@@ -956,6 +998,11 @@ def delete_report(code: str, report_id: str):
     path = os.path.join(_reports_dir(code), rpt["filename"])
     if os.path.exists(path):
         os.remove(path)
+    meta = _load_meta(code)
+    record_prices = meta.get("record_prices")
+    if isinstance(record_prices, dict) and isinstance(record_prices.get("reports"), dict):
+        record_prices["reports"].pop(report_id, None)
+        _save_meta(code, meta)
     # Update cache
     _update_reports_cache(code)
     return {"deleted": report_id}
@@ -967,6 +1014,7 @@ def get_notes(code: str):
         return {"notes": []}
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         content = f.read()
+    note_prices = _load_record_prices(code)["notes"]
     entries = []
     current = {"time": None, "lines": []}
     for line in content.splitlines():
@@ -974,7 +1022,8 @@ def get_notes(code: str):
             if current["time"]:
                 entries.append({
                     "time": current["time"],
-                    "content": "\n".join(current["lines"]).strip()
+                    "content": "\n".join(current["lines"]).strip(),
+                    "price": note_prices.get(current["time"]),
                 })
             current = {"time": line[3:].strip(), "lines": []}
         else:
@@ -982,7 +1031,8 @@ def get_notes(code: str):
     if current["time"]:
         entries.append({
             "time": current["time"],
-            "content": "\n".join(current["lines"]).strip()
+            "content": "\n".join(current["lines"]).strip(),
+            "price": note_prices.get(current["time"]),
         })
     return {"notes": list(reversed(entries))}
 
@@ -990,12 +1040,15 @@ def get_notes(code: str):
 def add_note(code: str, req: NoteReq):
     meta = _load_meta(code)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+    price = _current_stock_price(code)
     entry = f"\n## {ts}\n\n{req.content}\n"
     path = _notes_path(code)
     with open(path, "a", encoding="utf-8") as f:
         f.write(entry)
-    note_obj = {"time": ts, "content": req.content}
+    note_obj = {"time": ts, "content": req.content, "price": price}
     meta.setdefault("notes", []).insert(0, note_obj)
+    if price is not None:
+        meta.setdefault("record_prices", {}).setdefault("notes", {})[ts] = price
     _save_meta(code, meta)
     return note_obj
 
@@ -1034,7 +1087,10 @@ def delete_note(code: str, note_time: str):
         meta = _load_meta(code)
         if meta.get("notes"):
             meta["notes"] = [n for n in meta["notes"] if n.get("time") != note_time]
-            _save_meta(code, meta)
+        record_prices = meta.get("record_prices")
+        if isinstance(record_prices, dict) and isinstance(record_prices.get("notes"), dict):
+            record_prices["notes"].pop(note_time, None)
+        _save_meta(code, meta)
     except Exception:
         pass
     return {"deleted": note_time}
@@ -1090,6 +1146,20 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
     # Mark stock as unread - new analysis report not yet reviewed by user
     meta = _load_meta(code)
     meta.setdefault("tags", {})["unread"] = True
+    price = _current_stock_price(code)
+    if price is not None:
+        submitted_paths = [req.report_path] if req.report_path else []
+        submitted_paths.extend(
+            report.get("path") for report in (req.reports or [])
+            if isinstance(report, dict) and report.get("path")
+        )
+        report_prices = meta.setdefault("record_prices", {}).setdefault("reports", {})
+        for report_path in submitted_paths:
+            report_id = str(report_path).replace("\\", "/").rsplit("/", 1)[-1]
+            if report_id.endswith(".md"):
+                report_id = report_id[:-3]
+            if report_id:
+                report_prices[report_id] = price
     _save_meta(code, meta)
 
     # Update reports cache (program-managed, no hand-editing)

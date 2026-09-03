@@ -48,9 +48,15 @@ All stock data is stored under `data/{code}/` with the following files:
   "status": "neutral",
   "price_marks": [],
   "notes": [],
+  "record_prices": {
+    "notes": {"2026-09-03 12:34": 12.34},
+    "reports": {"technical_20260903": 12.34}
+  },
   "holdings": null
 }
 ```
+
+`record_prices` 是内部快照索引：写笔记时以笔记时间戳为键，Agent 完成分析时以报告文件名主干为键，记录当时 `_dashboard.json` 中可用的正数价格。取价失败不会阻止保存；旧记录或无快照记录在时间线显示 `--`。
 
 #### tags (Evaluation Dimensions)
 

@@ -134,15 +134,18 @@
           <div class="timeline-header-row" :class="{ clickable: isItemExpandable(item) }" @click="onTimelineItemClick(item)">
             <span :class="['timeline-badge', item.type]">{{ item.badge }}</span>
             <span class="timeline-time">{{ item.timeStr }}</span>
-            <span v-if="idx === 0" class="timeline-latest">最新</span>
+            <span :class="['timeline-latest', { placeholder: idx !== 0 }]">{{ idx === 0 ? '最新' : '' }}</span>
+            <span class="timeline-record-price">{{ formatRecordPrice(item.price) }}</span>
             <!-- 笔记/标记的摘要 -->
             <span v-if="item.kind === 'note'" class="timeline-preview">{{ item.preview }}</span>
             <span v-if="item.kind === 'mark'" class="timeline-preview mark-preview">
               {{ item.raw.label }} ¥{{ item.raw.price?.toFixed(2) }}
             </span>
-            <span v-if="isItemExpandable(item)" class="timeline-expand-icon">{{ expandedTimelineId === item.key ? '▼' : '▶' }}</span>
-            <button v-if="!readonly && item.kind === 'report'" class="btn-delete" @click.stop="confirmDelete(item.raw)" title="删除">🗑</button>
-            <button v-if="!readonly && item.kind === 'note'" class="btn-delete" @click.stop="deleteNote(item.raw)" title="删除笔记">🗑</button>
+            <span class="timeline-row-actions">
+              <span v-if="isItemExpandable(item)" class="timeline-expand-icon">{{ expandedTimelineId === item.key ? '▼' : '▶' }}</span>
+              <button v-if="!readonly && item.kind === 'report'" class="btn-delete" @click.stop="confirmDelete(item.raw)" title="删除">🗑</button>
+              <button v-if="!readonly && item.kind === 'note'" class="btn-delete" @click.stop="deleteNote(item.raw)" title="删除笔记">🗑</button>
+            </span>
           </div>
 
           <!-- 展开内容 -->
@@ -406,6 +409,11 @@ function diffClass(diff) {
   return diff >= 0 ? 'up' : 'down'
 }
 
+function formatRecordPrice(price) {
+  const value = Number(price)
+  return Number.isFinite(value) && value > 0 ? `¥${value.toFixed(2)}` : '--'
+}
+
 function statusLabel(status) {
   const map = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
   return map[status] || '观望'
@@ -480,6 +488,7 @@ const timelineItems = computed(() => {
       time: d,
       timeStr: n.time,
       raw: n,
+      price: n.price,
       preview: n.content.length > 60 ? n.content.slice(0, 60) + '…' : n.content
     })
   })
@@ -494,6 +503,7 @@ const timelineItems = computed(() => {
       badge: '📊 ' + reportTypeLabel(r.type),
       time: d,
       timeStr: fmtDateTime(r.created_at),
+      price: r.price,
       raw: r
     })
   })
@@ -508,6 +518,7 @@ const timelineItems = computed(() => {
       badge: '📌 标记',
       time: d,
       timeStr: fmtDateTime(m.created_at),
+      price: null,
       raw: m
     })
   })
@@ -889,11 +900,12 @@ onMounted(handleCodeChange)
 .tci-time { color: #94a3b8; }
 .tci-body { padding: 12px; border: 1px solid #334155; border-top: none; border-radius: 0 0 6px 6px; font-size: 14px; line-height: 1.8; }
 
-.timeline-badge { font-size: 11px; padding: 1px 8px; border-radius: 4px; font-weight: 500; }
+.timeline-badge { font-size: 11px; padding: 1px 4px; border-radius: 4px; font-weight: 500; text-align: center; white-space: nowrap; }
 .badge-fund { background: #1e3a5f; color: #60a5fa; }
 .badge-tech { background: #3f2c1d; color: #fbbf24; }
 .badge-full { background: #14532d; color: #34d399; }
-.timeline-latest { font-size: 11px; padding: 1px 8px; border-radius: 4px; background: #3b82f6; color: white; font-weight: 500; }
+.timeline-latest { font-size: 11px; padding: 1px 4px; border-radius: 4px; background: #3b82f6; color: white; font-weight: 500; text-align: center; }
+.timeline-latest.placeholder { visibility: hidden; }
 
 /* Report Timeline - new unified view */
 .report-timeline { position: relative; padding-left: 6px; }
@@ -932,7 +944,8 @@ onMounted(handleCodeChange)
 .timeline-dot.badge-tech { background: #fbbf24; }
 .timeline-dot.badge-full { background: #34d399; }
 .timeline-header-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 64px 128px 38px 78px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 8px 10px 8px 6px;
@@ -942,11 +955,12 @@ onMounted(handleCodeChange)
   cursor: pointer;
   font-size: 13px;
   transition: all 0.15s;
-  flex-wrap: wrap;
 }
 .timeline-header-row:hover { background: #1e293b; border-color: #475569; }
 .timeline-time { color: #94a3b8; font-size: 12px; }
-.timeline-expand-icon { margin-left: auto; color: #64748b; font-size: 11px; }
+.timeline-record-price { color: #e2e8f0; font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.timeline-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 3px; min-width: 18px; }
+.timeline-expand-icon { color: #64748b; font-size: 11px; }
 .btn-delete {
   background: transparent;
   border: none;
@@ -1119,6 +1133,10 @@ onMounted(handleCodeChange)
   .report-body h2 { font-size: 14px; }
   .report-body table { font-size: 11px; }
   .report-body td { padding: 4px 6px; }
+
+  .timeline-header-row { grid-template-columns: 54px 104px 30px 66px minmax(0, 1fr) auto; gap: 4px; }
+  .timeline-time, .timeline-record-price { font-size: 11px; }
+  .timeline-preview { grid-column: 1 / -1; }
 
   .older-toggle { padding: 10px; font-size: 12px; }
   .tci-header { padding: 10px; font-size: 12px; }

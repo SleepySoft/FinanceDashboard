@@ -111,11 +111,17 @@ async function assertDashboard(page, data) {
 async function assertStockModal(page, canWrite) {
   const firstRow = page.locator('table tbody tr').first()
   const stockCode = await firstRow.locator('.cell-code').textContent()
-  await page.route('**/api/stocks/*/notes', route => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: '{broken json',
-  }))
+  let notesRequestCount = 0
+  await page.route('**/api/stocks/*/notes', route => {
+    notesRequestCount++
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: notesRequestCount === 1
+        ? '{broken json'
+        : JSON.stringify({ notes: [{ time: '2099-09-03 12:34', content: '价格快照测试', price: 12.34 }] }),
+    })
+  })
   await firstRow.click()
   await page.waitForSelector('.modal-content', { timeout: 10000 })
 
@@ -136,6 +142,14 @@ async function assertStockModal(page, canWrite) {
   await page.waitForTimeout(300)
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForSelector('.modal-content', { timeout: 15000 })
+  await page.getByText('¥12.34', { exact: true }).waitFor({ timeout: 10000 })
+
+  const priceColumnXs = await page.locator('.timeline-record-price').evaluateAll(elements =>
+    elements.map(element => Math.round(element.getBoundingClientRect().x)),
+  )
+  if (priceColumnXs.length < 2 || Math.max(...priceColumnXs) - Math.min(...priceColumnXs) > 1) {
+    throw new Error(`时间线价格列未对齐: ${priceColumnXs.join(', ')}`)
+  }
 
   if (savedScroll > 0) {
     await page.waitForFunction(
