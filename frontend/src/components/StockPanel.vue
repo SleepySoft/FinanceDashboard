@@ -95,7 +95,7 @@
           <span class="analysis-icon">📋</span>
           <div>
             <h3>记录时间线</h3>
-            <p class="analysis-status">笔记 · 报告 · 简评 · 标记</p>
+            <p class="analysis-status">笔记 · 报告 · 标记</p>
           </div>
         </div>
         <div class="header-right">
@@ -135,11 +135,8 @@
             <span :class="['timeline-badge', item.type]">{{ item.badge }}</span>
             <span class="timeline-time">{{ item.timeStr }}</span>
             <span v-if="idx === 0" class="timeline-latest">最新</span>
-            <!-- 笔记/简评/标记的摘要 -->
+            <!-- 笔记/标记的摘要 -->
             <span v-if="item.kind === 'note'" class="timeline-preview">{{ item.preview }}</span>
-            <span v-if="item.kind === 'brief'" :class="['timeline-preview', item.raw.change_pct > 0 ? 'up' : 'down']">
-              收 ¥{{ item.raw.price?.toFixed(2) }} {{ item.raw.change_pct > 0 ? '+' : '' }}{{ item.raw.change_pct?.toFixed(1) }}%
-            </span>
             <span v-if="item.kind === 'mark'" class="timeline-preview mark-preview">
               {{ item.raw.label }} ¥{{ item.raw.price?.toFixed(2) }}
             </span>
@@ -154,8 +151,6 @@
             <div v-if="item.kind === 'report'" v-html="renderMarkdown(reportContents[item.raw.id] || '加载中...')"></div>
             <!-- 笔记内容 -->
             <div v-if="item.kind === 'note'" class="timeline-note-body">{{ item.raw.content }}</div>
-            <!-- 简评内容 -->
-            <div v-if="item.kind === 'brief'" class="timeline-brief-body">{{ item.raw.content }}</div>
             <!-- 标记内容 -->
             <div v-if="item.kind === 'mark'" class="timeline-mark-body">
               <span :class="['mark-label', 'mark-' + item.raw.type]">{{ item.raw.label }}</span>
@@ -327,11 +322,6 @@ const statusForm = ref({ status: 'neutral' })
 const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
 
-const briefs = ref([])
-const showBriefs = ref(false)
-const showAllBriefs = ref(false)
-const generatingBrief = ref(false)
-
 const holdingsData = ref({ trades: [], summary: null })
 const showHoldings = ref(false)
 
@@ -371,16 +361,6 @@ async function setDefaultProvider() {
     // error toast already shown by api.js
   }
 }
-
-const todayBriefExists = computed(() => {
-  const today = new Date().toISOString().slice(0, 10)
-  return briefs.value.some(b => b.date === today)
-})
-
-const displayBriefs = computed(() => {
-  if (showAllBriefs.value) return briefs.value
-  return briefs.value.slice(0, 5)
-})
 
 const fundamentalReports = computed(() =>
   (meta.value.reports || [])
@@ -448,7 +428,6 @@ async function load() {
   await loadProviders()
   tagForm.value = { watchlist: data.tags?.watchlist || false }
   statusForm.value = { status: data.status || 'neutral' }
-  briefs.value = data.daily_briefs || []
   // 用户打开面板即视为已读：清除未读标记（只读模式下不发起写请求）
   if (!props.readonly && data.tags?.unread) {
     meta.value.tags.unread = false
@@ -486,7 +465,7 @@ const allReports = computed(() =>
     .slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 )
 
-// 统一时间线：笔记 + 报告 + 简评 + 标记
+// 统一时间线：笔记 + 报告 + 标记
 const timelineItems = computed(() => {
   const items = []
 
@@ -516,20 +495,6 @@ const timelineItems = computed(() => {
       time: d,
       timeStr: fmtDateTime(r.created_at),
       raw: r
-    })
-  })
-
-  // 简评
-  briefs.value.forEach(b => {
-    const d = new Date(b.date + 'T15:00:00')
-    items.push({
-      key: 'brief-' + b.id,
-      kind: 'brief',
-      type: 'brief',
-      badge: '📋 简评',
-      time: d,
-      timeStr: b.date,
-      raw: b
     })
   })
 
@@ -716,24 +681,6 @@ function onTimelineItemClick(item) {
   if (item.kind === 'report') { toggleTimelineItem(item); return }
   if (item.kind === 'note' && isItemExpandable(item)) {
     expandedTimelineId.value = expandedTimelineId.value === item.key ? null : item.key
-  }
-}
-
-async function generateBrief() {
-  if (todayBriefExists.value) return
-  generatingBrief.value = true
-  try {
-    const res = await api.stocks.generateBrief(props.code)
-    if (res.brief) {
-      briefs.value.unshift(res.brief)
-      briefs.value.sort((a, b) => b.date.localeCompare(a.date))
-    } else {
-      alert(res.message || '今日无显著变化，已跳过')
-    }
-  } catch (e) {
-    alert('生成简评失败: ' + e.message)
-  } finally {
-    generatingBrief.value = false
   }
 }
 
@@ -1130,37 +1077,6 @@ onMounted(handleCodeChange)
 .note-time { font-size: 12px; color: #64748b; margin-bottom: 4px; }
 .note-content { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
 
-/* Briefs */
-.briefs-card { margin-top: 0; }
-.briefs-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 14px; transition: background 0.15s; }
-.briefs-header:hover { background: #1e293b; }
-.briefs-title { display: flex; align-items: center; gap: 12px; pointer-events: none; }
-.briefs-icon { font-size: 22px; }
-.briefs-count { font-size: 12px; color: #64748b; margin-top: 2px; }
-.briefs-content { padding-top: 4px; }
-.briefs-timeline { position: relative; padding-left: 16px; }
-.briefs-timeline::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 4px;
-  bottom: 4px;
-  width: 1px;
-  background: #334155;
-}
-.brief-item { position: relative; margin-bottom: 16px; padding-left: 12px; }
-.brief-item:last-child { margin-bottom: 0; }
-.brief-date-line { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; position: relative; }
-.brief-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; position: absolute; left: -14px; top: 6px; flex-shrink: 0; }
-.brief-date-text { font-size: 13px; color: #94a3b8; font-weight: 500; }
-.brief-pct { font-size: 12px; font-weight: 600; }
-.brief-body { padding-left: 4px; }
-.brief-meta { display: flex; gap: 10px; margin-bottom: 2px; }
-.brief-price { font-size: 12px; color: #64748b; }
-.brief-text { font-size: 14px; line-height: 1.6; color: #e2e8f0; }
-.briefs-more { text-align: center; padding: 10px; font-size: 13px; color: #64748b; cursor: pointer; border-top: 1px dashed #334155; margin-top: 8px; transition: color 0.15s; }
-.briefs-more:hover { color: #94a3b8; }
-
 /* Holdings */
 .holdings-card { margin-top: 0; }
 .holdings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 14px; transition: background 0.15s; }
@@ -1214,12 +1130,6 @@ onMounted(handleCodeChange)
   .price-input-group { flex-wrap: wrap; justify-content: flex-end; }
   .price-shortcut { flex: 1; min-width: 50px; }
 
-  .briefs-header { flex-direction: column; gap: 8px; align-items: stretch; padding-bottom: 12px; }
-  .briefs-header button { width: 100%; }
-  .briefs-timeline { padding-left: 12px; }
-  .brief-item { padding-left: 8px; }
-  .brief-text { font-size: 13px; }
-  .brief-dot { left: -12px; }
   .mark-diff { font-size: 11px; }
 
   .info-bar { padding: 10px 12px; }

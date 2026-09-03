@@ -68,9 +68,6 @@ export default {
     getNotes: (code) => api(`/stocks/${code}/notes`),
     addNote: (code, content) => api(`/stocks/${code}/notes`, { method: 'POST', body: { content } }),
     deleteNote: (code, time) => api(`/stocks/${code}/notes/${encodeURIComponent(time)}`, { method: 'DELETE' }),
-    getBriefs: (code) => api(`/stocks/${code}/briefs`),
-    generateBrief: (code, auto = true) => api(`/stocks/${code}/briefs`, { method: 'POST', body: { auto } }),
-    deleteBrief: (code, id) => api(`/stocks/${code}/briefs/${id}`, { method: 'DELETE' }),
   },
   agent: {
     tasks: () => api('/agent/tasks'),

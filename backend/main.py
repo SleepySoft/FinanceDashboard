@@ -429,89 +429,6 @@ def _last_analysis(reports: list) -> str:
 def _notes_path(code: str) -> str:
     return os.path.join(_stock_dir(code), "notes.md")
 
-def _briefs_path(code: str) -> str:
-    return os.path.join(_stock_dir(code), "briefs.json")
-
-def _load_briefs(code: str) -> list:
-    path = _briefs_path(code)
-    if not os.path.exists(path):
-        return []
-    briefs = _safe_json_load(path, [])
-    valid = [brief for brief in briefs if isinstance(brief, dict)]
-    if len(valid) != len(briefs):
-        print(f"[data-guard] {code}/briefs.json 跳过 {len(briefs) - len(valid)} 条非法记录")
-    return valid
-
-def _save_briefs(code: str, briefs: list):
-    path = _briefs_path(code)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    _atomic_json_dump(path, briefs)
-
-def _generate_brief_text(data: dict) -> tuple:
-    """Generate daily brief text. Returns (text, has_value)."""
-    change = data.get("change_pct", 0)
-    amplitude = data.get("amplitude", 0)
-    open_p = data.get("open", 0)
-    high = data.get("high", 0)
-    low = data.get("low", 0)
-    price = data.get("price", 0)
-    prev = data.get("prev_close", 0)
-    
-    # Skip if nothing interesting happened
-    if abs(change) < 1.0 and amplitude < 2.0:
-        return "", False
-    
-    segments = []
-    
-    # Opening behavior
-    gap = ((open_p - prev) / prev * 100) if prev > 0 else 0
-    if gap > 1.5:
-        segments.append("高开")
-    elif gap < -1.5:
-        segments.append("低开")
-    elif gap > 0:
-        segments.append("小幅高开")
-    elif gap < 0:
-        segments.append("小幅低开")
-    else:
-        segments.append("平开")
-    
-    # Intraday behavior
-    if abs(change) > 3 and amplitude < abs(change) + 0.5:
-        segments.append("后单边上行" if change > 0 else "后单边下行")
-    elif price > open_p and price > prev:
-        segments.append("后震荡走高")
-    elif price < open_p and price < prev:
-        segments.append("后震荡走低")
-    elif high - price > price - low and change > 0:
-        segments.append("冲高回落")
-    elif price - low > high - price and change < 0:
-        segments.append("探底回升")
-    else:
-        segments.append("全天震荡")
-    
-    # Result
-    if abs(change) >= 3:
-        segments.append(f"，收{'涨' if change > 0 else '跌'}{abs(change):.1f}%")
-    elif abs(change) >= 1.5:
-        segments.append(f"，收{'涨' if change > 0 else '跌'}{abs(change):.1f}%")
-    else:
-        segments.append(f"，微{'涨' if change > 0 else '跌'}{abs(change):.1f}%")
-    
-    # Volume/activity hint
-    if amplitude > 5:
-        segments.append("，振幅较大")
-    
-    text = "".join(segments)
-    # Clean up double commas
-    text = text.replace("，，", "，")
-    
-    # Cap at ~100 chars
-    if len(text) > 100:
-        text = text[:100] + "…"
-    
-    return text, True
-
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -759,7 +676,6 @@ def _init_stock(code: str, name: str = "", sector: str = "") -> dict:
         **static,
         "tags": {"overall": "none", "watchlist": False},
         "price_marks": [],
-        "daily_briefs": [],
         "notes": [],
         "cache": {
             "fundamental": {"last": None, "valid_until": None},
@@ -798,9 +714,6 @@ class HoldingsReq(BaseModel):
 
 class NoteReq(BaseModel):
     content: str
-
-class DailyBriefReq(BaseModel):
-    auto: bool = True  # if auto, skip if no value
 
 class AgentTaskCompleteReq(BaseModel):
     report_path: Optional[str] = None
@@ -850,127 +763,6 @@ def delete_request(task_id: str):
     tasks = _load_tasks()
     tasks = [t for t in tasks if t["id"] != task_id]
     _save_tasks(tasks)
-    return {"ok": True}
-
-# ─── Daily Briefs ───────────────────────────────────────
-
-@app.get("/api/stocks/{code}/briefs")
-def get_briefs(code: str):
-    """Get all daily briefs for a stock, newest first"""
-    briefs = _load_briefs(code)
-    return {"briefs": sorted(briefs, key=lambda x: x.get("date", ""), reverse=True)}
-
-@app.post("/api/stocks/{code}/briefs")
-def generate_brief(code: str, req: DailyBriefReq = DailyBriefReq()):
-    """Generate today's brief based on current price data"""
-    meta = _load_meta(code)
-    dashboard = _load_dashboard()
-    prices = dashboard.get("prices", {})
-    data = prices.get(code.upper())
-    
-    if not data:
-        raise HTTPException(400, "No price data available. Please refresh prices first.")
-    
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    briefs = _load_briefs(code)
-    
-    # Check if already generated today
-    existing = [b for b in briefs if b.get("date") == today]
-    if existing:
-        return {"brief": existing[0], "message": "Already generated today"}
-    
-    text, has_value = _generate_brief_text(data)
-    
-    if not has_value and req.auto:
-        return {"brief": None, "message": "No significant movement today, skipped"}
-    
-    brief = {
-        "id": str(uuid.uuid4())[:8],
-        "date": today,
-        "content": text,
-        "has_value": has_value,
-        "price": data.get("price"),
-        "change_pct": data.get("change_pct"),
-        "amplitude": data.get("amplitude"),
-        "created_at": _now()
-    }
-    briefs.append(brief)
-    _save_briefs(code, briefs)
-    
-    # Also update meta reference
-    meta["daily_briefs"] = briefs
-    _save_meta(code, meta)
-    
-    return {"brief": brief, "message": "Generated"}
-
-@app.post("/api/briefs/batch")
-def batch_generate_briefs():
-    """Generate briefs for all tracked stocks. Called by cron."""
-    codes = _get_stock_codes()
-    if not codes:
-        return {"processed": 0, "skipped": 0, "generated": 0, "message": "No stocks tracked"}
-    
-    # Refresh prices first
-    prices = _fetch_prices_sina(codes)
-    _update_dashboard_prices(prices)
-    
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    generated = 0
-    skipped = 0
-    processed = 0
-    
-    for code in codes:
-        code = code.upper().strip()
-        data = prices.get(code)
-        if not data:
-            continue
-        
-        briefs = _load_briefs(code)
-        existing = [b for b in briefs if b.get("date") == today]
-        if existing:
-            continue  # Already done today
-        
-        text, has_value = _generate_brief_text(data)
-        processed += 1
-        
-        if not has_value:
-            skipped += 1
-            continue
-        
-        brief = {
-            "id": str(uuid.uuid4())[:8],
-            "date": today,
-            "content": text,
-            "has_value": has_value,
-            "price": data.get("price"),
-            "change_pct": data.get("change_pct"),
-            "amplitude": data.get("amplitude"),
-            "created_at": _now()
-        }
-        briefs.append(brief)
-        _save_briefs(code, briefs)
-        
-        # Update meta
-        meta = _load_meta(code)
-        meta["daily_briefs"] = briefs
-        _save_meta(code, meta)
-        generated += 1
-    
-    return {
-        "processed": processed,
-        "skipped": skipped,
-        "generated": generated,
-        "message": f"Batch complete: {generated} generated, {skipped} skipped (no significant movement)"
-    }
-
-@app.delete("/api/stocks/{code}/briefs/{brief_id}")
-def delete_brief(code: str, brief_id: str):
-    briefs = _load_briefs(code)
-    briefs = [b for b in briefs if b.get("id") != brief_id]
-    _save_briefs(code, briefs)
-    meta = _load_meta(code)
-    meta["daily_briefs"] = briefs
-    _save_meta(code, meta)
     return {"ok": True}
 
 # ─── Stock Endpoints (Analyzed stocks only) ───────────
@@ -1023,6 +815,7 @@ def list_stocks():
 @app.get("/api/stocks/{code}")
 def get_stock(code: str):
     meta = _load_meta(code)
+    meta.pop("daily_briefs", None)
     # Derive reports from disk scan (first source of truth)
     reports = _scan_reports(code)
     meta["reports"] = reports
@@ -1073,7 +866,6 @@ def get_stock(code: str):
     p = prices.get(code, {})
     meta["last_price"] = p.get("price")
     meta["change_pct"] = p.get("change_pct")
-    meta["daily_briefs"] = _load_briefs(code)
     meta["status"] = meta.get("status", "neutral")
     meta["holdings"] = meta.get("holdings")
     meta["dimensions"] = _normalize_dimensions(meta)

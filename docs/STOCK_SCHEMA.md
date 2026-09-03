@@ -9,7 +9,6 @@ All stock data is stored under `data/{code}/` with the following files:
 - `state.json` — mutable fields (tags, status, dimensions, price_marks, notes, etc.)
 - `reports/` — analysis report markdown files
 - `notes.md` — free-form notes
-- `briefs.json` — daily briefs
 
 ## Schema Definition
 
@@ -49,7 +48,6 @@ All stock data is stored under `data/{code}/` with the following files:
   "status": "neutral",
   "price_marks": [],
   "notes": [],
-  "daily_briefs": [],
   "holdings": null
 }
 ```

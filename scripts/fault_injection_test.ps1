@@ -47,12 +47,11 @@ $providers = Join-Path $data "_providers.json"
 $records = Join-Path $data "_backtest_records.json"
 $stockDir = Join-Path $data "000001.SZ"
 $meta = Join-Path $stockDir "meta.json"
-$briefs = Join-Path $stockDir "briefs.json"
 $notes = Join-Path $stockDir "notes.md"
 $holdings = Join-Path $stockDir "holdings.json"
 $badReport1 = Join-Path $stockDir "reports\fundamental_extra_2026.md"
 $badReport2 = Join-Path $stockDir "reports\nounderscore.md"
-$targets = @($dashboard, $tasks, $anomalies, $providers, $records, $meta, $briefs, $notes, $holdings)
+$targets = @($dashboard, $tasks, $anomalies, $providers, $records, $meta, $notes, $holdings)
 foreach ($target in $targets) { Backup-Target $target }
 
 try {
@@ -73,9 +72,6 @@ try {
   [IO.File]::WriteAllText($meta, '{bad json,,')
   Check "dashboard/bad-meta" "/api/dashboard" "000333.SZ"
   Check "stock-detail/bad-meta" "/api/stocks/000001.SZ" "000001.SZ"
-
-  [IO.File]::WriteAllText($briefs, '[42,null,{"id":"valid","date":"2026-01-01"}]')
-  Check "briefs/bad-elements" "/api/stocks/000001.SZ/briefs" "valid"
 
   [IO.File]::WriteAllText($holdings, '{"trades":"bad","t_trades":{},"adj_events":null,"summary":[]}')
   Check "holdings/bad-fields" "/api/holdings/000001.SZ" "has_data"
