@@ -7,7 +7,7 @@
     "timing": "none",
     "risk": "yellow",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
   "dimension_reasons": {
     "quality": "技术节点落后（90nm vs 国际28nm以下），毛利率从58%暴跌至45%显示竞争力退化",

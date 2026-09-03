@@ -9,8 +9,13 @@
     "risk": "yellow",
     "verdict": "yellow"
   },
-  "status": "unassessed",
-  "notes": [],
+  "status": "waiting",
+  "notes": [
+    {
+      "time": "2026-09-03 06:40",
+      "content": "公司没问题，太贵了。"
+    }
+  ],
   "holdings": {},
   "price_marks": []
 }

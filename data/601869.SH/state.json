@@ -1,7 +1,6 @@
 {
-  "status": "unassessed",
   "tags": {
-    "unread": true,
+    "unread": false,
     "watchlist": false,
     "overall": "yellow",
     "quality": "yellow",
@@ -10,7 +9,13 @@
     "risk": "yellow",
     "verdict": "yellow"
   },
-  "notes": [],
+  "status": "neutral",
+  "notes": [
+    {
+      "time": "2026-09-03 06:46",
+      "content": "毛利率高ROE低，涨太多了先观望。"
+    }
+  ],
   "holdings": {},
   "price_marks": []
 }
