@@ -39,7 +39,7 @@
 - **Backend**: FastAPI + Python
 - **Frontend**: Vue 3 + Vite
 - **数据源**: Sina实时行情、kimi_finance（同花顺）、Tushare
-- **部署**: 单VM，Uvicorn 直接 serve 前端静态文件，端口 80
+- **部署**: Uvicorn（默认 `127.0.0.1:8010`）+ systemd，前置 Nginx 提供静态文件与 API 反代
 
 ## 目录结构
 
@@ -106,6 +106,22 @@ npm run build
 cd backend
 source venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 80
+```
+
+Linux 生产服务器使用 systemd 管理后端。首次部署或服务配置更新后执行：
+
+```bash
+cd /root/data/FinanceDashboard
+sudo ./scripts/install_systemd_service.sh
+```
+
+脚本会注册并启动 `financedashboard.service`，默认仅监听
+`127.0.0.1:8010`，同时替换该项目中遗留的 `uvicorn --reload` 开发进程。
+可在项目根目录的 `.env` 中设置 `FD_HOST`、`FD_PORT` 等环境变量。
+
+```bash
+systemctl status financedashboard
+journalctl -u financedashboard -f
 ```
 
 ### Windows

@@ -154,11 +154,13 @@ data/
 
 #### Linux / macOS
 ```bash
-cd /root/data/FinanceDashboard/backend
-source venv/bin/activate
-nohup uvicorn main:app --host 0.0.0.0 --port 80 > /tmp/uvicorn.log 2>&1 &
+cd /root/data/FinanceDashboard
+sudo ./scripts/install_systemd_service.sh
 ```
-- 后端同时 serve API 和前端静态文件（`frontend/dist/`）
+- systemd 单元：`financedashboard.service`，默认监听 `127.0.0.1:8010`
+- 生产启动脚本：`backend/start_production.sh`（无 `--reload`，避免文件监控高 CPU）
+- 运维：`systemctl restart financedashboard`；日志：`journalctl -u financedashboard -f`
+- Nginx 的 `/api/` 上游必须指向 `http://127.0.0.1:8010`
 - 前端改动后需要 `npm run build` 重新构建
 
 #### Windows
