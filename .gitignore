@@ -38,3 +38,13 @@ data/_config.json
 
 # Agent 访问密钥（本机文件，勿提交）
 agent_token.txt
+
+# Local server provisioning material (contains SSH credentials)
+_remote_provision/
+
+# Independently versioned reference repositories
+references/
+
+# Local infrastructure projects and cross-service operations notes
+ddns-server/
+docs/vps-services.md
