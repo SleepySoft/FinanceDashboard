@@ -83,11 +83,12 @@ if (( ${#LEGACY_PIDS[@]} > 0 )); then
     done
 fi
 
-systemctl enable --now "${SERVICE_NAME}.service"
+systemctl enable "${SERVICE_NAME}.service"
+systemctl restart "${SERVICE_NAME}.service"
 
 HEALTH_URL="http://${HOST}:${PORT}/api/auth/config"
 for _ in {1..30}; do
-    if curl --fail --silent --show-error --max-time 2 "${HEALTH_URL}" >/dev/null; then
+    if curl --fail --silent --max-time 2 "${HEALTH_URL}" >/dev/null; then
         echo "FinanceDashboard is running: ${HEALTH_URL}"
         systemctl --no-pager --full status "${SERVICE_NAME}.service" | sed -n '1,12p'
         exit 0
