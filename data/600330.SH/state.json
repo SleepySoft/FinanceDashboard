@@ -9,8 +9,13 @@
     "risk": "yellow",
     "verdict": "yellow"
   },
-  "status": "unassessed",
-  "notes": [],
+  "status": "avoid",
+  "notes": [
+    {
+      "time": "2026-09-03 05:48",
+      "content": "亏损，没什么前途。"
+    }
+  ],
   "holdings": {},
   "price_marks": []
 }
