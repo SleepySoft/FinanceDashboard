@@ -41,6 +41,38 @@
         </div>
       </div>
 
+      <!-- 股票分类标签 -->
+      <div class="card">
+        <h3>股票分类标签</h3>
+        <p class="settings-hint">
+          首页按此列表顺序分组显示，拖动 ⠿ 可排序。删除分类后，该分类下的股票移入内置「无分类」
+          （「无分类」平时不显示，仅当其中有股票时出现在看板最后）。
+        </p>
+        <div class="cat-list">
+          <div
+            v-for="(row, idx) in catRows"
+            :key="row.key"
+            :class="['cat-row', { dragging: dragIndex === idx }]"
+            draggable="true"
+            @dragstart="onCatDragStart(idx)"
+            @dragover.prevent
+            @drop="onCatDrop(idx)"
+            @dragend="dragIndex = null"
+          >
+            <span class="cat-drag" title="拖动排序">⠿</span>
+            <input v-model="row.label" maxlength="20" placeholder="分类名称" />
+            <button class="ghost danger-text cat-del" @click="removeCategory(idx)">删除</button>
+          </div>
+        </div>
+        <p v-if="catMsg" :class="['config-msg', catError ? 'err' : 'ok']">{{ catMsg }}</p>
+        <div class="settings-actions">
+          <button class="ghost" @click="addCategory">添加分类</button>
+          <button class="primary" @click="saveCategories" :disabled="savingCats">
+            {{ savingCats ? '保存中...' : '保存分类设置' }}
+          </button>
+        </div>
+      </div>
+
       <!-- 修改密码 -->
       <div class="card">
         <h3>修改密码</h3>
@@ -167,8 +199,70 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api.js'
 import auth from '../composables/useAuth.js'
+import statusCats from '../composables/useStatusCategories.js'
 
 const router = useRouter()
+
+// 股票分类标签（改名/新增/删除/拖动排序）
+const catRows = ref([])
+const catMsg = ref('')
+const catError = ref(false)
+const savingCats = ref(false)
+const dragIndex = ref(null)
+
+function resetCatRows() {
+  catRows.value = statusCats.categories.value.map(c => ({ key: c.key, label: c.label }))
+}
+
+function addCategory() {
+  catRows.value.push({ key: 'cat_' + Math.random().toString(36).slice(2, 10), label: '' })
+}
+
+function removeCategory(idx) {
+  const row = catRows.value[idx]
+  if (!window.confirm(`删除分类「${row.label || row.key}」？该分类下的股票将移入「无分类」。`)) return
+  catRows.value.splice(idx, 1)
+}
+
+function onCatDragStart(idx) {
+  dragIndex.value = idx
+}
+
+function onCatDrop(idx) {
+  if (dragIndex.value === null || dragIndex.value === idx) return
+  const moved = catRows.value.splice(dragIndex.value, 1)[0]
+  catRows.value.splice(idx, 0, moved)
+  dragIndex.value = null
+}
+
+async function saveCategories() {
+  catMsg.value = ''
+  catError.value = false
+  const labels = catRows.value.map(r => r.label.trim())
+  if (labels.some(l => !l)) {
+    catError.value = true
+    catMsg.value = '分类名称不能为空'
+    return
+  }
+  if (new Set(labels).size !== labels.length) {
+    catError.value = true
+    catMsg.value = '分类名称不能重复'
+    return
+  }
+  savingCats.value = true
+  try {
+    const payload = catRows.value.map(r => ({ key: r.key, label: r.label.trim() }))
+    const cfg = await auth.updateConfig({ status_categories: payload })
+    const n = cfg.reassigned_count || 0
+    catMsg.value = n > 0 ? `分类设置已保存，${n} 只股票已移入「无分类」` : '分类设置已保存'
+    resetCatRows()
+  } catch (e) {
+    catError.value = true
+    catMsg.value = e.message || '保存失败'
+  } finally {
+    savingCats.value = false
+  }
+}
 
 // 权限模式
 const mode = ref(auth.config.value.allow_anonymous_read ? 'readonly' : 'locked')
@@ -316,7 +410,10 @@ async function saveScheduler() {
   }
 }
 
-onMounted(loadSchedulerStatus)
+onMounted(() => {
+  loadSchedulerStatus()
+  resetCatRows()
+})
 
 // 修改密码
 const oldPassword = ref('')
@@ -488,6 +585,39 @@ button.ghost.danger-text {
   padding: 8px 0;
   border-bottom: 1px dashed #334155;
   font-size: 14px;
+}
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.4);
+}
+.cat-row.dragging {
+  opacity: 0.5;
+  border-color: #3b82f6;
+}
+.cat-drag {
+  cursor: grab;
+  color: #64748b;
+  user-select: none;
+}
+.cat-row input {
+  flex: 1;
+  min-width: 0;
+}
+.cat-del {
+  padding: 4px 10px;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 .info-label {
   color: #64748b;

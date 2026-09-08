@@ -93,10 +93,10 @@
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -201,10 +201,10 @@
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -308,10 +308,10 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', 'status-' + (s.status || 'neutral')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'neutral') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -616,6 +616,7 @@ import api from '../api.js'
 import StockModal from '../components/StockModal.vue'
 import { usePersistentSet, readState, writeState, removeState, useScrollRestore } from '../composables/useSession.js'
 import auth from '../composables/useAuth.js'
+import statusCats from '../composables/useStatusCategories.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -672,27 +673,11 @@ function persistTradeDraft() {
 }
 watch([showTradeModal, tradeForm], persistTradeDraft, { deep: true })
 
-// Status tag quick-edit
+// Status tag quick-edit（分类列表来自「设置」页配置，见 useStatusCategories）
 const statusMenuCode = ref(null)
-const statusOptions = [
-  { key: 'unassessed', label: '未分析' },
-  { key: 'tracking', label: '跟踪中' },
-  { key: 'bullish', label: '看好' },
-  { key: 'neutral', label: '观望' },
-  { key: 'waiting', label: '伺机' },
-  { key: 'core_position', label: '底仓备选' },
-  { key: 'avoid', label: '回避' },
-  { key: 'no_interest', label: '无兴趣' },
-  { key: 'archive', label: '归档' },
-  { key: 'blacklist', label: '黑名单' },
-]
-function statusShort(status) {
-  const map = {
-    unassessed: '未分析', core_position: '底仓', tracking: '跟踪', bullish: '看好', neutral: '观望',
-    waiting: '伺机', avoid: '回避', no_interest: '无感', blacklist: '拉黑', archive: '归档'
-  }
-  return map[status] || '未分析'
-}
+const statusOptions = statusCats.categories
+const statusShort = statusCats.statusShort
+const statusBadgeClass = statusCats.statusBadgeClass
 function toggleStatusMenu(code) {
   statusMenuCode.value = statusMenuCode.value === code ? null : code
 }
@@ -985,13 +970,20 @@ const sectors = computed(() => {
 
 // ── Status groups ──
 const statusGroups = computed(() => {
-  const order = ['unassessed', 'tracking', 'bullish', 'neutral', 'waiting', 'core_position', 'avoid', 'no_interest', 'archive', 'blacklist']
-  const labels = { unassessed: '未分析', tracking: '跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', core_position: '底仓备选', avoid: '回避', no_interest: '无兴趣', archive: '归档', blacklist: '黑名单' }
-  return order.map(key => ({
-    key,
-    label: labels[key],
-    stocks: filteredStocks.value.filter(s => (s.status || 'unassessed') === key)
+  const cats = statusCats.categories.value
+  const known = new Set(cats.map(c => c.key))
+  const groups = cats.map(c => ({
+    key: c.key,
+    label: c.label,
+    stocks: filteredStocks.value.filter(s => (s.status || 'unassessed') === c.key)
   })).filter(g => g.stocks.length > 0)
+  // 内置「无分类」组：收纳 status 不在配置列表中的股票（含被删分类迁入的 none
+  // 和未知/残留状态），仅非空时显示，排在最后
+  const rest = filteredStocks.value.filter(s => !known.has(s.status || 'unassessed'))
+  if (rest.length > 0) {
+    groups.push({ key: statusCats.NONE_KEY, label: statusCats.NONE_LABEL, stocks: rest })
+  }
+  return groups
 })
 
 // ── Rating groups (default) ──
@@ -1512,6 +1504,7 @@ onUnmounted(stopAutoRefresh)
 .status-no_interest { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.25); }
 .status-blacklist { background: rgba(127, 29, 29, 0.25); color: #fca5a5; border: 1px solid rgba(127, 29, 29, 0.4); }
 .status-archive { background: rgba(71, 85, 105, 0.2); color: #64748b; border: 1px solid rgba(71, 85, 105, 0.3); }
+.status-custom { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); }
 
 .stock-title-row { position: relative; }
 .stock-title-row.status-dropdown-open { z-index: 10000; }

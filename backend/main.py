@@ -747,7 +747,7 @@ class PriceMarkReq(BaseModel):
     type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell"] = "mark"
 
 class StatusReq(BaseModel):
-    status: Literal["unassessed", "tracking", "bullish", "neutral", "avoid", "no_interest", "blacklist", "waiting", "archive", "core_position"]
+    status: str
 
 class HoldingsReq(BaseModel):
     cost: Optional[float] = None
@@ -927,10 +927,43 @@ def update_tags(code: str, req: TagUpdateReq):
 
 @app.patch("/api/stocks/{code}/status")
 def update_status(code: str, req: StatusReq):
+    valid_keys = {c["key"] for c in auth.get_status_categories(auth.load_config())}
+    valid_keys.add(auth.NONE_STATUS_KEY)
+    if req.status not in valid_keys:
+        raise HTTPException(400, f"未知的分类: {req.status}")
     meta = _load_meta(code)
     meta["status"] = req.status
     _save_meta(code, meta)
     return {"status": meta["status"]}
+
+
+def _reassign_removed_statuses(removed_keys) -> int:
+    """分类被删除后，把仍在使用这些 status 的股票移入内置「无分类」(none)。
+    单股异常跳过，不影响其他股票；返回迁移的股票数。"""
+    removed = set(removed_keys)
+    if not removed:
+        return 0
+    count = 0
+    for entry in os.listdir(REPORTS_DIR):
+        meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
+        if entry.startswith("_") or not os.path.isfile(meta_path):
+            continue
+        try:
+            meta = _load_meta(entry)
+            if meta.get("status") not in removed:
+                continue
+            meta["status"] = auth.NONE_STATUS_KEY
+            _save_meta(entry, meta)
+            count += 1
+        except Exception as e:
+            print(f"[data-guard] 迁移分类失败，跳过 {entry}: {type(e).__name__}: {e}")
+            continue
+    if count:
+        print(f"[auth] 分类 {sorted(removed)} 已删除，{count} 只股票移入「无分类」")
+    return count
+
+
+auth.register_status_reassign_hook(_reassign_removed_statuses)
 
 @app.patch("/api/stocks/{code}/holdings")
 def update_holdings(code: str, req: HoldingsReq):

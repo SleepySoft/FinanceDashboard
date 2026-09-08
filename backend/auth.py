@@ -20,9 +20,10 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
@@ -50,7 +51,23 @@ DEFAULT_CONFIG = {
     "tushare_token": "",
     "price_refresh_interval_min": 5,
     "anomaly_scan_interval_min": 0,
+    "status_categories": [
+        {"key": "unassessed", "label": "未分析"},
+        {"key": "tracking", "label": "跟踪中"},
+        {"key": "bullish", "label": "看好"},
+        {"key": "neutral", "label": "观望"},
+        {"key": "waiting", "label": "伺机"},
+        {"key": "core_position", "label": "底仓备选"},
+        {"key": "avoid", "label": "回避"},
+        {"key": "no_interest", "label": "无兴趣"},
+        {"key": "archive", "label": "归档"},
+        {"key": "blacklist", "label": "黑名单"},
+    ],
 }
+
+# 内置兜底分类：删除有股票的分类时，这些股票移入该分类。
+# 不可删除/改名，不出现在状态选择下拉中，看板仅在有股票时显示。
+NONE_STATUS_KEY = "none"
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -148,6 +165,58 @@ def load_config() -> dict:
 
 def save_config(cfg: dict):
     _save_json(CONFIG_FILE, cfg)
+
+
+# ---------- 分类标签（status_categories） ----------
+
+_STATUS_KEY_RE = re.compile(r"^[a-z0-9_]{1,32}$")
+
+# 删除分类时的股票迁移回调，由 main.py 注册（避免 auth 反向依赖股票数据逻辑）。
+_status_reassign_hook = None
+
+
+def register_status_reassign_hook(fn):
+    global _status_reassign_hook
+    _status_reassign_hook = fn
+
+
+def get_status_categories(cfg: dict) -> list:
+    """从配置中取分类列表；缺失/损坏时回退默认值。返回 [{key, label}, ...]。"""
+    raw = cfg.get("status_categories")
+    if not isinstance(raw, list):
+        return [dict(item) for item in DEFAULT_CONFIG["status_categories"]]
+    out = []
+    for item in raw:
+        if isinstance(item, dict) and isinstance(item.get("key"), str) and isinstance(item.get("label"), str):
+            out.append({"key": item["key"], "label": item["label"]})
+    return out
+
+
+def _validate_status_categories(raw) -> list:
+    """校验 PATCH 传入的分类列表，返回规范化列表；非法抛 400。"""
+    if not isinstance(raw, list):
+        raise HTTPException(400, "status_categories 必须是数组")
+    seen = set()
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            raise HTTPException(400, "status_categories 元素必须是对象 {key, label}")
+        key = item.get("key")
+        label = item.get("label")
+        if not isinstance(key, str) or not _STATUS_KEY_RE.match(key):
+            raise HTTPException(400, f"非法的分类 key: {key!r}（仅限小写字母/数字/下划线，1~32 字符）")
+        if key == NONE_STATUS_KEY:
+            raise HTTPException(400, f"分类 key「{NONE_STATUS_KEY}」为内置保留，不可使用")
+        if key in seen:
+            raise HTTPException(400, f"分类 key 重复: {key}")
+        if not isinstance(label, str) or not label.strip():
+            raise HTTPException(400, f"分类 {key} 的名称不能为空")
+        label = label.strip()
+        if len(label) > 20:
+            raise HTTPException(400, f"分类名称过长（≤20 字）: {label}")
+        seen.add(key)
+        out.append({"key": key, "label": label})
+    return out
 
 
 def _ensure_api_key():
@@ -294,6 +363,7 @@ class ConfigUpdateReq(BaseModel):
     tushare_token: Optional[str] = None
     price_refresh_interval_min: Optional[int] = None
     anomaly_scan_interval_min: Optional[int] = None
+    status_categories: Optional[List[dict]] = None
 
 
 def _config_payload(cfg: dict) -> dict:
@@ -312,6 +382,7 @@ def _config_payload(cfg: dict) -> dict:
         "anomaly_scan_interval_min": int(
             cfg.get("anomaly_scan_interval_min", DEFAULT_CONFIG["anomaly_scan_interval_min"]) or 0
         ),
+        "status_categories": get_status_categories(cfg),
     }
 
 
@@ -407,8 +478,23 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_session)
         if not (0 <= req.anomaly_scan_interval_min <= 1440):
             raise HTTPException(400, "anomaly_scan_interval_min 需在 0~1440 之间")
         cfg["anomaly_scan_interval_min"] = req.anomaly_scan_interval_min
+    removed_status_keys = []
+    if req.status_categories is not None:
+        new_categories = _validate_status_categories(req.status_categories)
+        old_keys = {c["key"] for c in get_status_categories(cfg)}
+        new_keys = {c["key"] for c in new_categories}
+        removed_status_keys = sorted(old_keys - new_keys)
+        cfg["status_categories"] = new_categories
     save_config(cfg)
-    return _config_payload(cfg)
+    payload = _config_payload(cfg)
+    # 删除的分类下仍有股票时，移入内置「无分类」（迁移由 main.py 注册的 hook 执行）
+    if removed_status_keys and _status_reassign_hook is not None:
+        try:
+            payload["reassigned_count"] = int(_status_reassign_hook(removed_status_keys) or 0)
+        except Exception as e:
+            print(f"[data-guard] 分类删除后的股票迁移失败: {type(e).__name__}: {e}")
+            payload["reassigned_count"] = 0
+    return payload
 
 
 @router.post("/token/regenerate")

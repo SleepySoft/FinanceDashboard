@@ -96,6 +96,10 @@ data/
   - `tushare_token`：Tushare Pro token（优先级：环境变量 `TUSHARE_TOKEN` → 配置 → 项目 `.env`），接口不回显明文
   - `price_refresh_interval_min`：价格自动刷新间隔（分钟，默认 5，0=关闭）
   - `anomaly_scan_interval_min`：异动自动扫描间隔（分钟，默认 0=关闭，需先配置 Tushare token）
+  - `status_categories`：股票分类标签（投资状态）有序列表 `[{key, label}]`，「设置」页可改名/新增/删除/拖动排序，
+    首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
+    删除有股票的分类时其股票 `status` 自动改写为 `none`，看板仅在有股票时于最后显示「无分类」组
+    （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
 - Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
   - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_config.json`，

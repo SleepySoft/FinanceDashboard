@@ -25,14 +25,8 @@
         </div>
         <div v-if="!readonly" class="actions">
           <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
-            <option value="tracking">🔭 跟踪中</option>
-            <option value="bullish">看好</option>
-            <option value="neutral">观望</option>
-            <option value="waiting">伺机</option>
-            <option value="avoid">回避</option>
-            <option value="no_interest">无兴趣</option>
-            <option value="blacklist">黑名单</option>
-            <option value="archive">📁 归档</option>
+            <option v-if="statusUnknown" :value="statusForm.status" disabled>{{ statusLabel(statusForm.status) }}</option>
+            <option v-for="c in statusCategories" :key="c.key" :value="c.key">{{ c.label }}</option>
           </select>
           <button :class="['tag-toggle', { active: tagForm.watchlist }]" @click="toggleWatchlist">
             {{ tagForm.watchlist ? '已关注' : '关注' }}
@@ -50,7 +44,7 @@
         <span v-if="meta.change_pct != null" class="info-pct" :class="priceClass(meta.change_pct)">
           {{ meta.change_pct > 0 ? '+' : '' }}{{ meta.change_pct.toFixed(2) }}%
         </span>
-        <span :class="['status-tag', 'status-' + (meta.status || 'neutral')]">
+        <span :class="['status-tag', statusBadgeClass(meta.status || 'unassessed')]">
           {{ statusLabel(meta.status) }}
         </span>
         <span v-if="meta.tags?.watchlist" class="watch-tag">已关注</span>
@@ -66,14 +60,8 @@
       </div>
       <div v-if="!readonly" class="actions">
         <select v-model="statusForm.status" @change="updateStatus" title="投资状态">
-          <option value="tracking">🔭 跟踪中</option>
-          <option value="bullish">看好</option>
-          <option value="neutral">观望</option>
-          <option value="waiting">伺机</option>
-          <option value="avoid">回避</option>
-          <option value="no_interest">无兴趣</option>
-          <option value="blacklist">黑名单</option>
-          <option value="archive">📁 归档</option>
+          <option v-if="statusUnknown" :value="statusForm.status" disabled>{{ statusLabel(statusForm.status) }}</option>
+          <option v-for="c in statusCategories" :key="c.key" :value="c.key">{{ c.label }}</option>
         </select>
         <button :class="['tag-toggle', { active: tagForm.watchlist }]" @click="toggleWatchlist">
           {{ tagForm.watchlist ? '已关注' : '关注' }}
@@ -294,6 +282,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../api.js'
 import { readState, writeState } from '../composables/useSession.js'
+import statusCats from '../composables/useStatusCategories.js'
 
 const props = defineProps({
   code: { type: String, required: true },
@@ -322,6 +311,12 @@ const techExpandedIndex = ref(-1)
 
 const tagForm = ref({ watchlist: false })
 const statusForm = ref({ status: 'neutral' })
+
+// 分类列表来自「设置」页配置（useStatusCategories）；当前 status 不在列表中时
+// （如被删分类迁入的「无分类」），下拉额外显示一个禁用的当前项
+const statusCategories = statusCats.categories
+const statusBadgeClass = statusCats.statusBadgeClass
+const statusUnknown = computed(() => !statusCats.categoryKeys.value.has(statusForm.value.status))
 const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
 
@@ -415,8 +410,7 @@ function formatRecordPrice(price) {
 }
 
 function statusLabel(status) {
-  const map = { tracking: '🔭 跟踪中', bullish: '看好', neutral: '观望', waiting: '伺机', avoid: '回避', no_interest: '无兴趣', blacklist: '黑名单', archive: '📁 归档' }
-  return map[status] || '观望'
+  return statusCats.statusLabel(status)
 }
 
 async function load() {
@@ -850,6 +844,7 @@ onMounted(handleCodeChange)
 .status-blacklist { background: #000000; color: #f87171; }
 .status-waiting { background: #3d2c12; color: #fbbf24; }
 .status-archive { background: #334155; color: #94a3b8; }
+.status-custom { background: #334155; color: #cbd5e1; }
 .watch-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #fbbf24; color: #1e293b; font-size: 10px; font-weight: 600; }
 .info-dims { display: flex; gap: 4px; flex-wrap: wrap; }
 .dim-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
