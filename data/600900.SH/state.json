@@ -51,5 +51,19 @@
       "amplitude": 2.31,
       "created_at": "2026-08-10T07:30:01.681087+00:00"
     }
-  ]
+  ],
+  "holdings": {},
+  "price_marks": [
+    {
+      "id": "b664f441",
+      "label": "标记",
+      "price": 28.42,
+      "type": "mark",
+      "created_at": "2026-09-06T13:48:08.284154+00:00"
+    }
+  ],
+  "record_prices": {
+    "notes": {},
+    "reports": {}
+  }
 }

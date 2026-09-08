@@ -267,29 +267,18 @@
   },
   "688721.SH": {
     "name": "龙图光罩",
-    "report_count": 3,
-    "last_analysis": "2026-08-14",
+    "report_count": 1,
+    "last_analysis": "2026-07-23",
     "reports": [
       {
         "id": "fundamental_20260723",
         "filename": "fundamental_20260723.md",
         "type": "fundamental",
-        "created_at": "2026-07-23"
-      },
-      {
-        "id": "fundamental_20260814",
-        "filename": "fundamental_20260814.md",
-        "type": "fundamental",
-        "created_at": "2026-08-14"
-      },
-      {
-        "id": "technical_20260814",
-        "filename": "technical_20260814.md",
-        "type": "technical",
-        "created_at": "2026-08-14"
+        "created_at": "2026-07-23",
+        "price": null
       }
     ],
-    "updated_at": "2026-08-14T03:05:16.962925+00:00"
+    "updated_at": "2026-09-03T09:04:36.283456+00:00"
   },
   "688278.SH": {
     "name": "特宝生物",
@@ -665,5 +654,27 @@
       }
     ],
     "updated_at": "2026-08-26T02:20:33.582421+00:00"
+  },
+  "002436.SZ": {
+    "name": "兴森科技",
+    "report_count": 2,
+    "last_analysis": "2026-09-06",
+    "reports": [
+      {
+        "id": "fundamental_20260906",
+        "filename": "fundamental_20260906.md",
+        "type": "fundamental",
+        "created_at": "2026-09-06",
+        "price": null
+      },
+      {
+        "id": "technical_20260906",
+        "filename": "technical_20260906.md",
+        "type": "technical",
+        "created_at": "2026-09-06",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-06T07:58:00+00:00"
   }
 }

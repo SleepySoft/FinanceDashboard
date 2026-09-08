@@ -1,0 +1,34 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": false,
+    "quality": "yellow",
+    "valuation": "red",
+    "timing": "yellow",
+    "risk": "yellow"
+  },
+  "price_marks": [
+    {
+      "id": "83e57797",
+      "label": "标记",
+      "price": 33.59,
+      "type": "mark",
+      "created_at": "2026-09-06T07:54:50.544555+00:00"
+    }
+  ],
+  "notes": [
+    {
+      "time": "2026-09-06 07:54",
+      "content": "掩膜30%，不如路维，估值偏高。",
+      "price": 33.59
+    }
+  ],
+  "status": "tracking",
+  "holdings": {},
+  "record_prices": {
+    "notes": {
+      "2026-09-06 07:54": 33.59
+    },
+    "reports": {}
+  }
+}

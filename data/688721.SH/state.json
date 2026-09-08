@@ -1,115 +1,34 @@
 {
   "tags": {
-    "overall": "none",
+    "overall": "red",
     "watchlist": false,
-    "quality": "none",
-    "valuation": "none",
-    "timing": "none",
-    "risk": "yellow",
-    "verdict": "none",
-    "unread": false
+    "quality": "yellow",
+    "valuation": "red",
+    "timing": "red",
+    "risk": "red"
   },
-  "dimension_reasons": {
-    "quality": "技术节点落后（90nm vs 国际28nm以下），毛利率从58%暴跌至45%显示竞争力退化",
-    "valuation": "PE 52倍、PB 4.3倍，对于ROE仅4.6%的公司明显偏贵",
-    "timing": "产能爬坡中期、毛利率下滑趋势未止、定增不确定性大",
-    "risk": "28nm技术失败可能导致永久性资本损失，定增稀释30%",
-    "verdict": "好赛道里的困难公司，当前不具备风险收益比优势"
-  },
-  "notes": [],
-  "status": "unassessed",
-  "daily_briefs": [
+  "price_marks": [
     {
-      "id": "19893b19",
-      "date": "2026-07-22",
-      "content": "低开后震荡走低，收跌3.3%，振幅较大",
-      "has_value": true,
-      "price": 39.2,
-      "change_pct": -3.31,
-      "amplitude": 6.96,
-      "created_at": "2026-07-22T07:30:01.711314+00:00"
-    },
-    {
-      "id": "b29b5dc4",
-      "date": "2026-07-23",
-      "content": "小幅高开后震荡走低，收跌4.3%，振幅较大",
-      "has_value": true,
-      "price": 37.51,
-      "change_pct": -4.31,
-      "amplitude": 7.07,
-      "created_at": "2026-07-23T07:30:02.070581+00:00"
-    },
-    {
-      "id": "5f14d075",
-      "date": "2026-08-03",
-      "content": "小幅低开后震荡走低，收跌2.2%",
-      "has_value": true,
-      "price": 34.18,
-      "change_pct": -2.18,
-      "amplitude": 4.67,
-      "created_at": "2026-08-03T07:30:01.919648+00:00"
-    },
-    {
-      "id": "fc5f0f01",
-      "date": "2026-08-04",
-      "content": "小幅高开后震荡走高，收涨5.2%，振幅较大",
-      "has_value": true,
-      "price": 35.97,
-      "change_pct": 5.24,
-      "amplitude": 6.47,
-      "created_at": "2026-08-04T07:30:01.911038+00:00"
-    },
-    {
-      "id": "bfd7b964",
-      "date": "2026-08-05",
-      "content": "小幅低开后震荡走高，收涨6.0%，振幅较大",
-      "has_value": true,
-      "price": 38.12,
-      "change_pct": 5.98,
-      "amplitude": 7.53,
-      "created_at": "2026-08-05T07:30:02.015157+00:00"
-    },
-    {
-      "id": "24d8e17b",
-      "date": "2026-08-06",
-      "content": "低开后震荡走高，收涨2.9%，振幅较大",
-      "has_value": true,
-      "price": 39.23,
-      "change_pct": 2.91,
-      "amplitude": 6.01,
-      "created_at": "2026-08-06T07:30:01.625899+00:00"
-    },
-    {
-      "id": "a548af08",
-      "date": "2026-08-07",
-      "content": "小幅低开后震荡走高，收涨1.9%",
-      "has_value": true,
-      "price": 39.99,
-      "change_pct": 1.94,
-      "amplitude": 4.89,
-      "created_at": "2026-08-07T07:30:01.899610+00:00"
-    },
-    {
-      "id": "d1aa1aab",
-      "date": "2026-08-10",
-      "content": "小幅低开后震荡走高，收涨2.6%，振幅较大",
-      "has_value": true,
-      "price": 41.02,
-      "change_pct": 2.58,
-      "amplitude": 7.63,
-      "created_at": "2026-08-10T07:30:01.709750+00:00"
-    },
-    {
-      "id": "901df37c",
-      "date": "2026-08-11",
-      "content": "低开后震荡走高，微涨0.9%，振幅较大",
-      "has_value": true,
-      "price": 41.38,
-      "change_pct": 0.88,
-      "amplitude": 7.39,
-      "created_at": "2026-08-11T07:30:01.300625+00:00"
+      "id": "9e11e12b",
+      "label": "标记",
+      "price": 37.33,
+      "type": "mark",
+      "created_at": "2026-09-06T07:56:18.250237+00:00"
     }
   ],
+  "notes": [
+    {
+      "time": "2026-09-06 07:56",
+      "content": "不如路维和清溢，备选。",
+      "price": 37.33
+    }
+  ],
+  "status": "neutral",
   "holdings": {},
-  "price_marks": []
+  "record_prices": {
+    "notes": {
+      "2026-09-06 07:56": 37.33
+    },
+    "reports": {}
+  }
 }
