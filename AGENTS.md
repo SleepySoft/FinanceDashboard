@@ -86,6 +86,13 @@ data/
 
 - 认证实现：`backend/auth.py`（纯 stdlib：hashlib.pbkdf2_hmac + hmac + secrets），无新增依赖。
 - 登录会话：`data/_sessions.json` + HttpOnly Cookie `fd_session`（SameSite=Lax，默认 7 天）。
+- 用户角色（`_users.json` 的 `role` 字段）：
+  - `admin`：全部权限，含用户管理、权限/分类/Tushare/定时任务配置、密钥重新生成；
+  - `readonly`：只读账号（分享给朋友用），可浏览全部数据，所有写操作被中间件拦截返回 403
+    （`/api/auth/*` 除外：可改自己的密码、登出）；老数据无 `role` 字段一律按 `admin` 兼容；
+  - 前端 `useAuth.canWrite` = 仅 admin，只读账号登录后所有写操作按钮自动隐藏；
+  - 用户管理接口（仅 admin）：`GET/POST /api/auth/users`、`DELETE /api/auth/users/{name}`、
+    `POST /api/auth/users/{name}/password`（重置后吊销该用户全部会话）；不能删除自己或最后一个 admin。
 - 首次运行：访问 `/api/auth/config` 时自动创建管理员账号。
   - 用户名：环境变量 `FD_ADMIN_USERNAME`（默认 `admin`）
   - 密码：环境变量 `FD_ADMIN_PASSWORD`；未设置则使用默认密码
@@ -124,6 +131,9 @@ data/
 | `/api/auth/login` | POST | 登录（设置 HttpOnly Cookie） |
 | `/api/auth/logout` | POST | 登出 |
 | `/api/auth/change-password` | POST | 修改密码（需登录） |
+| `/api/auth/users` | GET/POST | 用户管理：列表 / 创建账号（仅 admin，role: admin/readonly） |
+| `/api/auth/users/{name}` | DELETE | 删除账号并吊销其会话（仅 admin，不能删自己/最后一个 admin） |
+| `/api/auth/users/{name}/password` | POST | 重置指定用户密码并吊销其会话（仅 admin） |
 | `/api/auth/config` | PATCH | 修改权限/Tushare token/定时任务间隔（需登录） |
 | `/api/dashboard` | GET | All stocks with prices and mark diffs |
 | `/api/prices/refresh` | GET | Fetch live prices from Sina, update `_dashboard.json` |

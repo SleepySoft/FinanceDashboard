@@ -21,7 +21,7 @@
         <router-link to="/backtest" class="nav-link">回测</router-link>
       </div>
       <div class="topbar-right">
-        <span v-if="isAuthenticated" class="topbar-user">{{ user }}</span>
+        <span v-if="isAuthenticated" class="topbar-user">{{ user }}<span v-if="!isAdmin" class="topbar-role">只读</span></span>
         <span v-else-if="config.allow_anonymous_read" class="topbar-readonly" title="当前为只读模式，登录后可修改">只读浏览</span>
         <router-link v-if="isAuthenticated" to="/settings" class="topbar-link">设置</router-link>
         <button v-if="isAuthenticated" class="topbar-btn" @click="doLogout">退出</button>
@@ -42,6 +42,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 const router = useRouter()
 const isAuthenticated = auth.isAuthenticated
+const isAdmin = auth.isAdmin
 const user = auth.user
 const config = auth.config
 
@@ -125,6 +126,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   border-color: #334155;
 }
 .topbar-user {
+  color: #94a3b8;
+}
+.topbar-role {
+  margin-left: 6px;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.15);
   color: #94a3b8;
 }
 .topbar-readonly {

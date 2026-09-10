@@ -11,8 +11,11 @@
     </div>
 
     <template v-else>
+      <div v-if="!isAdmin" class="card readonly-hint">
+        当前为只读账号：可浏览全部数据，但修改操作会被拒绝。可在下方修改自己的密码。
+      </div>
       <!-- 未登录访问权限 -->
-      <div class="card">
+      <div class="card" v-if="isAdmin">
         <h3>未登录访问权限</h3>
         <p class="settings-hint">控制未登录访客能看到什么：</p>
         <div class="mode-options">
@@ -42,7 +45,7 @@
       </div>
 
       <!-- 股票分类标签 -->
-      <div class="card">
+      <div class="card" v-if="isAdmin">
         <h3>股票分类标签</h3>
         <p class="settings-hint">
           首页按此列表顺序分组显示，拖动 ⠿ 可排序；「说明」会在鼠标悬停分类标签时悬浮显示。
@@ -74,6 +77,40 @@
         </div>
       </div>
 
+      <!-- 用户管理（仅管理员） -->
+      <div class="card" v-if="isAdmin">
+        <h3>用户管理</h3>
+        <p class="settings-hint">
+          只读账号可以浏览全部数据，但不能做任何修改（改状态、记笔记、录交易、改设置都会被拒绝）。
+          把只读账号分享给朋友即可；重置密码后该用户需重新登录。
+        </p>
+        <div class="user-list">
+          <div v-for="u in users" :key="u.username" class="user-row">
+            <span class="user-name">{{ u.username }}</span>
+            <span :class="['user-role', u.role]">{{ u.role === 'admin' ? '管理员' : '只读' }}</span>
+            <span class="user-created">{{ fmtUserDate(u.created_at) }}</span>
+            <span class="user-actions">
+              <button class="ghost" @click="resetUserPw(u)">重置密码</button>
+              <button v-if="u.username !== auth.user.value" class="ghost danger-text" @click="removeUser(u)">删除</button>
+            </span>
+          </div>
+        </div>
+        <div class="user-create">
+          <input v-model="newUserName" placeholder="用户名（字母/数字/_/-）" />
+          <input v-model="newUserPassword" type="password" placeholder="初始密码（至少 6 位）" autocomplete="new-password" />
+          <select v-model="newUserRole">
+            <option value="readonly">只读</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
+        <p v-if="userMsg" :class="['config-msg', userError ? 'err' : 'ok']">{{ userMsg }}</p>
+        <div class="settings-actions">
+          <button class="primary" @click="createUser" :disabled="savingUser">
+            {{ savingUser ? '创建中...' : '创建账号' }}
+          </button>
+        </div>
+      </div>
+
       <!-- 修改密码 -->
       <div class="card">
         <h3>修改密码</h3>
@@ -96,7 +133,7 @@
       </div>
 
       <!-- Agent 访问密钥 -->
-      <div class="card">
+      <div class="card" v-if="isAdmin">
         <h3>Agent 访问密钥</h3>
         <p class="settings-hint">
           本地 Agent 通过项目根目录 <code>agent_token.txt</code> 读取密钥（首次启动自动生成）。
@@ -117,7 +154,7 @@
       </div>
 
       <!-- Tushare 数据源配置 -->
-      <div class="card">
+      <div class="card" v-if="isAdmin">
         <h3>Tushare 数据源配置</h3>
         <p class="settings-hint">
           异动扫描与回测使用 Tushare Pro 数据。Token 仅保存在本机 <code>data/_config.json</code>，接口不会回显明文。
@@ -147,7 +184,7 @@
       </div>
 
       <!-- 自动更新（定时任务） -->
-      <div class="card">
+      <div class="card" v-if="isAdmin">
         <h3>自动更新（定时任务）</h3>
         <p class="settings-hint">
           价格刷新默认每 5 分钟自动执行；异动扫描会调用 Tushare 全市场数据，需先配置 Token，默认关闭。
@@ -203,6 +240,83 @@ import auth from '../composables/useAuth.js'
 import statusCats from '../composables/useStatusCategories.js'
 
 const router = useRouter()
+
+const isAdmin = auth.isAdmin
+
+// 用户管理（仅管理员可见/可用）
+const users = ref([])
+const newUserName = ref('')
+const newUserPassword = ref('')
+const newUserRole = ref('readonly')
+const userMsg = ref('')
+const userError = ref(false)
+const savingUser = ref(false)
+
+async function loadUsers() {
+  try {
+    users.value = await api.auth.listUsers()
+  } catch {
+    // 列表失败不打断页面
+  }
+}
+
+function fmtUserDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString()
+}
+
+async function createUser() {
+  userMsg.value = ''
+  userError.value = false
+  if (!newUserName.value.trim() || !newUserPassword.value) {
+    userError.value = true
+    userMsg.value = '请填写用户名和初始密码'
+    return
+  }
+  savingUser.value = true
+  try {
+    await api.auth.createUser(newUserName.value.trim(), newUserPassword.value, newUserRole.value)
+    userMsg.value = `账号「${newUserName.value.trim()}」已创建（${newUserRole.value === 'admin' ? '管理员' : '只读'}）`
+    newUserName.value = ''
+    newUserPassword.value = ''
+    newUserRole.value = 'readonly'
+    await loadUsers()
+  } catch (e) {
+    userError.value = true
+    userMsg.value = e.message || '创建失败'
+  } finally {
+    savingUser.value = false
+  }
+}
+
+async function removeUser(u) {
+  if (!window.confirm(`删除账号「${u.username}」？该用户的登录会话将立即失效。`)) return
+  userMsg.value = ''
+  userError.value = false
+  try {
+    await api.auth.deleteUser(u.username)
+    userMsg.value = `账号「${u.username}」已删除`
+    await loadUsers()
+  } catch (e) {
+    userError.value = true
+    userMsg.value = e.message || '删除失败'
+  }
+}
+
+async function resetUserPw(u) {
+  const pw = window.prompt(`为「${u.username}」设置新密码（至少 6 位）：`)
+  if (!pw) return
+  userMsg.value = ''
+  userError.value = false
+  try {
+    await api.auth.resetUserPassword(u.username, pw)
+    userMsg.value = `「${u.username}」的密码已重置，该用户需用新密码重新登录`
+  } catch (e) {
+    userError.value = true
+    userMsg.value = e.message || '重置失败'
+  }
+}
 
 // 股票分类标签（改名/新增/删除/拖动排序）
 const catRows = ref([])
@@ -412,8 +526,10 @@ async function saveScheduler() {
 }
 
 onMounted(() => {
+  if (!isAdmin.value) return
   loadSchedulerStatus()
   resetCatRows()
+  loadUsers()
 })
 
 // 修改密码
@@ -637,6 +753,67 @@ button.ghost.danger-text {
   text-align: center;
   padding: 40px;
   color: #64748b;
+}
+.readonly-hint {
+  color: #fbbf24;
+  font-size: 13px;
+  padding: 12px 16px;
+}
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.user-name {
+  color: #e2e8f0;
+  font-weight: 600;
+  min-width: 100px;
+}
+.user-role {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.user-role.admin {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+.user-role.readonly {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+.user-created {
+  color: #64748b;
+  font-size: 12px;
+  flex: 1;
+}
+.user-actions {
+  display: flex;
+  gap: 6px;
+}
+.user-actions button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.user-create {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.user-create input,
+.user-create select {
+  flex: 1;
+  min-width: 0;
 }
 .login-link {
   color: #60a5fa;

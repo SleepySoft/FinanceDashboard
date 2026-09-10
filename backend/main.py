@@ -80,6 +80,10 @@ async def permission_control(request: Request, call_next):
 
     user = auth.get_current_user(request)
     if user:
+        # 只读账号：可读所有数据，写操作一律 403（/api/auth/* 已在上方放行，
+        # 因此修改自己的密码、登出不受影响）；Agent API Key 拥有完整权限
+        if method not in ("GET", "HEAD") and user != "_agent" and auth.get_user_role(user) != "admin":
+            return JSONResponse({"detail": "只读账号无权进行写操作"}, status_code=403)
         return await call_next(request)
 
     if path.startswith("/api/agent"):

@@ -120,11 +120,24 @@ def _load_users() -> dict:
     users = _load_json(USERS_FILE, {"users": []})
     if not isinstance(users, dict) or not isinstance(users.get("users"), list):
         users = {"users": []}
+    # 角色兜底：老数据没有 role 字段，一律视为 admin（保持原有权限不变）
+    for u in users["users"]:
+        if isinstance(u, dict) and u.get("role") not in ("admin", "readonly"):
+            u["role"] = "admin"
     return users
 
 
 def _save_users(users: dict):
     _save_json(USERS_FILE, users)
+
+
+def get_user_role(username: str) -> str:
+    """查询用户角色；用户不存在或数据异常时按 admin 处理（兼容老数据）。"""
+    users = _load_users()
+    user = next((u for u in users["users"] if u.get("username") == username), None)
+    if not user:
+        return "admin"
+    return user.get("role", "admin")
 
 
 def _ensure_admin_user() -> dict:
@@ -141,6 +154,7 @@ def _ensure_admin_user() -> dict:
         "username": username,
         "salt": salt,
         "password_hash": _hash_password(password, salt),
+        "role": "admin",
         "created_at": _now().isoformat(),
     }
     users["users"].append(user)
@@ -379,6 +393,14 @@ def require_session(request: Request) -> str:
     return user
 
 
+def require_admin(request: Request) -> str:
+    """仅管理员可用的接口（用户管理、权限配置、密钥等）。"""
+    user = require_session(request)
+    if get_user_role(user) != "admin":
+        raise HTTPException(403, "需要管理员权限")
+    return user
+
+
 # ---------- API ----------
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -435,7 +457,94 @@ def get_config(request: Request):
 @router.get("/me")
 def me(request: Request):
     user = get_session_user(request)
-    return {"authenticated": user is not None, "user": user}
+    return {
+        "authenticated": user is not None,
+        "user": user,
+        "role": get_user_role(user) if user else None,
+    }
+
+
+# ---------- 用户管理（仅管理员） ----------
+
+_USERNAME_RE = re.compile(r"^[A-Za-z0-9_\-]{2,32}$")
+
+
+class UserCreateReq(BaseModel):
+    username: str
+    password: str
+    role: str = "readonly"
+
+
+class UserPasswordReq(BaseModel):
+    new_password: str
+
+
+def _public_user(u: dict) -> dict:
+    return {
+        "username": u.get("username"),
+        "role": u.get("role", "admin"),
+        "created_at": u.get("created_at"),
+    }
+
+
+@router.get("/users")
+def list_users(username: str = Depends(require_admin)):
+    return [_public_user(u) for u in _load_users()["users"]]
+
+
+@router.post("/users")
+def create_user(req: UserCreateReq, username: str = Depends(require_admin)):
+    if not _USERNAME_RE.match(req.username or ""):
+        raise HTTPException(400, "用户名仅限字母/数字/下划线/短横线，2~32 字符")
+    if req.role not in ("admin", "readonly"):
+        raise HTTPException(400, "role 只能是 admin 或 readonly")
+    if len(req.password) < MIN_PASSWORD_LEN:
+        raise HTTPException(400, f"密码至少 {MIN_PASSWORD_LEN} 位")
+    users = _load_users()
+    if any(u["username"] == req.username for u in users["users"]):
+        raise HTTPException(400, "用户名已存在")
+    salt = _new_salt()
+    users["users"].append({
+        "username": req.username,
+        "salt": salt,
+        "password_hash": _hash_password(req.password, salt),
+        "role": req.role,
+        "created_at": _now().isoformat(),
+    })
+    _save_users(users)
+    return {"ok": True, "user": _public_user(users["users"][-1])}
+
+
+@router.delete("/users/{name}")
+def delete_user(name: str, username: str = Depends(require_admin)):
+    users = _load_users()
+    target = next((u for u in users["users"] if u["username"] == name), None)
+    if not target:
+        raise HTTPException(404, "用户不存在")
+    if name == username:
+        raise HTTPException(400, "不能删除当前登录的管理员账号")
+    if target.get("role") == "admin" and sum(1 for u in users["users"] if u.get("role") == "admin") <= 1:
+        raise HTTPException(400, "至少保留一个管理员账号")
+    users["users"] = [u for u in users["users"] if u["username"] != name]
+    _save_users(users)
+    _revoke_other_sessions(name, keep_token=None)
+    return {"ok": True}
+
+
+@router.post("/users/{name}/password")
+def reset_user_password(name: str, req: UserPasswordReq, username: str = Depends(require_admin)):
+    if len(req.new_password) < MIN_PASSWORD_LEN:
+        raise HTTPException(400, f"新密码至少 {MIN_PASSWORD_LEN} 位")
+    users = _load_users()
+    target = next((u for u in users["users"] if u["username"] == name), None)
+    if not target:
+        raise HTTPException(404, "用户不存在")
+    target["salt"] = _new_salt()
+    target["password_hash"] = _hash_password(req.new_password, target["salt"])
+    _save_users(users)
+    # 重置密码后吊销该用户所有会话，需用新密码重新登录
+    _revoke_other_sessions(name, keep_token=None)
+    return {"ok": True}
 
 
 @router.post("/login")
@@ -497,7 +606,7 @@ def change_password(req: ChangePasswordReq, request: Request, username: str = De
 
 
 @router.patch("/config")
-def update_config(req: ConfigUpdateReq, username: str = Depends(require_session)):
+def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
     cfg = load_config()
     if req.allow_anonymous_read is not None:
         cfg["allow_anonymous_read"] = bool(req.allow_anonymous_read)
@@ -535,7 +644,7 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_session)
 
 
 @router.post("/token/regenerate")
-def regenerate_token(username: str = Depends(require_session)):
+def regenerate_token(username: str = Depends(require_admin)):
     """重新生成 Agent 访问密钥（旧密钥立即失效）。
     密钥只写入项目根目录 agent_token.txt，不通过接口返回明文，避免远程暴露。"""
     if os.environ.get("FD_API_KEY", ""):

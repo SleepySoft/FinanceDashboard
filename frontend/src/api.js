@@ -42,6 +42,10 @@ export default {
     changePassword: (oldPassword, newPassword) => api('/auth/change-password', { method: 'POST', body: { old_password: oldPassword, new_password: newPassword } }),
     updateConfig: (patch) => api('/auth/config', { method: 'PATCH', body: patch }),
     regenerateToken: () => api('/auth/token/regenerate', { method: 'POST' }),
+    listUsers: () => api('/auth/users'),
+    createUser: (username, password, role) => api('/auth/users', { method: 'POST', body: { username, password, role } }),
+    deleteUser: (username) => api(`/auth/users/${encodeURIComponent(username)}`, { method: 'DELETE' }),
+    resetUserPassword: (username, newPassword) => api(`/auth/users/${encodeURIComponent(username)}/password`, { method: 'POST', body: { new_password: newPassword } }),
   },
   scheduler: {
     status: () => api('/scheduler/status'),
