@@ -45,8 +45,8 @@
       <div class="card">
         <h3>股票分类标签</h3>
         <p class="settings-hint">
-          首页按此列表顺序分组显示，拖动 ⠿ 可排序。删除分类后，该分类下的股票移入内置「无分类」
-          （「无分类」平时不显示，仅当其中有股票时出现在看板最后）。
+          首页按此列表顺序分组显示，拖动 ⠿ 可排序；「说明」会在鼠标悬停分类标签时悬浮显示。
+          删除分类后，该分类下的股票移入内置「无分类」（「无分类」平时不显示，仅当其中有股票时出现在看板最后）。
         </p>
         <div class="cat-list">
           <div
@@ -60,7 +60,8 @@
             @dragend="dragIndex = null"
           >
             <span class="cat-drag" title="拖动排序">⠿</span>
-            <input v-model="row.label" maxlength="20" placeholder="分类名称" />
+            <input v-model="row.label" maxlength="20" placeholder="分类名称" class="cat-label" />
+            <input v-model="row.desc" maxlength="200" placeholder="说明（鼠标悬停分类标签时显示）" class="cat-desc" />
             <button class="ghost danger-text cat-del" @click="removeCategory(idx)">删除</button>
           </div>
         </div>
@@ -211,11 +212,11 @@ const savingCats = ref(false)
 const dragIndex = ref(null)
 
 function resetCatRows() {
-  catRows.value = statusCats.categories.value.map(c => ({ key: c.key, label: c.label }))
+  catRows.value = statusCats.categories.value.map(c => ({ key: c.key, label: c.label, desc: c.desc || '' }))
 }
 
 function addCategory() {
-  catRows.value.push({ key: 'cat_' + Math.random().toString(36).slice(2, 10), label: '' })
+  catRows.value.push({ key: 'cat_' + Math.random().toString(36).slice(2, 10), label: '', desc: '' })
 }
 
 function removeCategory(idx) {
@@ -251,7 +252,7 @@ async function saveCategories() {
   }
   savingCats.value = true
   try {
-    const payload = catRows.value.map(r => ({ key: r.key, label: r.label.trim() }))
+    const payload = catRows.value.map(r => ({ key: r.key, label: r.label.trim(), desc: (r.desc || '').trim() }))
     const cfg = await auth.updateConfig({ status_categories: payload })
     const n = cfg.reassigned_count || 0
     catMsg.value = n > 0 ? `分类设置已保存，${n} 只股票已移入「无分类」` : '分类设置已保存'
@@ -613,6 +614,12 @@ button.ghost.danger-text {
 .cat-row input {
   flex: 1;
   min-width: 0;
+}
+.cat-row input.cat-label {
+  flex: 0 0 140px;
+}
+.cat-row input.cat-desc {
+  color: #94a3b8;
 }
 .cat-del {
   padding: 4px 10px;

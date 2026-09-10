@@ -74,7 +74,7 @@
       <template v-if="groupMode === 'status'">
         <div v-for="group in statusGroups" :key="group.key" class="sector-group">
           <div class="sector-header" @click="toggleGroup('status-' + group.key)">
-            <span :class="['tag-badge', 'tag-' + group.key]">{{ group.label }}</span>
+            <span :class="['tag-badge', 'tag-' + group.key]" :title="statusDesc(group.key)">{{ group.label }}</span>
             <span class="sector-count">{{ group.stocks.length }} 只</span>
             <span class="collapse-icon">{{ collapsedGroups.has('status-' + group.key) ? '▸' : '▾' }}</span>
           </div>
@@ -93,10 +93,10 @@
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" :title="statusDesc(s.status || 'unassessed')" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" :title="st.desc" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -201,10 +201,10 @@
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" :title="statusDesc(s.status || 'unassessed')" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" :title="st.desc" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -308,10 +308,10 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" :title="statusDesc(s.status || 'unassessed')" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
-                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
+                    <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" :title="st.desc" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
                   </div>
                 </div>
                 <div class="stock-price-row">
@@ -677,6 +677,7 @@ watch([showTradeModal, tradeForm], persistTradeDraft, { deep: true })
 const statusMenuCode = ref(null)
 const statusOptions = statusCats.categories
 const statusLabel = statusCats.statusLabel
+const statusDesc = statusCats.statusDesc
 const statusBadgeClass = statusCats.statusBadgeClass
 function toggleStatusMenu(code) {
   statusMenuCode.value = statusMenuCode.value === code ? null : code

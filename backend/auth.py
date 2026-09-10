@@ -181,14 +181,15 @@ def register_status_reassign_hook(fn):
 
 
 def get_status_categories(cfg: dict) -> list:
-    """从配置中取分类列表；缺失/损坏时回退默认值。返回 [{key, label}, ...]。"""
+    """从配置中取分类列表；缺失/损坏时回退默认值。返回 [{key, label, desc}, ...]。"""
     raw = cfg.get("status_categories")
     if not isinstance(raw, list):
         return [dict(item) for item in DEFAULT_CONFIG["status_categories"]]
     out = []
     for item in raw:
         if isinstance(item, dict) and isinstance(item.get("key"), str) and isinstance(item.get("label"), str):
-            out.append({"key": item["key"], "label": item["label"]})
+            desc = item.get("desc")
+            out.append({"key": item["key"], "label": item["label"], "desc": desc if isinstance(desc, str) else ""})
     return out
 
 
@@ -214,8 +215,14 @@ def _validate_status_categories(raw) -> list:
         label = label.strip()
         if len(label) > 20:
             raise HTTPException(400, f"分类名称过长（≤20 字）: {label}")
+        desc = item.get("desc") or ""
+        if not isinstance(desc, str):
+            raise HTTPException(400, f"分类 {key} 的说明必须是字符串")
+        desc = desc.strip()
+        if len(desc) > 200:
+            raise HTTPException(400, f"分类说明过长（≤200 字）: {key}")
         seen.add(key)
-        out.append({"key": key, "label": label})
+        out.append({"key": key, "label": label, "desc": desc})
     return out
 
 

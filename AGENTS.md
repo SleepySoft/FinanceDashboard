@@ -96,7 +96,8 @@ data/
   - `tushare_token`：Tushare Pro token（优先级：环境变量 `TUSHARE_TOKEN` → 配置 → 项目 `.env`），接口不回显明文
   - `price_refresh_interval_min`：价格自动刷新间隔（分钟，默认 5，0=关闭）
   - `anomaly_scan_interval_min`：异动自动扫描间隔（分钟，默认 0=关闭，需先配置 Tushare token）
-  - `status_categories`：股票分类标签（投资状态）有序列表 `[{key, label}]`，「设置」页可改名/新增/删除/拖动排序，
+  - `status_categories`：股票分类标签（投资状态）有序列表 `[{key, label, desc}]`，「设置」页可改名/新增/删除/拖动排序，
+    `desc` 为分类说明（可选，≤200 字），鼠标悬停在卡片徽章/分组标题/下拉选项上时悬浮显示；
     首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
     删除有股票的分类时其股票 `status` 自动改写为 `none`，看板仅在有股票时于最后显示「无分类」组
     （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。

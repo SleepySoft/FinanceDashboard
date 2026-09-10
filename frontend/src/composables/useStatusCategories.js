@@ -45,11 +45,17 @@ function statusBadgeClass(key) {
   return KNOWN_BADGE_KEYS.has(key) ? `status-${key}` : 'status-custom'
 }
 
+function statusDesc(key) {
+  const hit = categories.value.find(c => c.key === key)
+  return hit && typeof hit.desc === 'string' ? hit.desc : ''
+}
+
 export default {
   categories,
   categoryKeys,
   statusLabel,
   statusBadgeClass,
+  statusDesc,
   NONE_KEY,
   NONE_LABEL,
 }

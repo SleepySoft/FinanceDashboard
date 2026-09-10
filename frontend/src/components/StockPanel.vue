@@ -44,7 +44,7 @@
         <span v-if="meta.change_pct != null" class="info-pct" :class="priceClass(meta.change_pct)">
           {{ meta.change_pct > 0 ? '+' : '' }}{{ meta.change_pct.toFixed(2) }}%
         </span>
-        <span :class="['status-tag', statusBadgeClass(meta.status || 'unassessed')]">
+        <span :class="['status-tag', statusBadgeClass(meta.status || 'unassessed')]" :title="statusCats.statusDesc(meta.status || 'unassessed')">
           {{ statusLabel(meta.status) }}
         </span>
         <span v-if="meta.tags?.watchlist" class="watch-tag">已关注</span>
