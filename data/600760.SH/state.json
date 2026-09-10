@@ -1,0 +1,29 @@
+{
+  "tags": {
+    "watchlist": false
+  },
+  "notes": [
+    {
+      "time": "2026-09-09 15:11",
+      "content": "纯造战机，稀缺，但现金流不好，负债高，不赚钱。",
+      "price": 48.91
+    }
+  ],
+  "holdings": {},
+  "price_marks": [
+    {
+      "id": "3be7f795",
+      "label": "标记",
+      "price": 48.91,
+      "type": "mark",
+      "created_at": "2026-09-09T15:11:55.122174+00:00"
+    }
+  ],
+  "record_prices": {
+    "notes": {
+      "2026-09-09 15:11": 48.91
+    },
+    "reports": {}
+  },
+  "status": "avoid"
+}

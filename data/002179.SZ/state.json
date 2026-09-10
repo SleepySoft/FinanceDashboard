@@ -1,0 +1,29 @@
+{
+  "tags": {
+    "watchlist": false
+  },
+  "notes": [
+    {
+      "time": "2026-09-09 15:10",
+      "content": "军工上游，高ROE，军工茅台，当前估值算合理。",
+      "price": 34.6
+    }
+  ],
+  "holdings": {},
+  "price_marks": [
+    {
+      "id": "c5db8e38",
+      "label": "标记",
+      "price": 34.6,
+      "type": "mark",
+      "created_at": "2026-09-09T15:10:46.179741+00:00"
+    }
+  ],
+  "record_prices": {
+    "notes": {
+      "2026-09-09 15:10": 34.6
+    },
+    "reports": {}
+  },
+  "status": "bullish"
+}

@@ -1,0 +1,18 @@
+{
+  "tags": {
+    "overall": "red",
+    "watchlist": true,
+    "quality": "red",
+    "valuation": "red",
+    "timing": "yellow",
+    "risk": "red",
+    "verdict": "red"
+  },
+  "status": "观察",
+  "price_marks": [],
+  "notes": [],
+  "cache": {
+    "fundamental": {"last": null, "valid_until": null},
+    "technical": {"last": null, "valid_until": null}
+  }
+}

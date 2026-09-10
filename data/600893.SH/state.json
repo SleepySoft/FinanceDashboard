@@ -1,0 +1,21 @@
+{
+  "tags": {
+    "watchlist": false
+  },
+  "notes": [
+    {
+      "time": "2026-09-09 15:08",
+      "content": "盈利能力极差，现金黑洞。",
+      "price": 41.37
+    }
+  ],
+  "holdings": {},
+  "price_marks": [],
+  "record_prices": {
+    "notes": {
+      "2026-09-09 15:08": 41.37
+    },
+    "reports": {}
+  },
+  "status": "avoid"
+}
