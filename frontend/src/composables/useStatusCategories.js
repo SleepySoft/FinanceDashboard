@@ -41,11 +41,6 @@ function statusLabel(key) {
   return hit ? hit.label : NONE_LABEL
 }
 
-function statusShort(key) {
-  const label = statusLabel(key)
-  return label.length > 2 ? label.slice(0, 2) : label
-}
-
 function statusBadgeClass(key) {
   return KNOWN_BADGE_KEYS.has(key) ? `status-${key}` : 'status-custom'
 }
@@ -54,7 +49,6 @@ export default {
   categories,
   categoryKeys,
   statusLabel,
-  statusShort,
   statusBadgeClass,
   NONE_KEY,
   NONE_LABEL,

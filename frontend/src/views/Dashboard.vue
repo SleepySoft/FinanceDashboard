@@ -93,7 +93,7 @@
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
                     <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
@@ -201,7 +201,7 @@
                   <span class="stock-sector">{{ s.sector }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
                     <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
@@ -308,7 +308,7 @@
                   <span class="stock-name">{{ s.name }}</span>
                   <span v-if="s.watchlist" class="tag-badge tag-watch">关注</span>
                   <span v-if="s.tags?.unread" class="tag-badge tag-unread">未读</span>
-                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusShort(s.status) }}</span>
+                  <span :class="['status-badge', statusBadgeClass(s.status || 'unassessed')]" @click.stop="canWrite && toggleStatusMenu(s.code)">{{ statusLabel(s.status || 'unassessed') }}</span>
                   <button v-if="canWrite" class="trade-btn" @click.stop="openTradeModal(s)" title="录入成交">记</button>
                   <div v-show="statusMenuCode === s.code" class="status-dropdown" @click.stop>
                     <div v-for="st in statusOptions" :key="st.key" :class="['status-option', { active: (s.status || 'unassessed') === st.key }]" @click.stop="setStatus(s, st.key)">{{ st.label }}</div>
@@ -676,7 +676,7 @@ watch([showTradeModal, tradeForm], persistTradeDraft, { deep: true })
 // Status tag quick-edit（分类列表来自「设置」页配置，见 useStatusCategories）
 const statusMenuCode = ref(null)
 const statusOptions = statusCats.categories
-const statusShort = statusCats.statusShort
+const statusLabel = statusCats.statusLabel
 const statusBadgeClass = statusCats.statusBadgeClass
 function toggleStatusMenu(code) {
   statusMenuCode.value = statusMenuCode.value === code ? null : code
