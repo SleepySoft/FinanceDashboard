@@ -1,0 +1,58 @@
+{
+  "allow_anonymous_read": false,
+  "session_ttl_hours": 168,
+  "price_refresh_interval_min": 5,
+  "anomaly_scan_interval_min": 0,
+  "status_categories": [
+    {
+      "key": "unassessed",
+      "label": "未阅",
+      "desc": "AI刚加入，还没仔细看。"
+    },
+    {
+      "key": "bullish",
+      "label": "看好",
+      "desc": "好公司，价格在目标附近，想买。"
+    },
+    {
+      "key": "tracking",
+      "label": "跟踪中",
+      "desc": "忘了为什么设置这个分类。"
+    },
+    {
+      "key": "neutral",
+      "label": "观察",
+      "desc": "偶尔看一眼。"
+    },
+    {
+      "key": "waiting",
+      "label": "伺机",
+      "desc": "价格高了，等价格低了再说。"
+    },
+    {
+      "key": "core_position",
+      "label": "底仓",
+      "desc": "长时间持仓收股息。"
+    },
+    {
+      "key": "no_interest",
+      "label": "无兴趣",
+      "desc": "可能公司还行，但没兴趣。"
+    },
+    {
+      "key": "avoid",
+      "label": "回避",
+      "desc": "不看，但不至于是黑公司。"
+    },
+    {
+      "key": "blacklist",
+      "label": "黑名单",
+      "desc": "绝对绝对不要碰，就是黑。"
+    },
+    {
+      "key": "archive",
+      "label": "归档",
+      "desc": "忘了为什么设置这个分类。"
+    }
+  ]
+}

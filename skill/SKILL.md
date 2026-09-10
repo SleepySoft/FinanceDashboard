@@ -73,7 +73,7 @@ Frontend auto-refreshes → Report appears
 ## How to Use the Agent
 
 > **鉴权（2026-08-11 起）**：所有 `/api/agent/*` 接口需要请求头
-> `X-API-Key: <密钥>`（后端 `FD_API_KEY` 或 `data/_config.json` 的 `api_key`，
+> `X-API-Key: <密钥>`（后端 `FD_API_KEY` 或 `data/_secrets.json` 的 `api_key`，
 > 首次启动未配置时自动生成；本机 Agent 直接读取项目根目录 `agent_token.txt`，
 > 也可登录前端在「设置 → Agent 访问密钥」重新生成）。
 > 未带 Key 会返回 401。其余业务接口若后端处于「未登录只读」模式，读接口可匿名访问，

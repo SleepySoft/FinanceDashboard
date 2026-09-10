@@ -44,7 +44,8 @@ data/
 ├── _tasks.json              # Pending analysis task queue
 ├── _users.json              # 用户账号（PBKDF2 密码哈希；首次运行自动创建 admin）
 ├── _sessions.json           # 登录会话（token → username/expires_at）
-├── _config.json             # 权限配置（allow_anonymous_read / session_ttl_hours / api_key）
+├── _config.json             # 普通配置（权限 / 分类标签 / 定时任务间隔等，可入库）
+├── _secrets.json            # 敏感配置（api_key / tushare_token，git 忽略）
 ├── _providers.json          # 交易数据网站跳转配置（网站 + URL 模板 + 默认网站）
 ├── _template/
 │   └── meta.json            # Template for new stock entries
@@ -92,8 +93,11 @@ data/
 - 未登录权限配置（`data/_config.json`，可在前端「设置」页修改）：
   - `allow_anonymous_read: false`（默认）= 完全锁定，未登录看不到任何数据
   - `allow_anonymous_read: true` = 未登录只读，可浏览但所有写操作返回 401
+- 配置拆分（2026 起）：普通配置存 `data/_config.json`（**已纳入 git**）；敏感项 `api_key` / `tushare_token`
+  存 `data/_secrets.json`（git 忽略）。读取时两文件合并（secrets 优先），写盘时自动拆分；
+  旧版写在 `_config.json` 里的敏感项首次读取时自动迁移到 `_secrets.json`。
 - 其他配置项（「设置」页可修改）：
-  - `tushare_token`：Tushare Pro token（优先级：环境变量 `TUSHARE_TOKEN` → 配置 → 项目 `.env`），接口不回显明文
+  - `tushare_token`：Tushare Pro token（优先级：环境变量 `TUSHARE_TOKEN` → `data/_secrets.json` → 项目 `.env`），接口不回显明文
   - `price_refresh_interval_min`：价格自动刷新间隔（分钟，默认 5，0=关闭）
   - `anomaly_scan_interval_min`：异动自动扫描间隔（分钟，默认 0=关闭，需先配置 Tushare token）
   - `status_categories`：股票分类标签（投资状态）有序列表 `[{key, label, desc}]`，「设置」页可改名/新增/删除/拖动排序，
@@ -103,7 +107,7 @@ data/
     （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
 - Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
-  - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_config.json`，
+  - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_secrets.json`，
     并同步写入项目根目录 `agent_token.txt`（本地 Agent 直接读取该文件）；
   - 前端「设置 → Agent 访问密钥」可重新生成（`POST /api/auth/token/regenerate`，
     旧密钥立即失效，接口不返回明文，避免远程暴露）；
@@ -157,7 +161,7 @@ data/
 
 - **登录账号**：首次启动自动创建，见上文「登录与权限」。可用 `FD_ADMIN_USERNAME` / `FD_ADMIN_PASSWORD` / `FD_API_KEY` 环境变量初始化。
 - **Tushare Token:** `e637c3252c1aadecdc8a215a59abd44959e70efa5bfe1b36d83447fa`
-  - 配置位置：`data/_config.json` 的 `tushare_token`（优先级：环境变量 `TUSHARE_TOKEN` → 配置文件 → 项目 `.env`）
+  - 配置位置：`data/_secrets.json` 的 `tushare_token`（优先级：环境变量 `TUSHARE_TOKEN` → `_secrets.json` → 项目 `.env`）
   - 使用点：异动扫描（`backend/subsystems/anomaly/core.py` TushareClient）、回测数据源（`backend/subsystems/backtest/backtest/data_provider.py`）
   - Legacy: `/root/.openclaw/workspace/stock-analyst/.env`
 - **Sina API:** No auth needed. Used for real-time price snapshots.

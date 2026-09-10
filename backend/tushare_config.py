@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """统一的 Tushare token 读取
 
-优先级：环境变量 TUSHARE_TOKEN → data/_config.json 的 tushare_token → 项目 .env
+优先级：环境变量 TUSHARE_TOKEN → data/_secrets.json → data/_config.json（旧版遗留）→ 项目 .env
 """
 import json
 import os
@@ -9,22 +9,19 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
 CONFIG_FILE = os.path.join(PROJECT_ROOT, "data", "_config.json")
+SECRETS_FILE = os.path.join(PROJECT_ROOT, "data", "_secrets.json")
 
 
-def get_tushare_token() -> str:
-    token = os.environ.get("TUSHARE_TOKEN", "").strip()
-    if token:
-        return token
-
+def _token_from_file(path: str) -> str:
     try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             cfg = json.load(f)
-        token = str(cfg.get("tushare_token", "") or "").strip()
-        if token:
-            return token
+        return str(cfg.get("tushare_token", "") or "").strip()
     except Exception:
-        pass
+        return ""
 
+
+def _token_from_dotenv() -> str:
     for env_path in (
         os.path.join(PROJECT_ROOT, ".env"),
         os.path.join(BASE_DIR, ".env"),
@@ -40,28 +37,24 @@ def get_tushare_token() -> str:
     return ""
 
 
+def get_tushare_token() -> str:
+    token = os.environ.get("TUSHARE_TOKEN", "").strip()
+    if token:
+        return token
+    for path in (SECRETS_FILE, CONFIG_FILE):
+        token = _token_from_file(path)
+        if token:
+            return token
+    return _token_from_dotenv()
+
+
 def get_tushare_token_source() -> str:
     """返回当前 token 的来源：env（环境变量）/ config（配置文件或 .env）/ none。"""
     if os.environ.get("TUSHARE_TOKEN", "").strip():
         return "env"
-    try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-        if str(cfg.get("tushare_token", "") or "").strip():
+    for path in (SECRETS_FILE, CONFIG_FILE):
+        if _token_from_file(path):
             return "config"
-    except Exception:
-        pass
-    for env_path in (
-        os.path.join(PROJECT_ROOT, ".env"),
-        os.path.join(BASE_DIR, ".env"),
-    ):
-        if os.path.exists(env_path):
-            try:
-                with open(env_path, "r", encoding="utf-8") as f:
-                    for line in f:
-                        if line.strip().startswith("TUSHARE_TOKEN="):
-                            if line.strip().split("=", 1)[1].strip():
-                                return "config"
-            except Exception:
-                pass
+    if _token_from_dotenv():
+        return "config"
     return "none"

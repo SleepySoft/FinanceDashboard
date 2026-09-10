@@ -58,7 +58,8 @@ FinanceDashboard/
 │   └── _tasks.json          # 分析任务队列
 │   ├── _users.json          # 用户账号（PBKDF2 密码哈希）
 │   ├── _sessions.json       # 登录会话
-│   └── _config.json         # 权限配置
+│   └── _config.json         # 普通配置（权限/分类标签等，入库）
+│   └── _secrets.json        # 敏感配置（api_key/tushare_token，git 忽略）
 ├── skill/            # AI Agent Skill 定义
 └── docs/             # 设计文档
 ```

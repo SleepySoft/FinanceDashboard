@@ -34,7 +34,7 @@ Thumbs.db
 data/_dashboard.json
 data/_users.json
 data/_sessions.json
-data/_config.json
+data/_secrets.json
 
 # Agent 访问密钥（本机文件，勿提交）
 agent_token.txt

@@ -35,6 +35,7 @@ DATA_DIR = os.path.join(os.path.dirname(BASE_DIR), "data")
 USERS_FILE = os.path.join(DATA_DIR, "_users.json")
 SESSIONS_FILE = os.path.join(DATA_DIR, "_sessions.json")
 CONFIG_FILE = os.path.join(DATA_DIR, "_config.json")
+SECRETS_FILE = os.path.join(DATA_DIR, "_secrets.json")
 # Agent 访问密钥落盘位置：项目根目录（本地 Agent 直接读取，不通过接口返回明文）
 AGENT_TOKEN_FILE = os.path.join(os.path.dirname(BASE_DIR), "agent_token.txt")
 
@@ -150,12 +151,33 @@ def _ensure_admin_user() -> dict:
 
 
 # ---------- 配置 ----------
+#
+# 配置拆两个文件：
+# - data/_config.json  可入库的普通配置（权限、分类标签、定时任务间隔等）
+# - data/_secrets.json 敏感项（api_key / tushare_token），被 .gitignore 排除
+# 读取时合并两者；旧版本把敏感项写在 _config.json 里，首次读取时自动迁移。
+
+SECRET_KEYS = ("api_key", "tushare_token")
+
 
 def load_config() -> dict:
     cfg = dict(DEFAULT_CONFIG)
     data = _load_json(CONFIG_FILE, None)
     if isinstance(data, dict):
         cfg.update(data)
+    secrets_data = _load_json(SECRETS_FILE, None)
+    # 迁移：_config.json 中残留的敏感项移入 _secrets.json 并从 _config.json 剔除
+    if isinstance(data, dict) and any(k in data for k in SECRET_KEYS):
+        base = secrets_data if isinstance(secrets_data, dict) else {}
+        for k in SECRET_KEYS:
+            v = data.pop(k, None)
+            if v:
+                base[k] = v
+        _save_json(SECRETS_FILE, base)
+        _save_json(CONFIG_FILE, data)
+        secrets_data = base
+    if isinstance(secrets_data, dict):
+        cfg.update({k: v for k, v in secrets_data.items() if k in SECRET_KEYS})
     # 环境变量优先：FD_API_KEY 用于 Agent 访问
     env_key = os.environ.get("FD_API_KEY", "")
     if env_key:
@@ -164,7 +186,15 @@ def load_config() -> dict:
 
 
 def save_config(cfg: dict):
-    _save_json(CONFIG_FILE, cfg)
+    """拆分写盘：敏感项入 _secrets.json（git 忽略），其余入 _config.json（可入库）。"""
+    public = {k: v for k, v in cfg.items() if k not in SECRET_KEYS}
+    secrets_data = {k: cfg.get(k, "") for k in SECRET_KEYS}
+    if os.environ.get("FD_API_KEY", ""):
+        # api_key 由环境变量提供时不落盘，保留 secrets 文件里的原值
+        existing = _load_json(SECRETS_FILE, None)
+        secrets_data["api_key"] = (existing or {}).get("api_key", "") if isinstance(existing, dict) else ""
+    _save_json(SECRETS_FILE, secrets_data)
+    _save_json(CONFIG_FILE, public)
 
 
 # ---------- 分类标签（status_categories） ----------
