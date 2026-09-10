@@ -23,6 +23,7 @@
       <div class="topbar-right">
         <span v-if="isAuthenticated" class="topbar-user">{{ user }}<span v-if="!isAdmin" class="topbar-role">只读</span></span>
         <span v-else-if="config.allow_anonymous_read" class="topbar-readonly" title="当前为只读模式，登录后可修改">只读浏览</span>
+        <router-link v-if="isAuthenticated" to="/messages" class="topbar-link">消息</router-link>
         <router-link v-if="isAuthenticated" to="/settings" class="topbar-link">设置</router-link>
         <button v-if="isAuthenticated" class="topbar-btn" @click="doLogout">退出</button>
         <router-link v-else to="/login" class="topbar-link primary">登录</router-link>

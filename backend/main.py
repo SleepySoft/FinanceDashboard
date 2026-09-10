@@ -20,6 +20,10 @@ import auth
 from providers import router as providers_router
 from subsystems.backtest.routes import router as backtest_router
 from subsystems.anomaly.routes import router as anomaly_router
+from messages import router as messages_router
+from feedback import router as feedback_router
+from powbox import pow as powbox_pow
+from powbox import routes as powbox_routes
 
 # ─── 定时任务（价格刷新 / 异动扫描） ───────────────────────────
 SCHEDULER_TASKS = ("price_refresh", "anomaly_scan")
@@ -57,9 +61,30 @@ app.include_router(auth.router)
 app.include_router(backtest_router)
 app.include_router(anomaly_router)
 app.include_router(providers_router)
+app.include_router(messages_router)
+app.include_router(feedback_router)
+
+# POW 模块钩子：HMAC 密钥用站点 api_key 派生；最低难度读 _config.json
+powbox_pow.init(
+    secret_fn=lambda: auth.load_config().get("api_key") or "powbox-insecure-default",
+    difficulty_fn=lambda: auth.load_config().get("pow_difficulty", 20),
+)
+powbox_routes.init(get_current_user_fn=auth.get_session_user)
+app.include_router(powbox_routes.router, prefix="/api/pow")
 
 # GET 但实际会改动数据的接口：未登录一律禁止（不参与"未登录只读"）
 AUTH_REQUIRED_GETS = {"/api/prices/refresh", "/api/dashboard/refresh"}
+
+# 只读账号允许写的前缀：POW 证明、消息箱、股票反馈（朋友们的只读账号可参与互动），
+# 其余写操作仍一律 403
+READONLY_WRITE_PREFIXES = ("/api/pow", "/api/messages")
+
+
+def _readonly_write_allowed(path: str) -> bool:
+    if any(path.startswith(p) for p in READONLY_WRITE_PREFIXES):
+        return True
+    # /api/stocks/{code}/feedback 及 /feedback/{username}
+    return path.startswith("/api/stocks/") and "/feedback" in path
 
 
 @app.middleware("http")
@@ -80,9 +105,14 @@ async def permission_control(request: Request, call_next):
 
     user = auth.get_current_user(request)
     if user:
-        # 只读账号：可读所有数据，写操作一律 403（/api/auth/* 已在上方放行，
-        # 因此修改自己的密码、登出不受影响）；Agent API Key 拥有完整权限
-        if method not in ("GET", "HEAD") and user != "_agent" and auth.get_user_role(user) != "admin":
+        # 只读账号：可读所有数据，写操作除白名单（POW/消息/股票反馈）外一律 403
+        # （/api/auth/* 已在上方放行，修改自己的密码、登出不受影响）；Agent API Key 拥有完整权限
+        if (
+            method not in ("GET", "HEAD")
+            and user != "_agent"
+            and auth.get_user_role(user) != "admin"
+            and not _readonly_write_allowed(path)
+        ):
             return JSONResponse({"detail": "只读账号无权进行写操作"}, status_code=403)
         return await call_next(request)
 

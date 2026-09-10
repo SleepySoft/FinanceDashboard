@@ -101,6 +101,17 @@ export default {
     setDefault: (provider) => api('/providers/default', { method: 'PATCH', body: { provider } }),
   },
   health: () => api('/health'),
+  messages: {
+    list: () => api('/messages'),
+    send: (content, pow) => api('/messages', { method: 'POST', body: { content, pow } }),
+    delete: (id) => api(`/messages/${id}`, { method: 'DELETE' }),
+  },
+  feedback: {
+    get: (code) => api(`/stocks/${code}/feedback`),
+    submit: (code, vote, comment, pow) => api(`/stocks/${code}/feedback`, { method: 'POST', body: { vote, comment, pow } }),
+    withdraw: (code) => api(`/stocks/${code}/feedback`, { method: 'DELETE' }),
+    remove: (code, username) => api(`/stocks/${code}/feedback/${encodeURIComponent(username)}`, { method: 'DELETE' }),
+  },
   holdings: {
     list: () => api('/holdings'),
     get: (code) => api(`/holdings/${code}`),

@@ -93,6 +93,18 @@ data/
   - 前端 `useAuth.canWrite` = 仅 admin，只读账号登录后所有写操作按钮自动隐藏；
   - 用户管理接口（仅 admin）：`GET/POST /api/auth/users`、`DELETE /api/auth/users/{name}`、
     `POST /api/auth/users/{name}/password`（重置后吊销该用户全部会话）；不能删除自己或最后一个 admin。
+  - 只读写白名单：`/api/pow`、`/api/messages`、`/api/stocks/*/feedback`（只读账号可发消息/投票，
+    其余写操作仍 403）。
+
+## 消息箱与股票反馈（POW 防刷屏）
+
+- 协议与复用指南：`docs/powbox-design.md`；模块 `backend/powbox/` + `frontend/src/powbox/`（均自包含可拷走）。
+- POW 绑定提交内容（消息=正文；反馈=`{code}|{vote}|{comment}`），challenge 自包含签名、10 分钟有效、
+  不记历史：反馈 upsert 幂等，消息按「10 分钟内同用户同内容」去重。
+- 消息箱 `data/_messages.json`：用户 → 站主单向信箱；admin 看全部/可删，用户只看自己；`/messages` 页。
+- 股票反馈 `data/{code}/feedback.json`：每人一票（赞同/反对 + 可选评论，upsert 覆盖，不记历史），
+  可撤回自己的；admin 可删任意条目；展示在 StockPanel「股友反馈」区块。
+- 发消息/提交反馈需完成 POW（`PowPanel` 组件含说明、难度滑块、耗时预估、进度条）。
 - 首次运行：访问 `/api/auth/config` 时自动创建管理员账号。
   - 用户名：环境变量 `FD_ADMIN_USERNAME`（默认 `admin`）
   - 密码：环境变量 `FD_ADMIN_PASSWORD`；未设置则使用默认密码
@@ -112,6 +124,7 @@ data/
     首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
     删除有股票的分类时其股票 `status` 自动改写为 `none`，看板仅在有股票时于最后显示「无分类」组
     （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。
+  - `pow_difficulty`：POW 最低难度（bit，8~28，默认 20），「设置 → 防刷屏验证」可改，立即生效
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
 - Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
   - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_secrets.json`，
@@ -155,6 +168,12 @@ data/
 | `/api/providers` | GET | 交易数据网站列表（含默认网站） |
 | `/api/providers/links/{code}` | GET | 指定股票在各网站的跳转链接 |
 | `/api/providers/default` | PATCH | 设置默认跳转网站（写入 `_providers.json`） |
+| `/api/pow/challenge` | POST | 签发 POW challenge（需登录，body: scope） |
+| `/api/pow/config` | GET | POW 当前最低难度与参考计算量（需登录） |
+| `/api/messages` | GET/POST | 消息箱：列表（admin 全部/用户看自己）/ 发消息（需 POW） |
+| `/api/messages/{id}` | DELETE | 删除消息（仅 admin） |
+| `/api/stocks/{code}/feedback` | GET/POST/DELETE | 股票反馈：汇总+评论 / 投票（需 POW）/ 撤回自己的 |
+| `/api/stocks/{code}/feedback/{name}` | DELETE | 删除指定用户反馈（仅 admin） |
 
 ## API Endpoints (Agent-facing)
 

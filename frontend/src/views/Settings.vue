@@ -213,6 +213,31 @@
         </div>
       </div>
 
+      <!-- 防刷屏验证（POW） -->
+      <div class="card" v-if="isAdmin">
+        <h3>防刷屏验证（POW）</h3>
+        <p class="settings-hint">
+          用户发消息、提交股票反馈前，浏览器需在本地完成一次 POW 计算（找不到捷径，只能逐个试）。
+          难度每 +1 bit，所需计算量翻一倍；下表为约 100 万次/秒的普通浏览器的参考耗时。
+        </p>
+        <div class="form-row">
+          <label>POW 最低难度（bit，8~28，默认 20）</label>
+          <input v-model.number="powDifficulty" type="number" min="8" max="28" />
+        </div>
+        <table class="pow-table">
+          <thead><tr><th>难度</th><th>期望计算量</th><th>参考耗时</th></tr></thead>
+          <tbody>
+            <tr v-for="row in powTable" :key="row.bits" :class="{ current: row.bits === powDifficulty }">
+              <td>{{ row.bits }} bit</td><td>{{ row.hashes }}</td><td>{{ row.time }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p v-if="powMsg" :class="['config-msg', powError ? 'err' : 'ok']">{{ powMsg }}</p>
+        <div class="settings-actions">
+          <button class="primary" @click="savePow" :disabled="savingPow">保存 POW 设置</button>
+        </div>
+      </div>
+
       <!-- 账户信息 -->
       <div class="card">
         <h3>账户信息</h3>
@@ -532,6 +557,37 @@ onMounted(() => {
   loadUsers()
 })
 
+// 防刷屏验证（POW）难度
+const powDifficulty = ref(auth.config.value.pow_difficulty ?? 20)
+const powMsg = ref('')
+const powError = ref(false)
+const savingPow = ref(false)
+const powTable = [
+  { bits: 16, hashes: '6.5 万次', time: '不到 0.1 秒' },
+  { bits: 18, hashes: '26 万次', time: '约 0.3 秒' },
+  { bits: 20, hashes: '105 万次', time: '约 1 秒（默认）' },
+  { bits: 22, hashes: '419 万次', time: '约 4 秒' },
+  { bits: 24, hashes: '1678 万次', time: '约 17 秒' },
+  { bits: 26, hashes: '6711 万次', time: '约 1 分钟' },
+  { bits: 28, hashes: '2.7 亿次', time: '约 4.5 分钟' },
+]
+
+async function savePow() {
+  powMsg.value = ''
+  powError.value = false
+  savingPow.value = true
+  try {
+    const cfg = await auth.updateConfig({ pow_difficulty: Number(powDifficulty.value) })
+    powDifficulty.value = cfg.pow_difficulty
+    powMsg.value = 'POW 难度已保存，立即生效'
+  } catch (e) {
+    powError.value = true
+    powMsg.value = e.message || '保存失败'
+  } finally {
+    savingPow.value = false
+  }
+}
+
 // 修改密码
 const oldPassword = ref('')
 const newPassword = ref('')
@@ -814,6 +870,27 @@ button.ghost.danger-text {
 .user-create select {
   flex: 1;
   min-width: 0;
+}
+.pow-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+.pow-table th,
+.pow-table td {
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px dashed #334155;
+}
+.pow-table th {
+  color: #64748b;
+  font-weight: 500;
+}
+.pow-table tr.current td {
+  color: #60a5fa;
+  font-weight: 600;
 }
 .login-link {
   color: #60a5fa;

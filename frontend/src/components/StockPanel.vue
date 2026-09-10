@@ -156,6 +156,46 @@
       <div v-else class="empty" style="padding: 20px">暂无记录</div>
     </div>
 
+    <!-- 股友反馈（登录即可参与，含只读账号；POW 防刷屏） -->
+    <div class="card">
+      <div class="section-header">
+        <h3>🗳 股友反馈</h3>
+        <span class="fb-tally">
+          <span class="fb-up">👍 {{ feedback.up }}</span>
+          <span class="fb-down">👎 {{ feedback.down }}</span>
+        </span>
+      </div>
+      <div v-if="feedback.entries.length" class="fb-list">
+        <div v-for="v in feedback.entries" :key="v.username" class="fb-entry">
+          <div class="fb-entry-head">
+            <span class="fb-vote-tag">{{ v.vote === 'up' ? '👍' : '👎' }}</span>
+            <span class="fb-user">{{ v.username }}</span>
+            <span class="fb-time">{{ fmtFbTime(v.updated_at) }}</span>
+            <button v-if="isAdmin" class="fb-del" @click="removeFeedback(v.username)" title="删除该反馈">🗑</button>
+          </div>
+          <div v-if="v.comment" class="fb-comment">{{ v.comment }}</div>
+        </div>
+      </div>
+      <div v-else class="fb-empty">还没有人反馈过</div>
+
+      <div v-if="isAuthenticated" class="fb-form">
+        <div class="fb-vote-row">
+          <button :class="['fb-vote-btn', { active: fbVote === 'up' }]" @click="fbVote = 'up'">👍 赞同</button>
+          <button :class="['fb-vote-btn', 'down', { active: fbVote === 'down' }]" @click="fbVote = 'down'">👎 反对</button>
+          <button v-if="feedback.my_vote" class="fb-withdraw" @click="withdrawFeedback" :disabled="fbSubmitting">撤回我的反馈</button>
+        </div>
+        <textarea v-model="fbComment" class="fb-input" rows="2" maxlength="500" placeholder="评论（可选，≤500 字）"></textarea>
+        <PowPanel v-if="fbPowVisible" ref="fbPowPanel" scope="feedback" />
+        <div class="fb-actions">
+          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting">
+            {{ fbSubmitting ? '验证并提交中...' : (feedback.my_vote ? '更新我的反馈' : '提交反馈') }}
+          </button>
+        </div>
+        <p v-if="fbError" class="fb-error">{{ fbError }}</p>
+      </div>
+      <div v-else class="fb-login-tip">登录后可投票和评论</div>
+    </div>
+
     <!-- Delete Confirm Modal -->
     <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
       <div class="confirm-box" @click.stop>
@@ -278,11 +318,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../api.js'
 import { readState, writeState } from '../composables/useSession.js'
 import statusCats from '../composables/useStatusCategories.js'
+import auth from '../composables/useAuth.js'
+import PowPanel from '../powbox/PowPanel.vue'
 
 const props = defineProps({
   code: { type: String, required: true },
@@ -317,6 +359,86 @@ const statusForm = ref({ status: 'neutral' })
 const statusCategories = statusCats.categories
 const statusBadgeClass = statusCats.statusBadgeClass
 const statusUnknown = computed(() => !statusCats.categoryKeys.value.has(statusForm.value.status))
+
+// 股友反馈（登录即可参与，含只读账号；每股每人一票，可改票；POW 防刷屏）
+const isAuthenticated = auth.isAuthenticated
+const isAdmin = auth.isAdmin
+const feedback = ref({ up: 0, down: 0, entries: [], my_vote: null })
+const fbVote = ref('up')
+const fbComment = ref('')
+const fbSubmitting = ref(false)
+const fbError = ref('')
+const fbPowVisible = ref(false)
+const fbPowPanel = ref(null)
+
+async function loadFeedback() {
+  try {
+    const fb = await api.feedback.get(props.code)
+    feedback.value = fb && typeof fb === 'object' && Array.isArray(fb.entries)
+      ? fb
+      : { up: 0, down: 0, entries: [], my_vote: null }
+    if (feedback.value.my_vote) {
+      fbVote.value = feedback.value.my_vote.vote === 'down' ? 'down' : 'up'
+      fbComment.value = feedback.value.my_vote.comment || ''
+    }
+  } catch {
+    feedback.value = { up: 0, down: 0, entries: [], my_vote: null }
+  }
+}
+
+function applyFeedback(res) {
+  if (res && Array.isArray(res.entries)) {
+    feedback.value = { up: res.up || 0, down: res.down || 0, entries: res.entries, my_vote: res.my_vote || null }
+  } else {
+    loadFeedback()
+  }
+}
+
+async function submitFeedback() {
+  fbError.value = ''
+  fbSubmitting.value = true
+  fbPowVisible.value = true
+  try {
+    await nextTick() // 等 PowPanel 挂载后再取 ref
+    const comment = fbComment.value.trim()
+    // POW 绑定内容须与后端一致：code|vote|comment
+    const bound = `${props.code}|${fbVote.value}|${comment}`
+    const pow = await fbPowPanel.value.obtainPow(bound)
+    const res = await api.feedback.submit(props.code, fbVote.value, comment, pow)
+    applyFeedback(res)
+  } catch (e) {
+    if (e.message !== '已取消') fbError.value = e.message || '提交失败'
+  } finally {
+    fbSubmitting.value = false
+  }
+}
+
+async function withdrawFeedback() {
+  fbError.value = ''
+  try {
+    const res = await api.feedback.withdraw(props.code)
+    applyFeedback(res)
+    fbComment.value = ''
+  } catch (e) {
+    fbError.value = e.message || '撤回失败'
+  }
+}
+
+async function removeFeedback(name) {
+  if (!window.confirm(`删除「${name}」的反馈？`)) return
+  try {
+    const res = await api.feedback.remove(props.code, name)
+    applyFeedback(res)
+  } catch (e) {
+    fbError.value = e.message || '删除失败'
+  }
+}
+
+function fmtFbTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString()
+}
 const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
 
@@ -452,6 +574,7 @@ async function load() {
   } catch (e) {
     holdingsData.value = { trades: [], summary: null }
   }
+  await loadFeedback()
   await loadLatestFundamental()
   await loadLatestTechnical()
   emit('loaded')
@@ -845,6 +968,38 @@ onMounted(handleCodeChange)
 .status-waiting { background: #3d2c12; color: #fbbf24; }
 .status-archive { background: #334155; color: #94a3b8; }
 .status-custom { background: #334155; color: #cbd5e1; }
+
+/* ── 股友反馈 ── */
+.fb-tally { margin-left: auto; display: flex; gap: 10px; font-size: 13px; }
+.fb-up { color: #4ade80; }
+.fb-down { color: #f87171; }
+.fb-list { margin-bottom: 10px; }
+.fb-entry { padding: 8px 0; border-bottom: 1px dashed #334155; }
+.fb-entry:last-child { border-bottom: none; }
+.fb-entry-head { display: flex; align-items: center; gap: 8px; }
+.fb-user { color: #60a5fa; font-size: 13px; font-weight: 600; }
+.fb-time { color: #64748b; font-size: 12px; }
+.fb-del { margin-left: auto; background: none; border: none; cursor: pointer; opacity: 0.6; }
+.fb-del:hover { opacity: 1; }
+.fb-comment { color: #cbd5e1; font-size: 13px; margin-top: 4px; white-space: pre-wrap; line-height: 1.5; }
+.fb-empty { color: #64748b; font-size: 13px; padding: 6px 0 10px; }
+.fb-form { margin-top: 8px; border-top: 1px solid #334155; padding-top: 10px; }
+.fb-vote-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+.fb-vote-btn {
+  padding: 5px 14px; border: 1px solid #334155; border-radius: 6px;
+  background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px;
+}
+.fb-vote-btn.active { border-color: #3b82f6; color: #60a5fa; background: rgba(59, 130, 246, 0.1); }
+.fb-vote-btn.down.active { border-color: #ef4444; color: #f87171; background: rgba(239, 68, 68, 0.1); }
+.fb-withdraw { margin-left: auto; background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; }
+.fb-withdraw:hover { color: #f87171; }
+.fb-input {
+  width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid #334155;
+  border-radius: 8px; color: #e2e8f0; padding: 8px 10px; font-size: 13px; resize: vertical;
+}
+.fb-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+.fb-error { color: #f87171; font-size: 12px; margin-top: 6px; }
+.fb-login-tip { color: #64748b; font-size: 12px; margin-top: 8px; }
 .watch-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #fbbf24; color: #1e293b; font-size: 10px; font-weight: 600; }
 .info-dims { display: flex; gap: 4px; flex-wrap: wrap; }
 .dim-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }

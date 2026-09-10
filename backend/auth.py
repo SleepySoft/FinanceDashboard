@@ -52,6 +52,7 @@ DEFAULT_CONFIG = {
     "tushare_token": "",
     "price_refresh_interval_min": 5,
     "anomaly_scan_interval_min": 0,
+    "pow_difficulty": 20,
     "status_categories": [
         {"key": "unassessed", "label": "未分析"},
         {"key": "tracking", "label": "跟踪中"},
@@ -423,6 +424,7 @@ class ConfigUpdateReq(BaseModel):
     price_refresh_interval_min: Optional[int] = None
     anomaly_scan_interval_min: Optional[int] = None
     status_categories: Optional[List[dict]] = None
+    pow_difficulty: Optional[int] = None
 
 
 def _config_payload(cfg: dict) -> dict:
@@ -442,6 +444,7 @@ def _config_payload(cfg: dict) -> dict:
             cfg.get("anomaly_scan_interval_min", DEFAULT_CONFIG["anomaly_scan_interval_min"]) or 0
         ),
         "status_categories": get_status_categories(cfg),
+        "pow_difficulty": int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or DEFAULT_CONFIG["pow_difficulty"]),
     }
 
 
@@ -625,6 +628,10 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
             raise HTTPException(400, "anomaly_scan_interval_min 需在 0~1440 之间")
         cfg["anomaly_scan_interval_min"] = req.anomaly_scan_interval_min
     removed_status_keys = []
+    if req.pow_difficulty is not None:
+        if not (8 <= req.pow_difficulty <= 28):
+            raise HTTPException(400, "pow_difficulty 需在 8~28 之间")
+        cfg["pow_difficulty"] = req.pow_difficulty
     if req.status_categories is not None:
         new_categories = _validate_status_categories(req.status_categories)
         old_keys = {c["key"] for c in get_status_categories(cfg)}

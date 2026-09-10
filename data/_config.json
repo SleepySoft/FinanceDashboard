@@ -3,6 +3,7 @@
   "session_ttl_hours": 168,
   "price_refresh_interval_min": 5,
   "anomaly_scan_interval_min": 0,
+  "pow_difficulty": 20,
   "status_categories": [
     {
       "key": "unassessed",

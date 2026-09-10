@@ -8,6 +8,7 @@ import Holdings from './views/Holdings.vue'
 import AnomalyBoard from './subsystems/anomaly/views/AnomalyBoard.vue'
 import Login from './views/Login.vue'
 import Settings from './views/Settings.vue'
+import Messages from './views/Messages.vue'
 import StrategyLibrary from './subsystems/backtest/views/StrategyLibrary.vue'
 import Backtest from './subsystems/backtest/views/Backtest.vue'
 import auth from './composables/useAuth.js'
@@ -22,6 +23,7 @@ const routes = [
   { path: '/backtest', component: Backtest },
   { path: '/login', component: Login },
   { path: '/settings', component: Settings },
+  { path: '/messages', component: Messages },
 ]
 
 const router = createRouter({
