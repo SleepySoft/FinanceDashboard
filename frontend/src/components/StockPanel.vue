@@ -11,6 +11,7 @@
           <span class="header-code">{{ meta.code }}</span>
           <span class="header-name">{{ meta.name }}</span>
           <span v-if="meta.sector" class="header-sector">· {{ meta.sector }}</span>
+          <span v-if="lastViewedInfo" :class="['lv-tag', { stale: lastViewedInfo.stale }]" :title="lastViewedInfo.full">👁 上次浏览 {{ lastViewedInfo.text }}</span>
           <span :class="['dim-badge-sm', 'dim-' + dim('quality')]">质</span>
           <span :class="['dim-badge-sm', 'dim-' + dim('valuation')]">估</span>
           <span :class="['dim-badge-sm', 'dim-' + dim('timing')]">时</span>
@@ -48,6 +49,7 @@
           {{ statusLabel(meta.status) }}
         </span>
         <span v-if="meta.tags?.watchlist" class="watch-tag">已关注</span>
+        <span v-if="lastViewedInfo" :class="['lv-tag', { stale: lastViewedInfo.stale }]" :title="lastViewedInfo.full">👁 上次浏览 {{ lastViewedInfo.text }}</span>
       </div>
       <div class="info-dims">
         <span :class="['dim-badge', 'dim-' + dim('quality')]">质</span>
@@ -530,6 +532,19 @@ const ladderSellLevels = computed(() => ladder.value.levels.filter(l => l.side =
 const ladderBuyLevels = computed(() => ladder.value.levels.filter(l => l.side === 'buy'))
 const ladderHasAgent = computed(() => ladder.value.levels.some(l => l.source === 'agent'))
 
+// 最后浏览时间：展示的是「上次」打开的时间（本次打开会在加载后记录）；超过阈值闪烁
+const staleViewDays = computed(() => auth.config.value?.stale_view_days ?? 7)
+const lastViewedInfo = computed(() => {
+  const ts = meta.value.last_viewed
+  if (!ts) return null
+  const t = new Date(ts)
+  if (Number.isNaN(t.getTime())) return null
+  const diffMs = Date.now() - t.getTime()
+  const days = diffMs / 86400000
+  const text = days >= 1 ? `${Math.floor(days)}天前` : diffMs >= 3600000 ? `${Math.floor(diffMs / 3600000)}小时前` : '刚刚'
+  return { text, stale: staleViewDays.value > 0 && days > staleViewDays.value, full: t.toLocaleString() }
+})
+
 async function loadLadder() {
   try {
     const d = await api.ladder.get(props.code)
@@ -765,6 +780,10 @@ async function load() {
   if (!props.readonly && data.tags?.unread) {
     meta.value.tags.unread = false
     api.stocks.updateTags(props.code, { unread: false }).catch(() => {})
+  }
+  // 记录最后浏览时间（登录用户含只读账号；匿名只读不记）
+  if (auth.isAuthenticated.value) {
+    api.stocks.markViewed(props.code).catch(() => {})
   }
   try {
     const noteData = await api.stocks.getNotes(props.code)
@@ -1560,4 +1579,9 @@ onMounted(handleCodeChange)
 .ld-sm { width: 60px; }
 .ld-grid-label { color: #64748b; font-size: 12px; }
 .ld-error { color: #f87171; font-size: 12px; margin: 4px 0 0; }
+
+/* 最后浏览时间 */
+.lv-tag { font-size: 11px; color: #64748b; }
+.lv-tag.stale { color: #fbbf24; animation: lv-blink 1.2s ease-in-out infinite; }
+@keyframes lv-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 </style>

@@ -197,6 +197,11 @@
           <label>异动扫描间隔（分钟，0=关闭）</label>
           <input v-model.number="anomalyInterval" type="number" min="0" max="1440" />
         </div>
+        <div class="form-row">
+          <label>浏览提醒（天，0=关闭）</label>
+          <input v-model.number="staleViewDays" type="number" min="0" max="365" />
+        </div>
+        <p class="settings-hint">超过该天数没打开过的股票，看板卡片上的「👁 最后浏览」会闪烁提醒。</p>
         <p v-if="schedMsg" :class="['config-msg', schedError ? 'err' : 'ok']">{{ schedMsg }}</p>
         <div class="info-row" v-for="(task, name) in schedulerTasks" :key="name">
           <span class="info-label">{{ name === 'price_refresh' ? '价格刷新' : '异动扫描' }}</span>
@@ -511,6 +516,7 @@ async function testTushare() {
 // 自动更新（定时任务）
 const priceInterval = ref(auth.config.value.price_refresh_interval_min ?? 5)
 const anomalyInterval = ref(auth.config.value.anomaly_scan_interval_min ?? 0)
+const staleViewDays = ref(auth.config.value.stale_view_days ?? 7)
 const schedulerTasks = ref({})
 const schedMsg = ref('')
 const schedError = ref(false)
@@ -537,9 +543,11 @@ async function saveScheduler() {
     const cfg = await auth.updateConfig({
       price_refresh_interval_min: Number(priceInterval.value) || 0,
       anomaly_scan_interval_min: Number(anomalyInterval.value) || 0,
+      stale_view_days: Number(staleViewDays.value) || 0,
     })
     priceInterval.value = cfg.price_refresh_interval_min
     anomalyInterval.value = cfg.anomaly_scan_interval_min
+    staleViewDays.value = cfg.stale_view_days
     schedMsg.value = '定时设置已保存，将在下个周期生效'
     await loadSchedulerStatus()
   } catch (e) {

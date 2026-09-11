@@ -23,6 +23,7 @@ from subsystems.anomaly.routes import router as anomaly_router
 from messages import router as messages_router
 from feedback import router as feedback_router
 import ladder
+import views
 from powbox import pow as powbox_pow
 from powbox import routes as powbox_routes
 
@@ -66,6 +67,7 @@ app.include_router(messages_router)
 app.include_router(feedback_router)
 app.include_router(ladder.router)
 app.include_router(ladder.agent_router)
+app.include_router(views.router)
 
 # POW 模块钩子：HMAC 密钥用站点 api_key 派生；最低难度读 _config.json
 powbox_pow.init(
@@ -86,8 +88,8 @@ READONLY_WRITE_PREFIXES = ("/api/pow", "/api/messages")
 def _readonly_write_allowed(path: str) -> bool:
     if any(path.startswith(p) for p in READONLY_WRITE_PREFIXES):
         return True
-    # /api/stocks/{code}/feedback 及 /feedback/{username}
-    return path.startswith("/api/stocks/") and "/feedback" in path
+    # /api/stocks/{code}/feedback 及 /feedback/{username}；/viewed 浏览记录（无害遥测，只读账号也记）
+    return path.startswith("/api/stocks/") and ("/feedback" in path or "/viewed" in path)
 
 
 @app.middleware("http")
@@ -891,7 +893,7 @@ def list_stocks():
     return stocks
 
 @app.get("/api/stocks/{code}")
-def get_stock(code: str):
+def get_stock(code: str, request: Request):
     meta = _load_meta(code)
     meta.pop("daily_briefs", None)
     meta.pop("record_prices", None)
@@ -948,6 +950,7 @@ def get_stock(code: str):
     meta["status"] = meta.get("status", "neutral")
     meta["holdings"] = meta.get("holdings")
     meta["dimensions"] = _normalize_dimensions(meta)
+    meta["last_viewed"] = views.last_viewed(code, auth.get_current_user(request))
     return {**meta, "latest_report": latest}
 
 @app.patch("/api/stocks/{code}/tags")
@@ -1251,12 +1254,13 @@ def fail_task(task_id: str, req: AgentTaskFailReq):
 # ─── Dashboard ────────────────────────────────────────
 
 @app.get("/api/dashboard")
-def get_dashboard():
+def get_dashboard(request: Request):
     """Return dashboard data with current prices and price mark diffs.
     Reports info from cache (performance); details scan disk."""
     dashboard = _load_dashboard()
     prices = dashboard.get("prices", {})
     cache = _load_reports_cache()
+    viewer = auth.get_current_user(request)
 
     stocks = []
     for entry in os.listdir(REPORTS_DIR):
@@ -1311,7 +1315,8 @@ def get_dashboard():
                 "last_price": current_price,
                 "change_pct": p.get("change_pct"),
                 "price_updated": p.get("updated_at"),
-                "ladder_hint": ladder.hint(code, current_price)
+                "ladder_hint": ladder.hint(code, current_price),
+                "last_viewed": views.last_viewed(code, viewer)
             })
         except Exception as e:
             # 单个股票数据异常只跳过该股票，不影响整个看板

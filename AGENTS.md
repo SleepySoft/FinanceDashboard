@@ -54,6 +54,7 @@ data/
     ├── notes.md             # User notes (markdown, ## timestamp format)
     ├── holdings.json        # Trade history + T-trade analysis + position summary
     ├── ladder.json          # 价格阶梯：买入/卖出计划价位（source: manual/strategy/agent）
+    ├── views.json           # 最后浏览时间：{"views": {username: iso_time}}
     └── reports/
         ├── fundamental_YYYYMMDD.md   # Fundamental analysis ONLY
         └── technical_YYYYMMDD.md     # Technical analysis ONLY
@@ -83,6 +84,7 @@ data/
   - 回归测试脚本：`scripts/fault_injection_test.ps1`（仓库相对路径，注入坏 JSON、错误字段类型、非 UTF-8 notes 和异常报告名，验证接口仍 200 并自动恢复数据）；`frontend/tests/smoke.mjs` 同时模拟附属接口返回损坏 JSON。
 9. **记录价格快照（2026-09-03 新增）** — 新增笔记和 Agent 完成分析时，从 `_dashboard.json` 读取可用价格并写入股票 `state.json.record_prices`；时间线按固定列显示，旧记录或取价失败显示 `--`。报告键为文件名主干，笔记键为 `##` 时间戳。
 10. **价格阶梯（2026-09-10 新增，`backend/ladder.py`）** — 每股票 `ladder.json` 存买入/卖出计划价位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换，用于压力位/支撑位场景）。提醒语义基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
+11. **最后浏览时间（2026-09-11 新增，`backend/views.py`）** — 打开股票面板/详情页时前端调 `POST /api/stocks/{code}/viewed` 记录（按用户存 `views.json`，只读账号也记录）；`/api/dashboard` 与 `/api/stocks/{code}` 按当前登录用户返回 `last_viewed`（展示的是「上次」浏览，本次记录在返回之后）。超过配置 `stale_view_days`（默认 7 天，0=关闭，设置页可改）未浏览时，卡片/面板上的「👁 最后浏览」闪烁提醒；从未浏览不闪烁。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -121,6 +123,7 @@ data/
   - `tushare_token`：Tushare Pro token（优先级：环境变量 `TUSHARE_TOKEN` → `data/_secrets.json` → 项目 `.env`），接口不回显明文
   - `price_refresh_interval_min`：价格自动刷新间隔（分钟，默认 5，0=关闭）
   - `anomaly_scan_interval_min`：异动自动扫描间隔（分钟，默认 0=关闭，需先配置 Tushare token）
+  - `stale_view_days`：浏览提醒阈值（天，默认 7，0=关闭；超过该天数未打开的股票卡片「👁 最后浏览」闪烁）
   - `status_categories`：股票分类标签（投资状态）有序列表 `[{key, label, desc}]`，「设置」页可改名/新增/删除/拖动排序，
     `desc` 为分类说明（可选，≤200 字），鼠标悬停在卡片徽章/分组标题/下拉选项上时悬浮显示；
     首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
@@ -180,6 +183,7 @@ data/
 | `/api/stocks/{code}/ladder/levels` | POST | 加一条 manual 档位 |
 | `/api/stocks/{code}/ladder/levels/{id}` | PATCH/DELETE | 改/删 manual 档位 |
 | `/api/stocks/{code}/ladder/strategy` | POST/DELETE | 应用策略（如 grid）重算策略档 / 清除策略档 |
+| `/api/stocks/{code}/viewed` | POST | 记录当前用户最后浏览时间（登录即可，含只读账号） |
 
 ## API Endpoints (Agent-facing)
 

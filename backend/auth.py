@@ -53,6 +53,7 @@ DEFAULT_CONFIG = {
     "price_refresh_interval_min": 5,
     "anomaly_scan_interval_min": 0,
     "pow_difficulty": 20,
+    "stale_view_days": 7,
     "status_categories": [
         {"key": "unassessed", "label": "未分析"},
         {"key": "tracking", "label": "跟踪中"},
@@ -425,6 +426,7 @@ class ConfigUpdateReq(BaseModel):
     anomaly_scan_interval_min: Optional[int] = None
     status_categories: Optional[List[dict]] = None
     pow_difficulty: Optional[int] = None
+    stale_view_days: Optional[int] = None
 
 
 def _config_payload(cfg: dict) -> dict:
@@ -445,6 +447,7 @@ def _config_payload(cfg: dict) -> dict:
         ),
         "status_categories": get_status_categories(cfg),
         "pow_difficulty": int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or DEFAULT_CONFIG["pow_difficulty"]),
+        "stale_view_days": int(cfg.get("stale_view_days", DEFAULT_CONFIG["stale_view_days"]) or 0),
     }
 
 
@@ -632,6 +635,10 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
         if not (8 <= req.pow_difficulty <= 28):
             raise HTTPException(400, "pow_difficulty 需在 8~28 之间")
         cfg["pow_difficulty"] = req.pow_difficulty
+    if req.stale_view_days is not None:
+        if not (0 <= req.stale_view_days <= 365):
+            raise HTTPException(400, "stale_view_days 需在 0~365 之间（0=关闭提醒）")
+        cfg["stale_view_days"] = req.stale_view_days
     if req.status_categories is not None:
         new_categories = _validate_status_categories(req.status_categories)
         old_keys = {c["key"] for c in get_status_categories(cfg)}

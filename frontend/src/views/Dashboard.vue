@@ -181,6 +181,8 @@
                 <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
                   分析: {{ fmtDate(s.last_analysis) }}
                 </span>
+                <span v-if="lastViewedInfo(s)" :class="['last-viewed', { stale: lastViewedInfo(s).stale }]"
+                      :title="lastViewedInfo(s).full">👁 {{ lastViewedInfo(s).text }}</span>
               </div>
             </div>
           </div>
@@ -298,6 +300,8 @@
                 <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
                   分析: {{ fmtDate(s.last_analysis) }}
                 </span>
+                <span v-if="lastViewedInfo(s)" :class="['last-viewed', { stale: lastViewedInfo(s).stale }]"
+                      :title="lastViewedInfo(s).full">👁 {{ lastViewedInfo(s).text }}</span>
               </div>
             </div>
           </div>
@@ -415,6 +419,8 @@
                 <span v-if="s.last_analysis" :class="{ expired: isExpired(s.last_analysis) }">
                   分析: {{ fmtDate(s.last_analysis) }}
                 </span>
+                <span v-if="lastViewedInfo(s)" :class="['last-viewed', { stale: lastViewedInfo(s).stale }]"
+                      :title="lastViewedInfo(s).full">👁 {{ lastViewedInfo(s).text }}</span>
               </div>
             </div>
           </div>
@@ -1123,6 +1129,23 @@ function verdictLabel(s) {
   const labels = { green: '看好', yellow: '观望', red: '回避', none: '-' }
   return labels[v] || '-'
 }
+// 最后浏览时间：超过设置页 stale_view_days（0=关闭）未浏览时闪烁提醒；从未浏览不显示不闪烁
+const staleViewDays = computed(() => auth.config.value?.stale_view_days ?? 7)
+function lastViewedInfo(s) {
+  const ts = s.last_viewed
+  if (!ts) return null
+  const t = new Date(ts)
+  if (Number.isNaN(t.getTime())) return null
+  const diffMs = Date.now() - t.getTime()
+  const days = diffMs / 86400000
+  let text
+  if (days >= 1) text = `${Math.floor(days)}天前`
+  else if (diffMs >= 3600000) text = `${Math.floor(diffMs / 3600000)}小时前`
+  else text = '刚刚'
+  const threshold = staleViewDays.value
+  return { text, stale: threshold > 0 && days > threshold, full: t.toLocaleString() }
+}
+
 function priceClass(pct) {
   if (pct == null) return ''
   return pct >= 0 ? 'up' : 'down'
@@ -1355,6 +1378,9 @@ onUnmounted(stopAutoRefresh)
 
 .stock-footer { display: flex; gap: 12px; font-size: 11px; color: #64748b; border-top: 1px solid #334155; padding-top: 8px; }
 .stock-footer .expired { color: #f87171; }
+.stock-footer .last-viewed { margin-left: auto; }
+.stock-footer .last-viewed.stale { color: #fbbf24; animation: lv-blink 1.2s ease-in-out infinite; }
+@keyframes lv-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 
 /* ── Holdings ── */
 .holdings-section { margin-top: 8px; padding: 8px 0; border-top: 1px dashed #334155; }
