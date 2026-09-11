@@ -120,4 +120,14 @@ export default {
     deleteTrade: (code, tradeId) => api(`/holdings/${code}/trades/${tradeId}`, { method: 'DELETE' }),
     addAdjust: (code, adj) => api(`/holdings/${code}/adjust`, { method: 'POST', body: adj }),
   },
+  ladder: {
+    get: (code) => api(`/stocks/${code}/ladder`),
+    put: (code, body) => api(`/stocks/${code}/ladder`, { method: 'PUT', body }),
+    addLevel: (code, level) => api(`/stocks/${code}/ladder/levels`, { method: 'POST', body: level }),
+    updateLevel: (code, id, patch) => api(`/stocks/${code}/ladder/levels/${id}`, { method: 'PATCH', body: patch }),
+    deleteLevel: (code, id) => api(`/stocks/${code}/ladder/levels/${id}`, { method: 'DELETE' }),
+    applyStrategy: (code, type, params) => api(`/stocks/${code}/ladder/strategy`, { method: 'POST', body: { type, params } }),
+    clearStrategy: (code) => api(`/stocks/${code}/ladder/strategy`, { method: 'DELETE' }),
+    clearAgent: (code) => api(`/agent/stocks/${code}/ladder`, { method: 'DELETE' }),
+  },
 }

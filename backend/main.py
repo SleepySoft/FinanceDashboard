@@ -22,6 +22,7 @@ from subsystems.backtest.routes import router as backtest_router
 from subsystems.anomaly.routes import router as anomaly_router
 from messages import router as messages_router
 from feedback import router as feedback_router
+import ladder
 from powbox import pow as powbox_pow
 from powbox import routes as powbox_routes
 
@@ -63,6 +64,8 @@ app.include_router(anomaly_router)
 app.include_router(providers_router)
 app.include_router(messages_router)
 app.include_router(feedback_router)
+app.include_router(ladder.router)
+app.include_router(ladder.agent_router)
 
 # POW 模块钩子：HMAC 密钥用站点 api_key 派生；最低难度读 _config.json
 powbox_pow.init(
@@ -1307,7 +1310,8 @@ def get_dashboard():
                 "latest_note": _get_latest_note(entry),
                 "last_price": current_price,
                 "change_pct": p.get("change_pct"),
-                "price_updated": p.get("updated_at")
+                "price_updated": p.get("updated_at"),
+                "ladder_hint": ladder.hint(code, current_price)
             })
         except Exception as e:
             # 单个股票数据异常只跳过该股票，不影响整个看板

@@ -196,6 +196,84 @@
       <div v-else class="fb-login-tip">登录后可投票和评论</div>
     </div>
 
+    <!-- 价格阶梯：买入/卖出计划价位，临近/触及提醒（来源：手动/策略/AI） -->
+    <div class="card">
+      <div class="section-header">
+        <h3>🪜 价格阶梯</h3>
+        <span v-if="ladder.strategy" class="ld-strategy-tag" :title="`策略参数：${JSON.stringify(ladder.strategy.params)}`">
+          {{ ladder.strategy.type === 'grid' ? '网格策略' : ladder.strategy.type }}
+        </span>
+      </div>
+      <template v-if="ladder.levels.length">
+        <div class="ld-list">
+          <div v-for="lv in ladderSellLevels" :key="lv.id"
+               :class="['ld-row', 'ld-sell', 'ld-st-' + lv.state]"
+               :title="lv.note || ''">
+            <span class="ld-side">卖出</span>
+            <span class="ld-price">¥{{ lv.price.toFixed(2) }}</span>
+            <span class="ld-diff">{{ fmtLadderDiff(lv) }}</span>
+            <span v-if="lv.qty" class="ld-qty">{{ lv.qty }}股</span>
+            <span :class="['ld-src', 'ld-src-' + lv.source]">{{ ladderSourceLabel(lv.source) }}</span>
+            <span v-if="lv.note" class="ld-note">{{ lv.note }}</span>
+            <span class="ld-state">{{ ladderStateLabel(lv) }}</span>
+            <span v-if="!readonly && lv.source === 'manual'" class="ld-ops">
+              <button class="ld-op" @click="startEditLevel(lv)" title="编辑">✎</button>
+              <button class="ld-op" @click="removeLevel(lv)" title="删除">🗑</button>
+            </span>
+          </div>
+          <div class="ld-current">
+            <span class="ld-side">现价</span>
+            <span class="ld-price">{{ ladder.current_price ? '¥' + ladder.current_price.toFixed(2) : '--' }}</span>
+            <span class="ld-time">{{ fmtLadderTime(ladder.price_updated) }}</span>
+          </div>
+          <div v-for="lv in ladderBuyLevels" :key="lv.id"
+               :class="['ld-row', 'ld-buy', 'ld-st-' + lv.state]"
+               :title="lv.note || ''">
+            <span class="ld-side">买入</span>
+            <span class="ld-price">¥{{ lv.price.toFixed(2) }}</span>
+            <span class="ld-diff">{{ fmtLadderDiff(lv) }}</span>
+            <span v-if="lv.qty" class="ld-qty">{{ lv.qty }}股</span>
+            <span :class="['ld-src', 'ld-src-' + lv.source]">{{ ladderSourceLabel(lv.source) }}</span>
+            <span v-if="lv.note" class="ld-note">{{ lv.note }}</span>
+            <span class="ld-state">{{ ladderStateLabel(lv) }}</span>
+            <span v-if="!readonly && lv.source === 'manual'" class="ld-ops">
+              <button class="ld-op" @click="startEditLevel(lv)" title="编辑">✎</button>
+              <button class="ld-op" @click="removeLevel(lv)" title="删除">🗑</button>
+            </span>
+          </div>
+        </div>
+      </template>
+      <div v-else class="ld-empty">还没有价格阶梯 — 可手动添加、用网格策略生成，或让 AI 计算压力位/支撑位后填入</div>
+
+      <div v-if="!readonly" class="ld-edit">
+        <div class="ld-form-row">
+          <select v-model="ldForm.side" class="ld-input ld-side-sel">
+            <option value="buy">买入</option>
+            <option value="sell">卖出</option>
+          </select>
+          <input v-model.number="ldForm.price" class="ld-input" type="number" step="0.01" min="0" placeholder="价格" />
+          <input v-model.number="ldForm.qty" class="ld-input" type="number" step="100" min="0" placeholder="数量(可空)" />
+          <input v-model="ldForm.note" class="ld-input ld-note-input" maxlength="100" placeholder="备注(可空)" />
+          <button class="primary" @click="saveLevel" :disabled="ldSaving || !ldForm.price">
+            {{ ldEditingId ? '保存' : '添加' }}
+          </button>
+          <button v-if="ldEditingId" @click="cancelEditLevel">取消</button>
+        </div>
+        <div class="ld-form-row">
+          <span class="ld-grid-label">网格：</span>
+          <input v-model.number="ldGrid.base_price" class="ld-input" type="number" step="0.01" min="0"
+                 :placeholder="ladder.current_price ? `基准(默认${ladder.current_price.toFixed(2)})` : '基准价'" />
+          <input v-model.number="ldGrid.step_pct" class="ld-input ld-sm" type="number" step="0.5" min="0.1" max="50" placeholder="步长%" />
+          <input v-model.number="ldGrid.up" class="ld-input ld-sm" type="number" step="1" min="0" max="20" placeholder="上档" />
+          <input v-model.number="ldGrid.down" class="ld-input ld-sm" type="number" step="1" min="0" max="20" placeholder="下档" />
+          <button @click="applyGrid" :disabled="ldSaving">{{ ladder.strategy ? '重算网格' : '生成网格' }}</button>
+          <button v-if="ladder.strategy" @click="clearStrategyLevels" :disabled="ldSaving">清除策略档</button>
+          <button v-if="ladderHasAgent" @click="clearAgentLevels" :disabled="ldSaving">清除 AI 档</button>
+        </div>
+        <p v-if="ldError" class="ld-error">{{ ldError }}</p>
+      </div>
+    </div>
+
     <!-- Delete Confirm Modal -->
     <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
       <div class="confirm-box" @click.stop>
@@ -439,6 +517,137 @@ function fmtFbTime(iso) {
   const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString()
 }
+
+// 价格阶梯：买入/卖出计划价位 + 临近/触及提醒；manual/strategy/agent 三来源分区管理
+const ladder = ref({ current_price: null, price_updated: null, alert_threshold_pct: 2, strategy: null, levels: [] })
+const ldForm = ref({ side: 'buy', price: null, qty: null, note: '' })
+const ldGrid = ref({ base_price: null, step_pct: 3, up: 3, down: 3 })
+const ldEditingId = ref(null)
+const ldSaving = ref(false)
+const ldError = ref('')
+
+const ladderSellLevels = computed(() => ladder.value.levels.filter(l => l.side === 'sell'))
+const ladderBuyLevels = computed(() => ladder.value.levels.filter(l => l.side === 'buy'))
+const ladderHasAgent = computed(() => ladder.value.levels.some(l => l.source === 'agent'))
+
+async function loadLadder() {
+  try {
+    const d = await api.ladder.get(props.code)
+    ladder.value = d && typeof d === 'object' && Array.isArray(d.levels)
+      ? d
+      : { current_price: null, price_updated: null, alert_threshold_pct: 2, strategy: null, levels: [] }
+  } catch {
+    ladder.value = { current_price: null, price_updated: null, alert_threshold_pct: 2, strategy: null, levels: [] }
+  }
+}
+
+function ladderSourceLabel(s) {
+  return { manual: '手动', strategy: '策略', agent: 'AI' }[s] || s
+}
+
+function ladderStateLabel(lv) {
+  return { triggered: '⚡ 触及', near: '临近', disabled: '已停用' }[lv.state] || ''
+}
+
+function fmtLadderDiff(lv) {
+  if (lv.diff_pct === null || lv.diff_pct === undefined) return '--'
+  return (lv.diff_pct > 0 ? '+' : '') + lv.diff_pct.toFixed(1) + '%'
+}
+
+function fmtLadderTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString()
+}
+
+function applyLadder(res) {
+  if (res && typeof res === 'object' && Array.isArray(res.levels)) ladder.value = res
+}
+
+async function saveLevel() {
+  ldError.value = ''
+  if (!ldForm.value.price || ldForm.value.price <= 0) {
+    ldError.value = '请填写有效的价格'
+    return
+  }
+  ldSaving.value = true
+  try {
+    const body = {
+      side: ldForm.value.side,
+      price: ldForm.value.price,
+      qty: ldForm.value.qty || null,
+      note: (ldForm.value.note || '').trim(),
+    }
+    const res = ldEditingId.value
+      ? await api.ladder.updateLevel(props.code, ldEditingId.value, body)
+      : await api.ladder.addLevel(props.code, body)
+    applyLadder(res)
+    cancelEditLevel()
+  } catch (e) {
+    ldError.value = e.message || '保存失败'
+  } finally {
+    ldSaving.value = false
+  }
+}
+
+function startEditLevel(lv) {
+  ldEditingId.value = lv.id
+  ldForm.value = { side: lv.side, price: lv.price, qty: lv.qty, note: lv.note || '' }
+}
+
+function cancelEditLevel() {
+  ldEditingId.value = null
+  ldForm.value = { side: 'buy', price: null, qty: null, note: '' }
+}
+
+async function removeLevel(lv) {
+  if (!window.confirm(`删除 ${lv.side === 'buy' ? '买入' : '卖出'}档 ¥${lv.price.toFixed(2)}？`)) return
+  ldError.value = ''
+  try {
+    applyLadder(await api.ladder.deleteLevel(props.code, lv.id))
+  } catch (e) {
+    ldError.value = e.message || '删除失败'
+  }
+}
+
+async function applyGrid() {
+  ldError.value = ''
+  if (ladder.value.strategy && !window.confirm('重算将替换现有策略档位（手动/AI 档不受影响），继续？')) return
+  ldSaving.value = true
+  try {
+    const params = {
+      base_price: ldGrid.value.base_price || null,
+      step_pct: ldGrid.value.step_pct || 3,
+      up: ldGrid.value.up ?? 3,
+      down: ldGrid.value.down ?? 3,
+    }
+    applyLadder(await api.ladder.applyStrategy(props.code, 'grid', params))
+  } catch (e) {
+    ldError.value = e.message || '生成失败'
+  } finally {
+    ldSaving.value = false
+  }
+}
+
+async function clearStrategyLevels() {
+  if (!window.confirm('清除策略生成的所有档位？')) return
+  ldError.value = ''
+  try {
+    applyLadder(await api.ladder.clearStrategy(props.code))
+  } catch (e) {
+    ldError.value = e.message || '清除失败'
+  }
+}
+
+async function clearAgentLevels() {
+  if (!window.confirm('清除 AI 填入的所有档位？')) return
+  ldError.value = ''
+  try {
+    applyLadder(await api.ladder.clearAgent(props.code))
+  } catch (e) {
+    ldError.value = e.message || '清除失败'
+  }
+}
 const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
 
@@ -575,6 +784,7 @@ async function load() {
     holdingsData.value = { trades: [], summary: null }
   }
   await loadFeedback()
+  await loadLadder()
   await loadLatestFundamental()
   await loadLatestTechnical()
   emit('loaded')
@@ -1303,4 +1513,51 @@ onMounted(handleCodeChange)
   .info-bar { padding: 10px 12px; }
   .info-price { font-size: 20px; }
 }
+
+/* ── 价格阶梯 ── */
+.ld-strategy-tag { margin-left: auto; font-size: 11px; color: #a78bfa; border: 1px solid #4c1d95; border-radius: 4px; padding: 1px 7px; cursor: default; }
+.ld-list { display: flex; flex-direction: column; gap: 4px; }
+.ld-row {
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+  padding: 5px 10px; border-radius: 6px; background: #0f172a; border: 1px solid transparent;
+}
+.ld-sell .ld-side { color: #4ade80; }
+.ld-buy .ld-side { color: #f87171; }
+.ld-side { font-size: 12px; font-weight: 600; min-width: 28px; }
+.ld-price { font-weight: 600; color: #e2e8f0; font-variant-numeric: tabular-nums; }
+.ld-diff { color: #94a3b8; font-size: 12px; min-width: 52px; font-variant-numeric: tabular-nums; }
+.ld-qty { color: #64748b; font-size: 12px; }
+.ld-src { font-size: 10px; border-radius: 4px; padding: 0 5px; border: 1px solid #334155; color: #94a3b8; }
+.ld-src-strategy { color: #a78bfa; border-color: #4c1d95; }
+.ld-src-agent { color: #38bdf8; border-color: #075985; }
+.ld-note { color: #64748b; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.ld-state { margin-left: auto; font-size: 11px; color: #64748b; }
+.ld-ops { margin-left: auto; display: flex; gap: 2px; }
+.ld-state + .ld-ops { margin-left: 0; }
+.ld-op { background: none; border: none; cursor: pointer; opacity: 0.6; padding: 0 3px; font-size: 12px; }
+.ld-op:hover { opacity: 1; }
+.ld-st-near { border-color: #a16207; background: rgba(161, 98, 7, 0.12); }
+.ld-st-near .ld-state { color: #fbbf24; }
+.ld-st-triggered { border-color: #dc2626; background: rgba(220, 38, 38, 0.15); }
+.ld-st-triggered .ld-state { color: #f87171; font-weight: 600; }
+.ld-st-disabled { opacity: 0.45; }
+.ld-current {
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+  padding: 6px 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155;
+}
+.ld-current .ld-side { color: #60a5fa; }
+.ld-current .ld-price { color: #60a5fa; }
+.ld-time { color: #64748b; font-size: 11px; margin-left: auto; }
+.ld-empty { color: #64748b; font-size: 13px; padding: 6px 0 10px; }
+.ld-edit { margin-top: 8px; border-top: 1px solid #334155; padding-top: 10px; }
+.ld-form-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
+.ld-input {
+  background: #0f172a; border: 1px solid #334155; border-radius: 6px;
+  color: #e2e8f0; padding: 6px 8px; font-size: 13px; width: 90px;
+}
+.ld-side-sel { width: 64px; }
+.ld-note-input { flex: 1; min-width: 100px; }
+.ld-sm { width: 60px; }
+.ld-grid-label { color: #64748b; font-size: 12px; }
+.ld-error { color: #f87171; font-size: 12px; margin: 4px 0 0; }
 </style>

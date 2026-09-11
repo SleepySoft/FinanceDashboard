@@ -145,6 +145,12 @@
                   </span>
                 </div>
               </div>
+              <!-- 价格阶梯预告：最近的卖出/买入档与距离，触及档位时高亮 -->
+              <div v-if="s.ladder_hint" :class="['ladder-hint', { 'ladder-triggered': s.ladder_hint.triggered > 0 }]">
+                <span v-if="s.ladder_hint.next_sell" class="lh-sell">卖 {{ s.ladder_hint.next_sell.price.toFixed(2) }} ({{ s.ladder_hint.next_sell.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_sell.diff_pct.toFixed(1) }}%)</span>
+                <span v-if="s.ladder_hint.next_buy" class="lh-buy">买 {{ s.ladder_hint.next_buy.price.toFixed(2) }} ({{ s.ladder_hint.next_buy.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_buy.diff_pct.toFixed(1) }}%)</span>
+                <span v-if="s.ladder_hint.triggered > 0" class="lh-badge">⚡{{ s.ladder_hint.triggered }}</span>
+              </div>
               <!-- Holdings Summary -->
               <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
                 <div class="holdings-row">
@@ -253,6 +259,12 @@
                   </span>
                 </div>
               </div>
+              <!-- 价格阶梯预告：最近的卖出/买入档与距离，触及档位时高亮 -->
+              <div v-if="s.ladder_hint" :class="['ladder-hint', { 'ladder-triggered': s.ladder_hint.triggered > 0 }]">
+                <span v-if="s.ladder_hint.next_sell" class="lh-sell">卖 {{ s.ladder_hint.next_sell.price.toFixed(2) }} ({{ s.ladder_hint.next_sell.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_sell.diff_pct.toFixed(1) }}%)</span>
+                <span v-if="s.ladder_hint.next_buy" class="lh-buy">买 {{ s.ladder_hint.next_buy.price.toFixed(2) }} ({{ s.ladder_hint.next_buy.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_buy.diff_pct.toFixed(1) }}%)</span>
+                <span v-if="s.ladder_hint.triggered > 0" class="lh-badge">⚡{{ s.ladder_hint.triggered }}</span>
+              </div>
               <!-- Holdings Summary -->
               <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
                 <div class="holdings-row">
@@ -360,6 +372,12 @@
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
                 </div>
+              </div>
+              <!-- 价格阶梯预告：最近的卖出/买入档与距离，触及档位时高亮 -->
+              <div v-if="s.ladder_hint" :class="['ladder-hint', { 'ladder-triggered': s.ladder_hint.triggered > 0 }]">
+                <span v-if="s.ladder_hint.next_sell" class="lh-sell">卖 {{ s.ladder_hint.next_sell.price.toFixed(2) }} ({{ s.ladder_hint.next_sell.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_sell.diff_pct.toFixed(1) }}%)</span>
+                <span v-if="s.ladder_hint.next_buy" class="lh-buy">买 {{ s.ladder_hint.next_buy.price.toFixed(2) }} ({{ s.ladder_hint.next_buy.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_buy.diff_pct.toFixed(1) }}%)</span>
+                <span v-if="s.ladder_hint.triggered > 0" class="lh-badge">⚡{{ s.ladder_hint.triggered }}</span>
               </div>
               <!-- Holdings Summary -->
               <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
@@ -1281,6 +1299,11 @@ onUnmounted(stopAutoRefresh)
 .mark-label { color: #94a3b8; min-width: 50px; }
 .mark-target { font-weight: 600; color: #e2e8f0; }
 .mark-diff { font-size: 11px; }
+.ladder-hint { display: flex; gap: 10px; font-size: 11px; padding: 2px 0; font-variant-numeric: tabular-nums; }
+.ladder-hint .lh-sell { color: #4ade80; }
+.ladder-hint .lh-buy { color: #f87171; }
+.ladder-hint.ladder-triggered .lh-sell, .ladder-hint.ladder-triggered .lh-buy { color: #fbbf24; }
+.lh-badge { margin-left: auto; color: #f87171; font-weight: 600; }
 
 .stock-footer { display: flex; gap: 12px; font-size: 11px; color: #64748b; border-top: 1px solid #334155; padding-top: 8px; }
 .stock-footer .expired { color: #f87171; }

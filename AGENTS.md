@@ -53,6 +53,7 @@ data/
     ├── meta.json            # Tags, marks, cache timestamps, report list
     ├── notes.md             # User notes (markdown, ## timestamp format)
     ├── holdings.json        # Trade history + T-trade analysis + position summary
+    ├── ladder.json          # 价格阶梯：买入/卖出计划价位（source: manual/strategy/agent）
     └── reports/
         ├── fundamental_YYYYMMDD.md   # Fundamental analysis ONLY
         └── technical_YYYYMMDD.md     # Technical analysis ONLY
@@ -81,6 +82,7 @@ data/
   - 前端主页、请求池和持仓页加载失败显示错误横幅 + 重试按钮；股票面板对笔记、持仓、供应商等附属接口逐项降级，不再因单项失败白屏；
   - 回归测试脚本：`scripts/fault_injection_test.ps1`（仓库相对路径，注入坏 JSON、错误字段类型、非 UTF-8 notes 和异常报告名，验证接口仍 200 并自动恢复数据）；`frontend/tests/smoke.mjs` 同时模拟附属接口返回损坏 JSON。
 9. **记录价格快照（2026-09-03 新增）** — 新增笔记和 Agent 完成分析时，从 `_dashboard.json` 读取可用价格并写入股票 `state.json.record_prices`；时间线按固定列显示，旧记录或取价失败显示 `--`。报告键为文件名主干，笔记键为 `##` 时间戳。
+10. **价格阶梯（2026-09-10 新增，`backend/ladder.py`）** — 每股票 `ladder.json` 存买入/卖出计划价位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换，用于压力位/支撑位场景）。提醒语义基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -174,6 +176,10 @@ data/
 | `/api/messages/{id}` | DELETE | 删除消息（仅 admin） |
 | `/api/stocks/{code}/feedback` | GET/POST/DELETE | 股票反馈：汇总+评论 / 投票（需 POW）/ 撤回自己的 |
 | `/api/stocks/{code}/feedback/{name}` | DELETE | 删除指定用户反馈（仅 admin） |
+| `/api/stocks/{code}/ladder` | GET/PUT | 价格阶梯：读取（含当前价/距离/状态）/ 设阈值或整体替换 manual 档 |
+| `/api/stocks/{code}/ladder/levels` | POST | 加一条 manual 档位 |
+| `/api/stocks/{code}/ladder/levels/{id}` | PATCH/DELETE | 改/删 manual 档位 |
+| `/api/stocks/{code}/ladder/strategy` | POST/DELETE | 应用策略（如 grid）重算策略档 / 清除策略档 |
 
 ## API Endpoints (Agent-facing)
 
@@ -185,6 +191,7 @@ data/
 | `/api/agent/tasks/{id}/claim` | POST | Claim a task |
 | `/api/agent/tasks/{id}/complete` | POST | Submit completed report |
 | `/api/agent/tasks/{id}/fail` | POST | Mark task failed |
+| `/api/agent/stocks/{code}/ladder` | GET/PUT/DELETE | 读取 / 整体替换 agent 档（压力位/支撑位等）/ 清空 agent 档 |
 
 ## External Credentials
 
