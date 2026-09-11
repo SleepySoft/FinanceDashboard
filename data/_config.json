@@ -4,6 +4,7 @@
   "price_refresh_interval_min": 5,
   "anomaly_scan_interval_min": 0,
   "pow_difficulty": 20,
+  "stale_view_days": 7,
   "status_categories": [
     {
       "key": "unassessed",
