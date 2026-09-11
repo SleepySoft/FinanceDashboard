@@ -1,0 +1,31 @@
+{
+  "industry": "光学晶体/激光元器件",
+  "added_date": "2026-09-07",
+  "tags": {
+    "watchlist": false
+  },
+  "status": "neutral",
+  "price_marks": [
+    {
+      "id": "589ccfe7",
+      "label": "标记",
+      "price": 66.91,
+      "type": "mark",
+      "created_at": "2026-09-10T03:16:18.304188+00:00"
+    }
+  ],
+  "holdings": {},
+  "notes": [
+    {
+      "time": "2026-09-10 03:16",
+      "content": "贵了，等便宜。",
+      "price": 66.91
+    }
+  ],
+  "record_prices": {
+    "notes": {
+      "2026-09-10 03:16": 66.91
+    },
+    "reports": {}
+  }
+}

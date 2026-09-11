@@ -8,11 +8,12 @@
     "risk": "red",
     "verdict": "red"
   },
-  "status": "观察",
+  "status": "avoid",
   "price_marks": [],
   "notes": [],
-  "cache": {
-    "fundamental": {"last": null, "valid_until": null},
-    "technical": {"last": null, "valid_until": null}
+  "holdings": {},
+  "record_prices": {
+    "notes": {},
+    "reports": {}
   }
 }

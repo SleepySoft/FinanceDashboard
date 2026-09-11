@@ -8,7 +8,13 @@
     "risk": "green",
     "verdict": "yellow"
   },
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-10 03:13",
+      "content": "水电龙头，以前持续买的财务自由了，现在这个价格鸡肋了。",
+      "price": 28.06
+    }
+  ],
   "status": "waiting",
   "daily_briefs": [
     {
@@ -63,7 +69,9 @@
     }
   ],
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-10 03:13": 28.06
+    },
     "reports": {}
   }
 }

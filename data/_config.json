@@ -16,19 +16,14 @@
       "desc": "好公司，价格在目标附近，想买。"
     },
     {
-      "key": "tracking",
-      "label": "跟踪中",
-      "desc": "忘了为什么设置这个分类。"
+      "key": "waiting",
+      "label": "伺机",
+      "desc": "价格高了，等价格低了再说。"
     },
     {
       "key": "neutral",
       "label": "观察",
       "desc": "偶尔看一眼。"
-    },
-    {
-      "key": "waiting",
-      "label": "伺机",
-      "desc": "价格高了，等价格低了再说。"
     },
     {
       "key": "core_position",

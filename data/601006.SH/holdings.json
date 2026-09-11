@@ -10,23 +10,34 @@
       "note": "",
       "idempotent_key": "2025-09-11_13:34:08_6.100_800_buy",
       "id": "t_fba4de0c"
+    },
+    {
+      "date": "2026-09-03",
+      "time": "09:43:21",
+      "type": "buy",
+      "price": 4.86,
+      "quantity": 600,
+      "note": "",
+      "idempotent_key": "2026-09-03_09:43:21_4.860_600_buy",
+      "id": "t_7e639f60",
+      "fee": 5
     }
   ],
   "adj_events": [],
   "summary": {
-    "total_quantity": 800,
-    "avg_cost": 6.1,
-    "total_cost": 4880.0,
+    "total_quantity": 1400,
+    "avg_cost": 5.569,
+    "total_cost": 7796.0,
     "realized_pnl": 0.0,
     "open_short": 0,
     "last_trade": {
-      "date": "2025-09-11",
-      "time": "13:34:08",
+      "date": "2026-09-03",
+      "time": "09:43:21",
       "type": "buy",
-      "price": 6.1,
-      "quantity": 800
+      "price": 4.86,
+      "quantity": 600
     },
-    "last_buy_price": 6.1,
+    "last_buy_price": 4.86,
     "last_sell_price": null
   },
   "t_trades": []

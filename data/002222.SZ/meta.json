@@ -1,1 +1,5 @@
-{"name": "福晶科技", "industry": "光学晶体/激光元器件", "sector": "电子元器件", "added_date": "2026-09-07", "tags": [], "status": "tracking", "price_marks": [], "holdings": []}
+{
+  "name": "福晶科技",
+  "sector": "电子元器件",
+  "code": "002222.SZ"
+}
