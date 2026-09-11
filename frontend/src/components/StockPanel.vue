@@ -199,7 +199,7 @@
     <!-- 价格阶梯：买入/卖出计划价位，临近/触及提醒（来源：手动/策略/AI） -->
     <div class="card">
       <div class="section-header">
-        <h3>🪜 价格阶梯</h3>
+        <h3>🎚 价格阶梯</h3>
         <span v-if="ladder.strategy" class="ld-strategy-tag" :title="`策略参数：${JSON.stringify(ladder.strategy.params)}`">
           {{ ladder.strategy.type === 'grid' ? '网格策略' : ladder.strategy.type }}
         </span>

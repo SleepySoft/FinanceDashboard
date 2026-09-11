@@ -106,6 +106,15 @@
                   <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
                     {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
                   </span>
+                  <!-- 价格阶梯迷你仪表：左端最近买档、右端最近卖档，圆点为现价位置（不占额外行高） -->
+                  <div v-if="ladderGauge(s)" class="ladder-gauge" :title="ladderGauge(s).tooltip">
+                    <template v-if="!ladderGauge(s).single">
+                      <span class="lg-bound lg-buy">{{ ladderGauge(s).buyText }}</span>
+                      <span class="lg-track"><span :class="['lg-dot', 'lg-dot-' + ladderGauge(s).state]" :style="{ left: ladderGauge(s).pos + '%' }"></span></span>
+                      <span class="lg-bound lg-sell">{{ ladderGauge(s).sellText }}</span>
+                    </template>
+                    <span v-else :class="['lg-single', 'lg-dot-' + ladderGauge(s).state]">{{ ladderGauge(s).text }}</span>
+                  </div>
                 </div>
                 <div class="stock-dims">
                   <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
@@ -144,12 +153,6 @@
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
                 </div>
-              </div>
-              <!-- 价格阶梯预告：最近的卖出/买入档与距离，触及档位时高亮 -->
-              <div v-if="s.ladder_hint" :class="['ladder-hint', { 'ladder-triggered': s.ladder_hint.triggered > 0 }]">
-                <span v-if="s.ladder_hint.next_sell" class="lh-sell">卖 {{ s.ladder_hint.next_sell.price.toFixed(2) }} ({{ s.ladder_hint.next_sell.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_sell.diff_pct.toFixed(1) }}%)</span>
-                <span v-if="s.ladder_hint.next_buy" class="lh-buy">买 {{ s.ladder_hint.next_buy.price.toFixed(2) }} ({{ s.ladder_hint.next_buy.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_buy.diff_pct.toFixed(1) }}%)</span>
-                <span v-if="s.ladder_hint.triggered > 0" class="lh-badge">⚡{{ s.ladder_hint.triggered }}</span>
               </div>
               <!-- Holdings Summary -->
               <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
@@ -220,6 +223,15 @@
                   <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
                     {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
                   </span>
+                  <!-- 价格阶梯迷你仪表：左端最近买档、右端最近卖档，圆点为现价位置（不占额外行高） -->
+                  <div v-if="ladderGauge(s)" class="ladder-gauge" :title="ladderGauge(s).tooltip">
+                    <template v-if="!ladderGauge(s).single">
+                      <span class="lg-bound lg-buy">{{ ladderGauge(s).buyText }}</span>
+                      <span class="lg-track"><span :class="['lg-dot', 'lg-dot-' + ladderGauge(s).state]" :style="{ left: ladderGauge(s).pos + '%' }"></span></span>
+                      <span class="lg-bound lg-sell">{{ ladderGauge(s).sellText }}</span>
+                    </template>
+                    <span v-else :class="['lg-single', 'lg-dot-' + ladderGauge(s).state]">{{ ladderGauge(s).text }}</span>
+                  </div>
                 </div>
                 <div class="stock-dims">
                   <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
@@ -258,12 +270,6 @@
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
                 </div>
-              </div>
-              <!-- 价格阶梯预告：最近的卖出/买入档与距离，触及档位时高亮 -->
-              <div v-if="s.ladder_hint" :class="['ladder-hint', { 'ladder-triggered': s.ladder_hint.triggered > 0 }]">
-                <span v-if="s.ladder_hint.next_sell" class="lh-sell">卖 {{ s.ladder_hint.next_sell.price.toFixed(2) }} ({{ s.ladder_hint.next_sell.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_sell.diff_pct.toFixed(1) }}%)</span>
-                <span v-if="s.ladder_hint.next_buy" class="lh-buy">买 {{ s.ladder_hint.next_buy.price.toFixed(2) }} ({{ s.ladder_hint.next_buy.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_buy.diff_pct.toFixed(1) }}%)</span>
-                <span v-if="s.ladder_hint.triggered > 0" class="lh-badge">⚡{{ s.ladder_hint.triggered }}</span>
               </div>
               <!-- Holdings Summary -->
               <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
@@ -333,6 +339,15 @@
                   <span v-if="s.change_pct != null" class="price-change" :class="priceClass(s.change_pct)">
                     {{ s.change_pct > 0 ? '+' : '' }}{{ s.change_pct.toFixed(2) }}%
                   </span>
+                  <!-- 价格阶梯迷你仪表：左端最近买档、右端最近卖档，圆点为现价位置（不占额外行高） -->
+                  <div v-if="ladderGauge(s)" class="ladder-gauge" :title="ladderGauge(s).tooltip">
+                    <template v-if="!ladderGauge(s).single">
+                      <span class="lg-bound lg-buy">{{ ladderGauge(s).buyText }}</span>
+                      <span class="lg-track"><span :class="['lg-dot', 'lg-dot-' + ladderGauge(s).state]" :style="{ left: ladderGauge(s).pos + '%' }"></span></span>
+                      <span class="lg-bound lg-sell">{{ ladderGauge(s).sellText }}</span>
+                    </template>
+                    <span v-else :class="['lg-single', 'lg-dot-' + ladderGauge(s).state]">{{ ladderGauge(s).text }}</span>
+                  </div>
                 </div>
                 <div class="stock-dims">
                   <span :class="['dim-badge', 'dim-' + dim(s, 'quality')]">质</span>
@@ -372,12 +387,6 @@
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
                 </div>
-              </div>
-              <!-- 价格阶梯预告：最近的卖出/买入档与距离，触及档位时高亮 -->
-              <div v-if="s.ladder_hint" :class="['ladder-hint', { 'ladder-triggered': s.ladder_hint.triggered > 0 }]">
-                <span v-if="s.ladder_hint.next_sell" class="lh-sell">卖 {{ s.ladder_hint.next_sell.price.toFixed(2) }} ({{ s.ladder_hint.next_sell.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_sell.diff_pct.toFixed(1) }}%)</span>
-                <span v-if="s.ladder_hint.next_buy" class="lh-buy">买 {{ s.ladder_hint.next_buy.price.toFixed(2) }} ({{ s.ladder_hint.next_buy.diff_pct > 0 ? '+' : '' }}{{ s.ladder_hint.next_buy.diff_pct.toFixed(1) }}%)</span>
-                <span v-if="s.ladder_hint.triggered > 0" class="lh-badge">⚡{{ s.ladder_hint.triggered }}</span>
               </div>
               <!-- Holdings Summary -->
               <div v-if="holdingsMap[s.code]?.quantity > 0" class="holdings-section">
@@ -1118,6 +1127,38 @@ function priceClass(pct) {
   if (pct == null) return ''
   return pct >= 0 ? 'up' : 'down'
 }
+
+// 价格阶梯迷你仪表数据：左端最近买档、右端最近卖档，圆点 = 现价在两档间的位置。
+// 单边只有一档时退化为文字小标签；触及任意档 → triggered（红点高亮），临近 → near（黄点）。
+function ladderGauge(s) {
+  const h = s.ladder_hint
+  if (!h || s.last_price == null || s.last_price <= 0) return null
+  const pctOf = (b) => `${b.diff_pct > 0 ? '+' : ''}${b.diff_pct.toFixed(1)}%`
+  const stateOf = (states) => h.triggered > 0 ? 'triggered' : (states.includes('near') ? 'near' : 'ok')
+  const buy = h.next_buy
+  const sell = h.next_sell
+  if (buy && sell) {
+    const span = sell.price - buy.price
+    const pos = span > 0 ? Math.min(100, Math.max(0, (s.last_price - buy.price) / span * 100)) : 50
+    return {
+      single: false,
+      buyText: buy.price.toFixed(2),
+      sellText: sell.price.toFixed(2),
+      pos,
+      state: stateOf([buy.state, sell.state]),
+      tooltip: `买入 ¥${buy.price.toFixed(2)} (${pctOf(buy)}) · 卖出 ¥${sell.price.toFixed(2)} (${pctOf(sell)})${h.triggered > 0 ? ` · ⚡${h.triggered} 档已触及` : ''}`,
+    }
+  }
+  const one = sell || buy
+  if (!one) return null
+  const side = sell ? '卖' : '买'
+  return {
+    single: true,
+    text: `${side} ${one.price.toFixed(2)} (${pctOf(one)})`,
+    state: stateOf([one.state]),
+    tooltip: `${sell ? '卖出' : '买入'} ¥${one.price.toFixed(2)} (${pctOf(one)})${h.triggered > 0 ? ` · ⚡${h.triggered} 档已触及` : ''}`,
+  }
+}
 function fmtDate(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
@@ -1299,11 +1340,18 @@ onUnmounted(stopAutoRefresh)
 .mark-label { color: #94a3b8; min-width: 50px; }
 .mark-target { font-weight: 600; color: #e2e8f0; }
 .mark-diff { font-size: 11px; }
-.ladder-hint { display: flex; gap: 10px; font-size: 11px; padding: 2px 0; font-variant-numeric: tabular-nums; }
-.ladder-hint .lh-sell { color: #4ade80; }
-.ladder-hint .lh-buy { color: #f87171; }
-.ladder-hint.ladder-triggered .lh-sell, .ladder-hint.ladder-triggered .lh-buy { color: #fbbf24; }
-.lh-badge { margin-left: auto; color: #f87171; font-weight: 600; }
+/* 价格阶梯迷你仪表：嵌在价格行右侧空白处，不增加卡片高度 */
+.ladder-gauge { margin-left: auto; display: flex; align-items: center; align-self: center; gap: 4px; min-width: 0; }
+.lg-bound { font-size: 10px; font-variant-numeric: tabular-nums; }
+.lg-buy { color: #f87171; }
+.lg-sell { color: #4ade80; }
+.lg-track { position: relative; width: 72px; height: 4px; border-radius: 2px; background: #334155; flex: none; }
+.lg-dot { position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translate(-50%, -50%); background: #60a5fa; transition: left 0.3s; }
+.lg-dot-near { background: #fbbf24; }
+.lg-dot-triggered { background: #f87171; box-shadow: 0 0 6px #f87171; }
+.lg-single { margin-left: auto; font-size: 11px; color: #94a3b8; font-variant-numeric: tabular-nums; }
+.lg-single.lg-dot-near { color: #fbbf24; }
+.lg-single.lg-dot-triggered { color: #f87171; font-weight: 600; }
 
 .stock-footer { display: flex; gap: 12px; font-size: 11px; color: #64748b; border-top: 1px solid #334155; padding-top: 8px; }
 .stock-footer .expired { color: #f87171; }
