@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -73,8 +73,19 @@ app.include_router(views.router)
 powbox_pow.init(
     secret_fn=lambda: auth.load_config().get("api_key") or "powbox-insecure-default",
     difficulty_fn=lambda: auth.load_config().get("pow_difficulty", 20),
+    max_difficulty_fn=lambda: auth.load_config().get("pow_max_difficulty", 32),
 )
-powbox_routes.init(get_current_user_fn=auth.get_session_user)
+
+def _anonymous_pow_identity(scope: str, request: Request, response: Response):
+    if scope != "feedback" or auth.load_config().get("comments_require_login", True):
+        return None
+    return auth.ensure_guest_identity(request, response)
+
+
+powbox_routes.init(
+    get_current_user_fn=auth.get_session_user,
+    anonymous_identity_fn=_anonymous_pow_identity,
+)
 app.include_router(powbox_routes.router, prefix="/api/pow")
 
 # GET 但实际会改动数据的接口：未登录一律禁止（不参与"未登录只读"）
@@ -127,9 +138,20 @@ async def permission_control(request: Request, call_next):
     if method in ("GET", "HEAD"):
         if path in AUTH_REQUIRED_GETS:
             return JSONResponse({"detail": "需要登录"}, status_code=401)
+        if path == "/api/pow/config" and not auth.load_config().get("comments_require_login", True):
+            return await call_next(request)
         if auth.load_config().get("allow_anonymous_read", False):
             return await call_next(request)
         return JSONResponse({"detail": "需要登录"}, status_code=401)
+
+    # 评论/反馈关闭登录要求时，未登录访客可通过 POW 提交；具体身份由接口校验。
+    if not auth.load_config().get("comments_require_login", True):
+        if path == "/api/pow/challenge" or (
+            path.startswith("/api/stocks/")
+            and "/feedback" in path
+            and method in ("POST", "DELETE")
+        ):
+            return await call_next(request)
 
     return JSONResponse({"detail": "需要登录后才能进行写操作"}, status_code=401)
 

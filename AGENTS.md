@@ -109,6 +109,9 @@ data/
 - 股票反馈 `data/{code}/feedback.json`：每人一票（赞同/反对 + 可选评论，upsert 覆盖，不记历史），
   可撤回自己的；admin 可删任意条目；展示在 StockPanel「股友反馈」区块。
 - 发消息/提交反馈需完成 POW（`PowPanel` 组件含说明、难度滑块、耗时预估、进度条）。
+- `comments_require_login`（默认 `true`）只控制股票反馈：开启时必须登录；关闭时未登录访客
+  仍必须完成 POW，身份绑定 HttpOnly Cookie `fd_guest`（10 年），可更新和撤回自己的唯一反馈。
+  消息箱始终需要登录。只读账号可发消息和反馈。
 - 首次运行：访问 `/api/auth/config` 时自动创建管理员账号。
   - 用户名：环境变量 `FD_ADMIN_USERNAME`（默认 `admin`）
   - 密码：环境变量 `FD_ADMIN_PASSWORD`；未设置则使用默认密码
@@ -129,7 +132,8 @@ data/
     首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
     删除有股票的分类时其股票 `status` 自动改写为 `none`，看板仅在有股票时于最后显示「无分类」组
     （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。
-  - `pow_difficulty`：POW 最低难度（bit，8~28，默认 20），「设置 → 防刷屏验证」可改，立即生效；
+  - `pow_difficulty`：POW 最低难度（bit，8~64，默认 20），「设置 → 防刷屏验证」可改，立即生效；
+  - `pow_max_difficulty`：POW 滑块可选的最高难度（bit，8~64，默认 32），且最低难度不能高于它；
     提交面板的难度滑块默认 0 bit，必须手动拖到最低难度及以上才能发消息/提交反馈
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
 - Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
@@ -174,11 +178,11 @@ data/
 | `/api/providers` | GET | 交易数据网站列表（含默认网站） |
 | `/api/providers/links/{code}` | GET | 指定股票在各网站的跳转链接 |
 | `/api/providers/default` | PATCH | 设置默认跳转网站（写入 `_providers.json`） |
-| `/api/pow/challenge` | POST | 签发 POW challenge（需登录，body: scope） |
-| `/api/pow/config` | GET | POW 当前最低难度与参考计算量（需登录） |
+| `/api/pow/challenge` | POST | 签发 POW challenge（需登录；匿名股票反馈开启时游客可用 feedback scope） |
+| `/api/pow/config` | GET | POW 当前最低难度与参考计算量（需登录；匿名股票反馈开启时未登录也可读） |
 | `/api/messages` | GET/POST | 消息箱：列表（admin 全部/用户看自己）/ 发消息（需 POW） |
 | `/api/messages/{id}` | DELETE | 删除消息（仅 admin） |
-| `/api/stocks/{code}/feedback` | GET/POST/DELETE | 股票反馈：汇总+评论 / 投票（需 POW）/ 撤回自己的 |
+| `/api/stocks/{code}/feedback` | GET/POST/DELETE | 股票反馈：汇总+评论 / 投票（需 POW；`comments_require_login=false` 时游客可提交/撤回）/ 撤回自己的 |
 | `/api/stocks/{code}/feedback/{name}` | DELETE | 删除指定用户反馈（仅 admin） |
 | `/api/stocks/{code}/ladder` | GET/PUT | 价格阶梯：读取（含当前价/距离/状态）/ 设阈值或整体替换 manual 档 |
 | `/api/stocks/{code}/ladder/levels` | POST | 加一条 manual 档位 |

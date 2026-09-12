@@ -225,9 +225,20 @@
           用户发消息、提交股票反馈前，浏览器需在本地完成一次 POW 计算（找不到捷径，只能逐个试）。
           难度每 +1 bit，所需计算量翻一倍；下表为约 100 万次/秒的普通浏览器的参考耗时。
         </p>
+        <label class="toggle-row">
+          <input type="checkbox" v-model="commentsRequireLogin" />
+          <span>股票评论/反馈需登录</span>
+        </label>
+        <p class="settings-hint">
+          关闭后，未登录访客完成 POW 即可投票和评论；反馈绑定浏览器 Cookie，可更新和撤回。
+        </p>
         <div class="form-row">
-          <label>POW 最低难度（bit，8~28，默认 20）</label>
-          <input v-model.number="powDifficulty" type="number" min="8" max="28" />
+          <label>POW 最低难度（bit，8~64，默认 20）</label>
+          <input v-model.number="powDifficulty" type="number" min="8" :max="powMaxDifficulty" />
+        </div>
+        <div class="form-row">
+          <label>POW 最高难度（bit，8~64，默认 32）</label>
+          <input v-model.number="powMaxDifficulty" type="number" min="8" max="64" />
         </div>
         <table class="pow-table">
           <thead><tr><th>难度</th><th>期望计算量</th><th>参考耗时</th></tr></thead>
@@ -567,6 +578,8 @@ onMounted(() => {
 
 // 防刷屏验证（POW）难度
 const powDifficulty = ref(auth.config.value.pow_difficulty ?? 20)
+const powMaxDifficulty = ref(auth.config.value.pow_max_difficulty ?? 32)
+const commentsRequireLogin = ref(auth.config.value.comments_require_login ?? true)
 const powMsg = ref('')
 const powError = ref(false)
 const savingPow = ref(false)
@@ -578,15 +591,43 @@ const powTable = [
   { bits: 24, hashes: '1678 万次', time: '约 17 秒' },
   { bits: 26, hashes: '6711 万次', time: '约 1 分钟' },
   { bits: 28, hashes: '2.7 亿次', time: '约 4.5 分钟' },
+  { bits: 30, hashes: '10.7 亿次', time: '约 18 分钟' },
+  { bits: 32, hashes: '42.9 亿次', time: '约 1.2 小时' },
+  { bits: 40, hashes: '1.1 万亿次', time: '约 13 天' },
+  { bits: 48, hashes: '281 万亿次', time: '约 9 年' },
+  { bits: 64, hashes: '1844 亿亿次', time: '约 58 万年' },
 ]
 
 async function savePow() {
   powMsg.value = ''
   powError.value = false
+  const minDifficulty = Number(powDifficulty.value)
+  const maxDifficulty = Number(powMaxDifficulty.value)
+  if (!Number.isInteger(minDifficulty) || !Number.isInteger(maxDifficulty)) {
+    powError.value = true
+    powMsg.value = 'POW 难度必须是整数'
+    return
+  }
+  if (minDifficulty < 8 || minDifficulty > maxDifficulty) {
+    powError.value = true
+    powMsg.value = `POW 最低难度需在 8~${maxDifficulty} 之间`
+    return
+  }
+  if (maxDifficulty < 8 || maxDifficulty > 64) {
+    powError.value = true
+    powMsg.value = 'POW 最高难度需在 8~64 之间'
+    return
+  }
   savingPow.value = true
   try {
-    const cfg = await auth.updateConfig({ pow_difficulty: Number(powDifficulty.value) })
+    const cfg = await auth.updateConfig({
+      pow_difficulty: minDifficulty,
+      pow_max_difficulty: maxDifficulty,
+      comments_require_login: commentsRequireLogin.value,
+    })
     powDifficulty.value = cfg.pow_difficulty
+    powMaxDifficulty.value = cfg.pow_max_difficulty
+    commentsRequireLogin.value = cfg.comments_require_login
     powMsg.value = 'POW 难度已保存，立即生效'
   } catch (e) {
     powError.value = true
@@ -725,6 +766,19 @@ async function doLogout() {
   width: 100%;
   max-width: 360px;
   box-sizing: border-box;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.toggle-row input {
+  width: auto;
+  margin: 0;
 }
 .config-msg {
   font-size: 13px;

@@ -40,6 +40,7 @@ SECRETS_FILE = os.path.join(DATA_DIR, "_secrets.json")
 AGENT_TOKEN_FILE = os.path.join(os.path.dirname(BASE_DIR), "agent_token.txt")
 
 SESSION_COOKIE = "fd_session"
+GUEST_COOKIE = "fd_guest"
 API_KEY_HEADER = "x-api-key"
 PBKDF2_ITERATIONS = 200_000
 MIN_PASSWORD_LEN = 6
@@ -53,6 +54,8 @@ DEFAULT_CONFIG = {
     "price_refresh_interval_min": 5,
     "anomaly_scan_interval_min": 0,
     "pow_difficulty": 20,
+    "pow_max_difficulty": 32,
+    "comments_require_login": True,
     "stale_view_days": 7,
     "status_categories": [
         {"key": "unassessed", "label": "未分析"},
@@ -388,6 +391,34 @@ def get_current_user(request: Request) -> Optional[str]:
     return None
 
 
+def get_guest_id(request: Request) -> Optional[str]:
+    """读取并校验浏览器游客标识；不落盘，仅由 HttpOnly Cookie 持有。"""
+    guest_id = request.cookies.get(GUEST_COOKIE, "")
+    return guest_id if re.fullmatch(r"[A-Za-z0-9_-]{32}", guest_id) else None
+
+
+def get_guest_identity(request: Request) -> Optional[str]:
+    guest_id = get_guest_id(request)
+    return f"guest:{guest_id}" if guest_id else None
+
+
+def ensure_guest_identity(request: Request, response: Response) -> str:
+    """确保游客反馈身份存在，并把长效 HttpOnly Cookie 下发给浏览器。"""
+    guest_id = get_guest_id(request)
+    if not guest_id:
+        guest_id = secrets.token_urlsafe(24)
+        response.set_cookie(
+            GUEST_COOKIE,
+            guest_id,
+            max_age=10 * 365 * 24 * 3600,
+            httponly=True,
+            samesite="lax",
+            secure=os.environ.get("FD_COOKIE_SECURE", "").lower() in ("1", "true", "yes"),
+            path="/",
+        )
+    return f"guest:{guest_id}"
+
+
 def require_session(request: Request) -> str:
     user = get_session_user(request)
     if not user:
@@ -426,6 +457,8 @@ class ConfigUpdateReq(BaseModel):
     anomaly_scan_interval_min: Optional[int] = None
     status_categories: Optional[List[dict]] = None
     pow_difficulty: Optional[int] = None
+    pow_max_difficulty: Optional[int] = None
+    comments_require_login: Optional[bool] = None
     stale_view_days: Optional[int] = None
 
 
@@ -447,6 +480,8 @@ def _config_payload(cfg: dict) -> dict:
         ),
         "status_categories": get_status_categories(cfg),
         "pow_difficulty": int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or DEFAULT_CONFIG["pow_difficulty"]),
+        "pow_max_difficulty": int(cfg.get("pow_max_difficulty", DEFAULT_CONFIG["pow_max_difficulty"]) or DEFAULT_CONFIG["pow_max_difficulty"]),
+        "comments_require_login": bool(cfg.get("comments_require_login", True)),
         "stale_view_days": int(cfg.get("stale_view_days", DEFAULT_CONFIG["stale_view_days"]) or 0),
     }
 
@@ -631,10 +666,20 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
             raise HTTPException(400, "anomaly_scan_interval_min 需在 0~1440 之间")
         cfg["anomaly_scan_interval_min"] = req.anomaly_scan_interval_min
     removed_status_keys = []
+    if req.comments_require_login is not None:
+        cfg["comments_require_login"] = bool(req.comments_require_login)
+    min_difficulty = req.pow_difficulty if req.pow_difficulty is not None else int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or 0)
+    max_difficulty = req.pow_max_difficulty if req.pow_max_difficulty is not None else int(cfg.get("pow_max_difficulty", DEFAULT_CONFIG["pow_max_difficulty"]) or 0)
+    if not (8 <= min_difficulty <= 64):
+        raise HTTPException(400, "pow_difficulty 需在 8~64 之间")
+    if not (8 <= max_difficulty <= 64):
+        raise HTTPException(400, "pow_max_difficulty 需在 8~64 之间")
+    if min_difficulty > max_difficulty:
+        raise HTTPException(400, "POW 最低难度不能高于最高难度")
     if req.pow_difficulty is not None:
-        if not (8 <= req.pow_difficulty <= 28):
-            raise HTTPException(400, "pow_difficulty 需在 8~28 之间")
         cfg["pow_difficulty"] = req.pow_difficulty
+    if req.pow_max_difficulty is not None:
+        cfg["pow_max_difficulty"] = req.pow_max_difficulty
     if req.stale_view_days is not None:
         if not (0 <= req.stale_view_days <= 365):
             raise HTTPException(400, "stale_view_days 需在 0~365 之间（0=关闭提醒）")

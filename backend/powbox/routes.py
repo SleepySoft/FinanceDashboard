@@ -10,18 +10,20 @@ get_current_user_fn(request) -> Optional[str]：返回当前登录用户名，No
 """
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from . import pow
 
 
 _get_user_fn = None
+_anonymous_identity_fn = None
 
 
-def init(get_current_user_fn):
-    global _get_user_fn
+def init(get_current_user_fn, anonymous_identity_fn=None):
+    global _get_user_fn, _anonymous_identity_fn
     _get_user_fn = get_current_user_fn
+    _anonymous_identity_fn = anonymous_identity_fn
 
 
 router = APIRouter(tags=["pow"])
@@ -39,8 +41,12 @@ class ChallengeReq(BaseModel):
 
 
 @router.post("/challenge")
-def create_challenge(req: ChallengeReq, request: Request):
-    user = _require_user(request)
+def create_challenge(req: ChallengeReq, request: Request, response: Response):
+    user = _get_user_fn(request) if _get_user_fn else None
+    if not user and _anonymous_identity_fn:
+        user = _anonymous_identity_fn(req.scope, request, response)
+    if not user:
+        raise HTTPException(401, "需要登录")
     scope = (req.scope or "").strip()
     if not scope or len(scope) > 32 or not scope.replace("_", "").replace("-", "").isalnum():
         raise HTTPException(400, "scope 非法")
@@ -50,11 +56,13 @@ def create_challenge(req: ChallengeReq, request: Request):
 @router.get("/config")
 def get_config(request: Request):
     """当前最低难度与参考耗时，供 POW 面板展示。"""
-    _require_user(request)
+    user = _get_user_fn(request) if _get_user_fn else None
+    if not user and not _anonymous_identity_fn:
+        raise HTTPException(401, "需要登录")
     d = pow.current_difficulty()
     return {
         "min_difficulty": d,
-        "bounds": [pow.MIN_DIFFICULTY, pow.MAX_DIFFICULTY],
+        "bounds": [pow.MIN_DIFFICULTY, pow.current_max_difficulty()],
         "expected_hashes": 2 ** d,
         "challenge_ttl_sec": pow.DEFAULT_TTL_SEC,
     }

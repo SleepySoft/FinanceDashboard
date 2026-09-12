@@ -171,7 +171,7 @@
         <div v-for="v in feedback.entries" :key="v.username" class="fb-entry">
           <div class="fb-entry-head">
             <span class="fb-vote-tag">{{ v.vote === 'up' ? '👍' : '👎' }}</span>
-            <span class="fb-user">{{ v.username }}</span>
+            <span class="fb-user">{{ feedbackUserName(v.username) }}</span>
             <span class="fb-time">{{ fmtFbTime(v.updated_at) }}</span>
             <button v-if="isAdmin" class="fb-del" @click="removeFeedback(v.username)" title="删除该反馈">🗑</button>
           </div>
@@ -180,7 +180,7 @@
       </div>
       <div v-else class="fb-empty">还没有人反馈过</div>
 
-      <div v-if="isAuthenticated" class="fb-form">
+      <div v-if="canSubmitFeedback" class="fb-form">
         <div class="fb-vote-row">
           <button :class="['fb-vote-btn', { active: fbVote === 'up' }]" @click="fbVote = 'up'">👍 赞同</button>
           <button :class="['fb-vote-btn', 'down', { active: fbVote === 'down' }]" @click="fbVote = 'down'">👎 反对</button>
@@ -194,6 +194,9 @@
           </button>
         </div>
         <p v-if="fbError" class="fb-error">{{ fbError }}</p>
+        <p v-if="!isAuthenticated" class="fb-login-tip">
+          未登录反馈绑定当前浏览器身份，可更新和撤回。
+        </p>
       </div>
       <div v-else class="fb-login-tip">登录后可投票和评论</div>
     </div>
@@ -443,6 +446,8 @@ const statusUnknown = computed(() => !statusCats.categoryKeys.value.has(statusFo
 // 股友反馈（登录即可参与，含只读账号；每股每人一票，可改票；POW 防刷屏）
 const isAuthenticated = auth.isAuthenticated
 const isAdmin = auth.isAdmin
+const commentsRequireLogin = computed(() => auth.config.value.comments_require_login ?? true)
+const canSubmitFeedback = computed(() => auth.isAuthenticated.value || !commentsRequireLogin.value)
 const feedback = ref({ up: 0, down: 0, entries: [], my_vote: null })
 const fbVote = ref('up')
 const fbComment = ref('')
@@ -517,6 +522,13 @@ function fmtFbTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString()
+}
+
+function feedbackUserName(username) {
+  if (typeof username === 'string' && username.startsWith('guest:')) {
+    return `\u6e38\u5ba2\u00b7${username.slice(-4)}`
+  }
+  return username
 }
 
 // 价格阶梯：买入/卖出计划价位 + 临近/触及提醒；manual/strategy/agent 三来源分区管理

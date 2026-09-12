@@ -23,20 +23,33 @@ import time
 VERSION = "fd1"
 DEFAULT_TTL_SEC = 600  # 10 分钟
 MIN_DIFFICULTY = 8
-MAX_DIFFICULTY = 28
+HARD_MAX_DIFFICULTY = 64
+MAX_DIFFICULTY = HARD_MAX_DIFFICULTY
 DEFAULT_DIFFICULTY = 20
+DEFAULT_MAX_DIFFICULTY = 32
 
 _secret_fn = lambda: ""
 _difficulty_fn = lambda: DEFAULT_DIFFICULTY
+_max_difficulty_fn = lambda: DEFAULT_MAX_DIFFICULTY
 
 
-def init(secret_fn=None, difficulty_fn=None):
-    """注入站点钩子。secret_fn() -> str：HMAC 密钥来源；difficulty_fn() -> int：最低难度。"""
-    global _secret_fn, _difficulty_fn
+def init(secret_fn=None, difficulty_fn=None, max_difficulty_fn=None):
+    """注入站点钩子；difficulty_fn/max_difficulty_fn 分别返回最低与可配置最高难度。"""
+    global _secret_fn, _difficulty_fn, _max_difficulty_fn
     if secret_fn is not None:
         _secret_fn = secret_fn
     if difficulty_fn is not None:
         _difficulty_fn = difficulty_fn
+    if max_difficulty_fn is not None:
+        _max_difficulty_fn = max_difficulty_fn
+
+
+def current_max_difficulty() -> int:
+    try:
+        value = int(_max_difficulty_fn())
+    except Exception:
+        value = DEFAULT_MAX_DIFFICULTY
+    return max(MIN_DIFFICULTY, min(HARD_MAX_DIFFICULTY, value))
 
 
 def current_difficulty() -> int:
@@ -44,7 +57,7 @@ def current_difficulty() -> int:
         d = int(_difficulty_fn())
     except Exception:
         d = DEFAULT_DIFFICULTY
-    return max(MIN_DIFFICULTY, min(MAX_DIFFICULTY, d))
+    return max(MIN_DIFFICULTY, min(current_max_difficulty(), d))
 
 
 def content_digest(content: str) -> str:
@@ -112,7 +125,7 @@ def verify_pow(pow_obj: dict, content: str, scope: str, username: str) -> int:
         difficulty = int(pow_obj.get("difficulty"))
     except (TypeError, ValueError):
         raise PowError("POW 参数非法")
-    if nonce < 0 or not (MIN_DIFFICULTY <= difficulty <= MAX_DIFFICULTY):
+    if nonce < 0 or not (MIN_DIFFICULTY <= difficulty <= current_max_difficulty()):
         raise PowError("POW 参数非法")
 
     ch_scope, ch_user = _parse(challenge)

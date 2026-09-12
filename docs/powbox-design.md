@@ -65,8 +65,14 @@ powbox 不强制。
 | 24 | 1678 万 | ~17s |
 | 26 | 6711 万 | ~1min |
 | 28 | 2.7 亿 | ~4.5min |
+| 30 | 10.7 亿 | ~18min |
+| 32（默认上限） | 42.9 亿 | ~1.2h |
+| 40 | 1.1 万亿 | ~13d |
+| 48 | 281 万亿 | ~9y |
+| 64（硬上限） | 1844 亿亿 | ~580k y |
 
-合法范围 8–28。本项目在「设置 → 防刷屏验证（POW）」配置 `_config.json` 的 `pow_difficulty`。
+合法范围为 8–64。本项目在「设置 → 防刷屏验证（POW）」配置 `_config.json` 的
+`pow_difficulty`（最低难度）和 `pow_max_difficulty`（滑块上限，默认 32）；最低难度不能高于上限。
 
 ## 4. 模块接口
 
@@ -79,8 +85,12 @@ from powbox import routes as powbox_routes
 powbox_pow.init(
     secret_fn=lambda: ...,      # () -> str，HMAC 密钥来源（站点级秘密）
     difficulty_fn=lambda: ...,  # () -> int，当前最低难度
+    max_difficulty_fn=lambda: ...,  # () -> int，前端滑块可选的最高难度
 )
-powbox_routes.init(get_current_user_fn=...)  # (Request) -> Optional[str]
+powbox_routes.init(
+    get_current_user_fn=...,        # (Request) -> Optional[str]
+    anonymous_identity_fn=...,      # (scope, Request, Response) -> Optional[str]
+)
 app.include_router(powbox_routes.router, prefix="/api/pow")
 ```
 
@@ -117,6 +127,10 @@ await api.submit({ ..., pow })
 | 消息箱 | `message` | `data/_messages.json` | `GET/POST /api/messages`、`DELETE /api/messages/{id}`（admin） |
 | 股票反馈 | `feedback` | `data/{code}/feedback.json` | `GET/POST/DELETE /api/stocks/{code}/feedback`、`DELETE .../feedback/{username}`（admin） |
 
-权限：发消息/反馈需登录（只读账号可以——中间件对 `/api/pow`、`/api/messages`、
+权限：发消息始终需登录；反馈默认需登录（只读账号可以——中间件对 `/api/pow`、`/api/messages`、
 `/api/stocks/*/feedback` 前缀放行了只读写）；消息 GET 端点内强制登录
 （消息私密：admin 看全部，用户只看自己）；反馈 GET 跟随全局读权限。
+
+当本项目把 `comments_require_login` 设为 `false` 时，未登录访客可读取 POW 配置、获取
+`scope=feedback` 的 challenge，并提交/撤回股票反馈；业务层会用 `anonymous_identity_fn`
+签发或读取游客 Cookie（`guest:<随机 ID>`）。`scope=message` 不会获得匿名身份，消息箱继续要求登录。

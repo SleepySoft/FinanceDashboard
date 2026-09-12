@@ -73,7 +73,7 @@ const props = defineProps({
   scope: { type: String, required: true },
 })
 const minDifficulty = ref(null)
-const maxDifficulty = ref(28)
+const maxDifficulty = ref(32)
 const difficulty = ref(0)
 const configLoaded = ref(false)
 
@@ -176,7 +176,7 @@ onMounted(async () => {
   try {
     const cfg = await fetchPowConfig()
     minDifficulty.value = cfg.min_difficulty
-    maxDifficulty.value = cfg.bounds?.[1] ?? 28
+    maxDifficulty.value = cfg.bounds?.[1] ?? 32
     configLoaded.value = true
   } catch {
     configLoaded.value = false

@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 
 import auth
@@ -59,11 +59,20 @@ def _summary(code: str, viewer: Optional[str]) -> dict:
     }
 
 
+def _feedback_identity(request: Request) -> Optional[str]:
+    username = auth.get_session_user(request)
+    if username:
+        return username
+    if auth.load_config().get("comments_require_login", True):
+        return None
+    return auth.get_guest_identity(request)
+
+
 @router.get("/{code}/feedback")
 def get_feedback(code: str, request: Request):
-    """读权限跟随全局规则（匿名只读模式下也可看）；my_vote 仅在登录时返回。"""
+    """读权限跟随全局规则；未登录游客在开启匿名评论后可见自己的投票。"""
     _require_stock(code)
-    viewer = auth.get_session_user(request)
+    viewer = _feedback_identity(request)
     return _summary(code, viewer)
 
 
@@ -74,8 +83,13 @@ class FeedbackReq(BaseModel):
 
 
 @router.post("/{code}/feedback")
-def submit_feedback(code: str, req: FeedbackReq, username: str = Depends(auth.require_session)):
+def submit_feedback(code: str, req: FeedbackReq, request: Request, response: Response):
     _require_stock(code)
+    username = auth.get_session_user(request)
+    if not username:
+        if auth.load_config().get("comments_require_login", True):
+            raise HTTPException(401, "需要登录")
+        username = auth.ensure_guest_identity(request, response)
     if req.vote not in ("up", "down"):
         raise HTTPException(400, "vote 只能是 up 或 down")
     comment = (req.comment or "").strip()
@@ -104,9 +118,12 @@ def submit_feedback(code: str, req: FeedbackReq, username: str = Depends(auth.re
 
 
 @router.delete("/{code}/feedback")
-def withdraw_feedback(code: str, username: str = Depends(auth.require_session)):
+def withdraw_feedback(code: str, request: Request):
     """撤回自己的反馈（删自己的数据，无需 POW）。"""
     _require_stock(code)
+    username = _feedback_identity(request)
+    if not username:
+        raise HTTPException(401, "需要登录")
     data = _load(code)
     before = len(data["votes"])
     data["votes"] = [v for v in data["votes"] if v["username"] != username]
