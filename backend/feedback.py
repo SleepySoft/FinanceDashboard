@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""股票反馈：每股每人一票（赞同/反对 + 可选评论），POW 由 powbox 校验（scope=feedback）。
+"""股票反馈：每股每人一票（赞同/反对 + 必填评论），POW 由 powbox 校验（scope=feedback）。
 
 存储 data/{code}/feedback.json：{"votes": [{username, vote, comment, updated_at, pow_difficulty}]}
 只保留每个用户的当前一票（upsert 覆盖），不记历史；改票即覆盖，天然幂等。
@@ -107,6 +107,8 @@ def submit_feedback(code: str, req: FeedbackReq, request: Request, response: Res
     if req.vote not in ("up", "down"):
         raise HTTPException(400, "vote 只能是 up 或 down")
     comment = (req.comment or "").strip()
+    if not comment:
+        raise HTTPException(400, "评论内容不能为空")
     if len(comment) > MAX_COMMENT_LEN:
         raise HTTPException(400, f"评论过长（≤{MAX_COMMENT_LEN} 字）")
     # POW 绑定内容：股票 + 票型 + 评论，换掉任何一项校验即失败

@@ -222,6 +222,17 @@ function cancelSolve() {
   currentSolve?.cancel()
 }
 
+function resetForNextUse() {
+  currentSolve?.cancel()
+  difficulty.value = 0
+  computing.value = false
+  hashes.value = 0
+  rate.value = 0
+  elapsedMs.value = 0
+  doneResult.value = null
+  error.value = ''
+}
+
 onMounted(async () => {
   try {
     const cfg = await fetchPowConfig()
@@ -234,7 +245,7 @@ onMounted(async () => {
   }
 })
 
-defineExpose({ obtainPow, powReady })
+defineExpose({ obtainPow, powReady, resetForNextUse })
 </script>
 
 <style scoped>

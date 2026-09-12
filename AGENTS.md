@@ -106,7 +106,7 @@ data/
 - POW 绑定提交内容（消息=正文；反馈=`{code}|{vote}|{comment}`），challenge 自包含签名、10 分钟有效、
   不记历史：反馈 upsert 幂等，消息按「10 分钟内同用户同内容」去重。
 - 消息箱 `data/_messages.json`：用户 → 站主单向信箱；admin 看全部/可删，用户只看自己；`/messages` 页。
-- 股票反馈 `data/{code}/feedback.json`：每人一票（赞同/反对 + 可选评论，upsert 覆盖，不记历史），
+- 股票反馈 `data/{code}/feedback.json`：每人一票（赞同/反对 + 必填评论，upsert 覆盖，不记历史），
   可撤回自己的；admin 可删任意条目；展示在 StockPanel「股友反馈」区块。
 - `comments_visibility`（默认 `public`）控制反馈可见性：`admin` 时普通用户不显示投票数和评论列表，
   仍可提交并更新/撤回自己的反馈；admin 始终可见。admin 可单条删除或清空当前股票反馈。

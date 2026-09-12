@@ -190,13 +190,14 @@
           <button :class="['fb-vote-btn', 'down', { active: fbVote === 'down' }]" @click="fbVote = 'down'">👎 反对</button>
           <button v-if="feedback.my_vote" class="fb-withdraw" @click="withdrawFeedback" :disabled="fbSubmitting">撤回我的反馈</button>
         </div>
-        <textarea v-model="fbComment" class="fb-input" rows="2" maxlength="500" placeholder="评论（可选，≤500 字）"></textarea>
+        <textarea v-model="fbComment" class="fb-input" rows="2" maxlength="500" placeholder="评论（必填，≤500 字）" @input="fbSuccess = ''"></textarea>
         <PowPanel v-if="fbPowVisible" ref="fbPowPanel" scope="feedback" />
         <div class="fb-actions">
-          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting || !fbPowPanel?.powReady">
+          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting || !fbComment.trim() || !fbPowPanel?.powReady">
             {{ fbSubmitting ? '验证并提交中...' : (feedback.my_vote ? '更新我的反馈' : '提交反馈') }}
           </button>
         </div>
+        <p v-if="fbSuccess" class="fb-success" role="status">{{ fbSuccess }}</p>
         <p v-if="fbError" class="fb-error">{{ fbError }}</p>
         <p v-if="!isAuthenticated" class="fb-login-tip">
           未登录反馈绑定当前浏览器身份，可更新和撤回。
@@ -458,11 +459,14 @@ const fbVote = ref('up')
 const fbComment = ref('')
 const fbSubmitting = ref(false)
 const fbError = ref('')
+const fbSuccess = ref('')
 const fbPowVisible = ref(true)
 const fbPowPanel = ref(null)
 
 async function loadFeedback() {
   try {
+    fbError.value = ''
+    fbSuccess.value = ''
     const fb = await api.feedback.get(props.code)
     feedback.value = fb && typeof fb === 'object' && Array.isArray(fb.entries)
       ? fb
@@ -486,15 +490,24 @@ function applyFeedback(res) {
 
 async function submitFeedback() {
   fbError.value = ''
+  fbSuccess.value = ''
+  const comment = fbComment.value.trim()
+  if (!comment) {
+    fbError.value = '请先填写评论内容'
+    return
+  }
   fbSubmitting.value = true
   try {
     await nextTick() // 等 PowPanel 挂载后再取 ref
-    const comment = fbComment.value.trim()
     // POW 绑定内容须与后端一致：code|vote|comment
     const bound = `${props.code}|${fbVote.value}|${comment}`
     const pow = await fbPowPanel.value.obtainPow(bound)
     const res = await api.feedback.submit(props.code, fbVote.value, comment, pow)
+    const wasUpdating = Boolean(feedback.value.my_vote)
     applyFeedback(res)
+    fbComment.value = ''
+    fbSuccess.value = wasUpdating ? '✓ 反馈已更新' : '✓ 反馈已提交'
+    fbPowPanel.value?.resetForNextUse()
   } catch (e) {
     if (e.message !== '已取消') fbError.value = e.message || '提交失败'
   } finally {
@@ -504,6 +517,7 @@ async function submitFeedback() {
 
 async function withdrawFeedback() {
   fbError.value = ''
+  fbSuccess.value = ''
   try {
     const res = await api.feedback.withdraw(props.code)
     applyFeedback(res)
@@ -1259,6 +1273,13 @@ onMounted(handleCodeChange)
   border-radius: 8px; color: #e2e8f0; padding: 8px 10px; font-size: 13px; resize: vertical;
 }
 .fb-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+.fb-success {
+  color: #4ade80;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  animation: fb-success-pulse 0.8s ease-out;
+}
 .fb-error { color: #f87171; font-size: 12px; margin-top: 6px; }
 .fb-login-tip { color: #64748b; font-size: 12px; margin-top: 8px; }
 .watch-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #fbbf24; color: #1e293b; font-size: 10px; font-weight: 600; }
@@ -1270,6 +1291,12 @@ onMounted(handleCodeChange)
 .verdict-red { background: #7f1d1d; color: #f87171; }
 .verdict-none { background: #334155; color: #64748b; }
 .info-bar .provider-jump { margin-left: auto; }
+
+@keyframes fb-success-pulse {
+  0% { transform: scale(0.98); opacity: 0.4; }
+  55% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
 /* Analysis */
 .analysis-grid { display: flex; flex-direction: column; gap: 12px; }
