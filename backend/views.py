@@ -2,8 +2,8 @@
 """最后浏览时间：记录每个用户最后一次打开股票详情的时间。
 
 存储 data/{code}/views.json：{"views": {username: iso_time}}
-- POST /api/stocks/{code}/viewed 由前端在打开股票面板/详情页时调用（登录用户，含只读账号）。
-- 看板/详情接口按当前登录用户返回 last_viewed；超过配置的 stale_view_days 未浏览时前端闪烁提醒。
+- POST /api/stocks/{code}/viewed 仅管理员可调用；非管理员的浏览不记录。
+- 看板/详情接口仅对管理员返回 last_viewed；超过配置的 stale_view_days 未浏览时前端闪烁提醒。
 """
 import os
 from datetime import datetime, timezone
@@ -37,17 +37,19 @@ def _load(code: str) -> dict:
 
 
 def last_viewed(code: str, username: Optional[str]) -> Optional[str]:
-    """供看板/详情接口调用；任何异常返回 None，不拖垮主接口。"""
+    """供看板/详情接口调用；仅管理员可见，任何异常返回 None，不拖垮主接口。"""
     if not username or username == "_agent":
         return None
     try:
+        if auth.get_user_role(username) != "admin":
+            return None
         return _load(code)["views"].get(username)
     except Exception:
         return None
 
 
 @router.post("/{code}/viewed")
-def mark_viewed(code: str, username: str = Depends(auth.require_session)):
+def mark_viewed(code: str, username: str = Depends(auth.require_admin)):
     if not os.path.isfile(os.path.join(DATA_DIR, code, "meta.json")):
         raise HTTPException(404, f"Stock {code} not found")
     data = _load(code)

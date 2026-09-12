@@ -10,24 +10,32 @@
 
     <div class="pow-row">
       <span class="pow-label">当前最低要求</span>
-      <span>
+      <span v-if="configLoaded">
         难度 {{ minDifficulty }} bit ≈ 约 {{ fmtHashes(2 ** minDifficulty) }} 次计算
         ≈ 预计 {{ fmtDuration(estFor(minDifficulty)) }}
       </span>
+      <span v-else>加载站点配置中……</span>
     </div>
 
     <div class="pow-slider-row">
-      <span class="pow-label">提升可信度（可选）</span>
+      <span class="pow-label">手动选择难度</span>
       <input
         type="range"
-        :min="minDifficulty"
+        :min="0"
         :max="maxDifficulty"
         v-model.number="difficulty"
-        :disabled="computing"
+        :disabled="computing || !configLoaded"
       />
       <span class="pow-diff-value">{{ difficulty }} bit</span>
     </div>
-    <p v-if="difficulty > minDifficulty" class="pow-delta up">
+    <p v-if="!configLoaded" class="pow-delta warn">
+      正在获取站点 POW 要求……获取成功前不能提交。
+    </p>
+    <p v-else-if="difficulty < minDifficulty" class="pow-delta warn">
+      当前选择 {{ difficulty }} bit 不足以提交。请手动拖动到 {{ minDifficulty }} bit 或以上；
+      达到最低要求约需 {{ fmtDuration(estFor(minDifficulty)) }}，难度每 +1 bit，计算量翻一倍。
+    </p>
+    <p v-else-if="difficulty > minDifficulty" class="pow-delta up">
       比最低要求高 {{ difficulty - minDifficulty }} bit：计算量 ×{{ fmtTimes(difficulty - minDifficulty) }}，
       预计约 {{ fmtDuration(estFor(difficulty)) }} —— 难度每 +1 bit，计算量翻一倍。
     </p>
@@ -64,9 +72,10 @@ import { solvePow } from './solver.js'
 const props = defineProps({
   scope: { type: String, required: true },
 })
-const minDifficulty = ref(20)
+const minDifficulty = ref(null)
 const maxDifficulty = ref(28)
-const difficulty = ref(20)
+const difficulty = ref(0)
+const configLoaded = ref(false)
 
 // 浏览器实测算力（H/s），跨会话记忆，用于耗时预估
 const measuredRate = ref(Number(localStorage.getItem('powbox_hashrate')) || 1e6)
@@ -89,6 +98,8 @@ const progressPct = computed(() => {
   // 期望意义上的进度（指数分布，可能超 100%，封顶显示）
   return Math.min(100, (hashes.value / expectedHashes.value) * 100)
 })
+
+const powReady = computed(() => configLoaded.value && difficulty.value >= minDifficulty.value)
 
 function estFor(bits) {
   return 2 ** bits / measuredRate.value
@@ -120,6 +131,8 @@ function fmtDuration(sec) {
 
 async function obtainPow(content) {
   if (computing.value) throw new Error('正在计算中')
+  if (!configLoaded.value) throw new Error('POW 配置未加载')
+  if (difficulty.value < minDifficulty.value) throw new Error(`POW 难度需拖动到 ${minDifficulty.value} bit 或以上`)
   error.value = ''
   doneInfo.value = ''
   computing.value = true
@@ -164,13 +177,14 @@ onMounted(async () => {
     const cfg = await fetchPowConfig()
     minDifficulty.value = cfg.min_difficulty
     maxDifficulty.value = cfg.bounds?.[1] ?? 28
-    difficulty.value = cfg.min_difficulty
+    configLoaded.value = true
   } catch {
-    // 获取失败用默认 20，不影响展示
+    configLoaded.value = false
+    error.value = 'POW 配置加载失败，请刷新后重试'
   }
 })
 
-defineExpose({ obtainPow })
+defineExpose({ obtainPow, powReady })
 </script>
 
 <style scoped>
@@ -225,6 +239,9 @@ defineExpose({ obtainPow })
 }
 .pow-delta.up {
   color: #fbbf24;
+}
+.pow-delta.warn {
+  color: #f87171;
 }
 .pow-progress {
   margin-top: 6px;

@@ -1,6 +1,6 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="close">
-    <div class="modal-content" :class="{ mobile: isMobile }">
+  <div v-if="show" class="modal-overlay stock-modal-overlay" @click.self="close">
+    <div class="modal-content stock-modal" :class="{ mobile: isMobile }">
       <div class="modal-header">
         <div class="modal-title-row">
           <span class="modal-code">{{ stock.code }}</span>
@@ -54,7 +54,7 @@ function queueScrollSave() {
 function restoreScroll() {
   nextTick(() => {
     const saved = props.stock?.code ? readState(scrollKey(), 0) : 0
-    if (modalBody.value && typeof saved === 'number') modalBody.value.scrollTop = saved
+    if (modalBody.value && saved > 0) modalBody.value.scrollTop = saved
   })
 }
 
@@ -63,8 +63,9 @@ function onVisibilityChange() {
 }
 
 watch(() => [props.show, props.stock?.code], ([show]) => {
+  document.body.classList.toggle('stock-modal-open', show)
   if (show) restoreScroll()
-})
+}, { immediate: true })
 
 onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChange)
@@ -72,6 +73,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  document.body.classList.remove('stock-modal-open')
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('pagehide', saveScroll)
   if (scrollSaveTimer) clearTimeout(scrollSaveTimer)
@@ -89,6 +91,9 @@ function close() {
   background: rgba(0,0,0,0.7);
   display: flex; justify-content: center; align-items: center;
   padding: 16px;
+}
+.stock-modal-overlay {
+  z-index: 1000;
 }
 .modal-content {
   background: #0f172a; border: 1px solid #334155; border-radius: 12px;
@@ -120,10 +125,27 @@ function close() {
   min-width: 0;
 }
 
-@media (max-width: 640px) {
-  .modal-overlay { padding: 0; }
-  .modal-content { border-radius: 0; max-height: 100vh; max-width: 100vw; }
-  .modal-body { padding: 10px 12px; }
-  .modal-header { padding: 12px 14px; }
+@media (max-width: 768px) {
+  .stock-modal-overlay {
+    align-items: stretch;
+    padding: 0;
+  }
+  .stock-modal.modal-content {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+  .stock-modal.modal-content .modal-header {
+    padding: max(10px, env(safe-area-inset-top)) 12px 10px;
+  }
+  .stock-modal.modal-content .modal-body {
+    padding: 10px max(10px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    overscroll-behavior: contain;
+  }
 }
 </style>

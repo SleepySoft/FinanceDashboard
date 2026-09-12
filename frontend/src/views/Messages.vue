@@ -24,7 +24,7 @@
         <PowPanel ref="powPanel" scope="message" />
         <div class="msg-actions">
           <span class="msg-count">{{ draft.length }}/2000</span>
-          <button class="primary" @click="send" :disabled="sending || !draft.trim()">
+          <button class="primary" @click="send" :disabled="sending || !draft.trim() || !powPanel?.powReady">
             {{ sending ? '验证并发送中...' : '发送' }}
           </button>
         </div>

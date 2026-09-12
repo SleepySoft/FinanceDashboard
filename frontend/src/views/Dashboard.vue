@@ -1132,6 +1132,7 @@ function verdictLabel(s) {
 // 最后浏览时间：超过设置页 stale_view_days（0=关闭）未浏览时闪烁提醒；从未浏览不显示不闪烁
 const staleViewDays = computed(() => auth.config.value?.stale_view_days ?? 7)
 function lastViewedInfo(s) {
+  if (!auth.isAdmin.value) return null
   const ts = s.last_viewed
   if (!ts) return null
   const t = new Date(ts)
@@ -1246,9 +1247,9 @@ onUnmounted(stopAutoRefresh)
 .sector-name { font-size: 15px; font-weight: 600; color: #e2e8f0; }
 .sector-count { font-size: 12px; color: #64748b; }
 
-.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 12px; }
 
-.stock-card { cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 14px; position: relative; }
+.stock-card { cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 14px; position: relative; min-width: 0; max-width: 100%; }
 .stock-card:hover { transform: translateY(-1px); border-color: #3b82f6; }
 
 .stock-main { margin-bottom: 10px; }

@@ -189,7 +189,7 @@
         <textarea v-model="fbComment" class="fb-input" rows="2" maxlength="500" placeholder="评论（可选，≤500 字）"></textarea>
         <PowPanel v-if="fbPowVisible" ref="fbPowPanel" scope="feedback" />
         <div class="fb-actions">
-          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting">
+          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting || !fbPowPanel?.powReady">
             {{ fbSubmitting ? '验证并提交中...' : (feedback.my_vote ? '更新我的反馈' : '提交反馈') }}
           </button>
         </div>
@@ -448,7 +448,7 @@ const fbVote = ref('up')
 const fbComment = ref('')
 const fbSubmitting = ref(false)
 const fbError = ref('')
-const fbPowVisible = ref(false)
+const fbPowVisible = ref(true)
 const fbPowPanel = ref(null)
 
 async function loadFeedback() {
@@ -477,7 +477,6 @@ function applyFeedback(res) {
 async function submitFeedback() {
   fbError.value = ''
   fbSubmitting.value = true
-  fbPowVisible.value = true
   try {
     await nextTick() // 等 PowPanel 挂载后再取 ref
     const comment = fbComment.value.trim()
@@ -535,6 +534,7 @@ const ladderHasAgent = computed(() => ladder.value.levels.some(l => l.source ===
 // 最后浏览时间：展示的是「上次」打开的时间（本次打开会在加载后记录）；超过阈值闪烁
 const staleViewDays = computed(() => auth.config.value?.stale_view_days ?? 7)
 const lastViewedInfo = computed(() => {
+  if (!auth.isAdmin.value) return null
   const ts = meta.value.last_viewed
   if (!ts) return null
   const t = new Date(ts)
@@ -781,8 +781,8 @@ async function load() {
     meta.value.tags.unread = false
     api.stocks.updateTags(props.code, { unread: false }).catch(() => {})
   }
-  // 记录最后浏览时间（登录用户含只读账号；匿名只读不记）
-  if (auth.isAuthenticated.value) {
+  // 记录最后浏览时间（仅管理员；只读账号与匿名只读不记录）
+  if (auth.isAdmin.value) {
     api.stocks.markViewed(props.code).catch(() => {})
   }
   try {

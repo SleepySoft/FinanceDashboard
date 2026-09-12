@@ -82,6 +82,7 @@ async function doLogout() {
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0b1120; color: #e2e8f0; min-height: 100vh; }
+body.stock-modal-open { overflow: hidden; }
 #app { max-width: 1200px; margin: 0 auto; padding: 8px 16px 16px; }
 
 .topbar {
@@ -171,6 +172,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .topbar-btn:hover {
   color: #f87171;
   border-color: #7f1d1d;
+}
+
+@media (max-width: 768px) {
+  #app { overflow-x: hidden; padding: 8px 10px 12px; }
+  .topbar { flex-wrap: wrap; gap: 6px; }
+  .topbar-right { width: 100%; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 }
 
 .nav { padding: 8px 0 4px; margin-bottom: 8px; border-bottom: 1px solid #334155; }

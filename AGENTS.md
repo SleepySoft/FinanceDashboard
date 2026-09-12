@@ -84,7 +84,7 @@ data/
   - 回归测试脚本：`scripts/fault_injection_test.ps1`（仓库相对路径，注入坏 JSON、错误字段类型、非 UTF-8 notes 和异常报告名，验证接口仍 200 并自动恢复数据）；`frontend/tests/smoke.mjs` 同时模拟附属接口返回损坏 JSON。
 9. **记录价格快照（2026-09-03 新增）** — 新增笔记和 Agent 完成分析时，从 `_dashboard.json` 读取可用价格并写入股票 `state.json.record_prices`；时间线按固定列显示，旧记录或取价失败显示 `--`。报告键为文件名主干，笔记键为 `##` 时间戳。
 10. **价格阶梯（2026-09-10 新增，`backend/ladder.py`）** — 每股票 `ladder.json` 存买入/卖出计划价位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换，用于压力位/支撑位场景）。提醒语义基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
-11. **最后浏览时间（2026-09-11 新增，`backend/views.py`）** — 打开股票面板/详情页时前端调 `POST /api/stocks/{code}/viewed` 记录（按用户存 `views.json`，只读账号也记录）；`/api/dashboard` 与 `/api/stocks/{code}` 按当前登录用户返回 `last_viewed`（展示的是「上次」浏览，本次记录在返回之后）。超过配置 `stale_view_days`（默认 7 天，0=关闭，设置页可改）未浏览时，卡片/面板上的「👁 最后浏览」闪烁提醒；从未浏览不闪烁。
+11. **最后浏览时间（2026-09-11 新增，`backend/views.py`；2026-09-12 改为管理员专属）** — 管理员打开股票面板/详情页时前端调 `POST /api/stocks/{code}/viewed` 记录（按用户存 `views.json`）；`/api/dashboard` 与 `/api/stocks/{code}` 仅对管理员返回 `last_viewed`（展示的是「上次」浏览，本次记录在返回之后）。非管理员不记录、不返回、不显示浏览时间。超过配置 `stale_view_days`（默认 7 天，0=关闭，设置页可改）未浏览时，卡片/面板上的「👁 最后浏览」闪烁提醒；从未浏览不闪烁。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -129,7 +129,8 @@ data/
     首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
     删除有股票的分类时其股票 `status` 自动改写为 `none`，看板仅在有股票时于最后显示「无分类」组
     （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。
-  - `pow_difficulty`：POW 最低难度（bit，8~28，默认 20），「设置 → 防刷屏验证」可改，立即生效
+  - `pow_difficulty`：POW 最低难度（bit，8~28，默认 20），「设置 → 防刷屏验证」可改，立即生效；
+    提交面板的难度滑块默认 0 bit，必须手动拖到最低难度及以上才能发消息/提交反馈
 - 写操作定义：所有非 GET/HEAD，以及 `GET /api/prices/refresh`、`GET /api/dashboard/refresh`（会改动数据）。
 - Agent 访问：请求头 `X-API-Key`。密钥只落盘在本机：
   - 首次启动未设置 `FD_API_KEY` 时自动生成，写入 `data/_secrets.json`，
@@ -183,7 +184,7 @@ data/
 | `/api/stocks/{code}/ladder/levels` | POST | 加一条 manual 档位 |
 | `/api/stocks/{code}/ladder/levels/{id}` | PATCH/DELETE | 改/删 manual 档位 |
 | `/api/stocks/{code}/ladder/strategy` | POST/DELETE | 应用策略（如 grid）重算策略档 / 清除策略档 |
-| `/api/stocks/{code}/viewed` | POST | 记录当前用户最后浏览时间（登录即可，含只读账号） |
+| `/api/stocks/{code}/viewed` | POST | 记录管理员最后浏览时间（仅 admin） |
 
 ## API Endpoints (Agent-facing)
 

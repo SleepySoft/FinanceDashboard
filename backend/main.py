@@ -88,8 +88,8 @@ READONLY_WRITE_PREFIXES = ("/api/pow", "/api/messages")
 def _readonly_write_allowed(path: str) -> bool:
     if any(path.startswith(p) for p in READONLY_WRITE_PREFIXES):
         return True
-    # /api/stocks/{code}/feedback 及 /feedback/{username}；/viewed 浏览记录（无害遥测，只读账号也记）
-    return path.startswith("/api/stocks/") and ("/feedback" in path or "/viewed" in path)
+    # /api/stocks/{code}/feedback 及 /feedback/{username}；浏览记录仅管理员可写
+    return path.startswith("/api/stocks/") and "/feedback" in path
 
 
 @app.middleware("http")

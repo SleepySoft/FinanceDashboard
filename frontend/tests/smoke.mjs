@@ -17,8 +17,8 @@ const FRONTEND_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const BACKEND_DIR = path.resolve(FRONTEND_DIR, '..', 'backend')
 const FRONTEND_URL = process.env.SMOKE_FRONTEND_URL || 'http://localhost:5173'
 const BACKEND_URL = process.env.SMOKE_BACKEND_URL || 'http://localhost:8010'
-const SMOKE_USERNAME = 'admin'
-const SMOKE_PASSWORD = 'SleepySoft@299792458'
+const SMOKE_USERNAME = process.env.SMOKE_USERNAME || 'admin'
+const SMOKE_PASSWORD = process.env.SMOKE_PASSWORD || 'SleepySoft@299792458'
 
 const children = []
 
@@ -74,7 +74,9 @@ async function ensureServers() {
   if (await isUp(FRONTEND_URL)) {
     log('前端已在运行，复用')
   } else {
-    startServer('frontend', 'npx', ['vite'], FRONTEND_DIR, { VITE_PORT: '5173' })
+    startServer('frontend', 'npx', ['vite'], FRONTEND_DIR, {
+      VITE_PORT: new URL(FRONTEND_URL).port || '5173',
+    })
     if (!(await waitFor(FRONTEND_URL))) {
       throw new Error('前端启动超时')
     }
