@@ -743,5 +743,221 @@
       ]
     },
     "error": null
+  },
+  {
+    "id": "9c6af2cf-0e7",
+    "code": "601985.SH",
+    "name": "中国核电",
+    "sector": "核电",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076843+08:00",
+    "claimed_at": "2026-09-11T10:40:11.796112+00:00",
+    "completed_at": "2026-09-11T10:40:11.801657+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "中国核电(601985.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "81de817f-5cd",
+    "code": "003816.SZ",
+    "name": "中国广核",
+    "sector": "核电",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076875+08:00",
+    "claimed_at": "2026-09-11T10:40:11.809912+00:00",
+    "completed_at": "2026-09-11T10:40:11.814494+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "中国广核(003816.SZ) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "b97a5d89-26d",
+    "code": "600875.SH",
+    "name": "东方电气",
+    "sector": "电力设备",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076889+08:00",
+    "claimed_at": "2026-09-11T10:40:11.820761+00:00",
+    "completed_at": "2026-09-11T10:40:11.825252+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "东方电气(600875.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "ad2e0168-300",
+    "code": "600256.SH",
+    "name": "广汇能源",
+    "sector": "能源贸易",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076900+08:00",
+    "claimed_at": "2026-09-11T10:40:11.831931+00:00",
+    "completed_at": "2026-09-11T10:40:11.836250+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "广汇能源(600256.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "7fbda17b-33d",
+    "code": "600803.SH",
+    "name": "新奥股份",
+    "sector": "天然气",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076910+08:00",
+    "claimed_at": "2026-09-11T10:40:11.842654+00:00",
+    "completed_at": "2026-09-11T10:40:11.847080+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "新奥股份(600803.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "96be9756-50b",
+    "code": "600026.SH",
+    "name": "中远海能",
+    "sector": "航运",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076919+08:00",
+    "claimed_at": "2026-09-11T10:40:11.854535+00:00",
+    "completed_at": "2026-09-11T10:40:11.858987+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "中远海能(600026.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "a4660b1d-767",
+    "code": "601088.SH",
+    "name": "中国神华",
+    "sector": "煤炭",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076928+08:00",
+    "claimed_at": "2026-09-11T10:40:11.865532+00:00",
+    "completed_at": "2026-09-11T10:40:11.869998+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "中国神华(601088.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "57682683-fb0",
+    "code": "601225.SH",
+    "name": "陕西煤业",
+    "sector": "煤炭",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076940+08:00",
+    "claimed_at": "2026-09-11T10:40:11.876751+00:00",
+    "completed_at": "2026-09-11T10:40:11.881137+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "陕西煤业(601225.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "fbc99271-052",
+    "code": "600886.SH",
+    "name": "国投电力",
+    "sector": "电力",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076970+08:00",
+    "claimed_at": "2026-09-11T10:40:11.887793+00:00",
+    "completed_at": "2026-09-11T10:40:11.892111+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "国投电力(600886.SH) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "ea503875-b25",
+    "code": "002353.SZ",
+    "name": "杰瑞股份",
+    "sector": "油服设备",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076979+08:00",
+    "claimed_at": "2026-09-11T10:40:11.898676+00:00",
+    "completed_at": "2026-09-11T10:40:11.902929+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "杰瑞股份(002353.SZ) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "b60eded2-8af",
+    "code": "300274.SZ",
+    "name": "阳光电源",
+    "sector": "储能",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.076987+08:00",
+    "claimed_at": "2026-09-11T10:40:11.909606+00:00",
+    "completed_at": "2026-09-11T10:40:11.914016+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "阳光电源(300274.SZ) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "f2582dee-4a4",
+    "code": "300827.SZ",
+    "name": "上能电气",
+    "sector": "储能",
+    "note": "反卷能源标的分析",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-09-11T18:27:58.077002+08:00",
+    "claimed_at": "2026-09-11T10:40:11.920675+00:00",
+    "completed_at": "2026-09-11T10:40:11.925076+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "上能电气(300827.SZ) 基本面+技术面分析完成",
+      "reports": null
+    },
+    "error": null
   }
 ]

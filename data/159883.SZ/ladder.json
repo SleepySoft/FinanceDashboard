@@ -1,5 +1,13 @@
 {
-  "levels": [],
+  "levels": [
+    {"id": "ladder_buy_3", "side": "buy", "price": 0.380, "qty": 5000, "note": "网格-3 极端低位加仓", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"},
+    {"id": "ladder_buy_2", "side": "buy", "price": 0.395, "qty": 5000, "note": "网格-2 低位加仓", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"},
+    {"id": "ladder_buy_1", "side": "buy", "price": 0.410, "qty": 5000, "note": "网格-1 小幅加仓", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"},
+    {"id": "ladder_sell_1", "side": "sell", "price": 0.460, "qty": 5000, "note": "网格+1 小幅减仓", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"},
+    {"id": "ladder_sell_2", "side": "sell", "price": 0.480, "qty": 5000, "note": "网格+2 接近成本减仓", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"},
+    {"id": "ladder_sell_3", "side": "sell", "price": 0.500, "qty": 5000, "note": "网格+3 成本价解套", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"},
+    {"id": "ladder_sell_4", "side": "sell", "price": 0.520, "qty": 4600, "note": "网格+4 盈利减仓", "source": "agent", "enabled": true, "created_at": "2026-09-11T08:17:00+00:00", "updated_at": "2026-09-11T08:17:00+00:00"}
+  ],
   "strategy": null,
   "alert_threshold_pct": 2.0
 }
