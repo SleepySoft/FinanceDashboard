@@ -47,15 +47,29 @@ def _require_stock(code: str):
         raise HTTPException(404, f"Stock {code} not found")
 
 
+def _viewer_is_admin(viewer: Optional[str]) -> bool:
+    return bool(viewer and not viewer.startswith("guest:") and auth.get_user_role(viewer) == "admin")
+
+
 def _summary(code: str, viewer: Optional[str]) -> dict:
     votes = _load(code)["votes"]
     votes = sorted(votes, key=lambda v: v.get("updated_at", ""), reverse=True)
     mine = next((v for v in votes if v["username"] == viewer), None) if viewer else None
+    visibility = auth.load_config().get("comments_visibility", "public")
+    if visibility == "admin" and not _viewer_is_admin(viewer):
+        return {
+            "up": 0,
+            "down": 0,
+            "entries": [],
+            "my_vote": mine,
+            "visibility": "admin",
+        }
     return {
         "up": sum(1 for v in votes if v.get("vote") == "up"),
         "down": sum(1 for v in votes if v.get("vote") == "down"),
         "entries": votes,
         "my_vote": mine,
+        "visibility": visibility,
     }
 
 
@@ -130,6 +144,14 @@ def withdraw_feedback(code: str, request: Request):
     if len(data["votes"]) == before:
         raise HTTPException(404, "你还没有反馈过该股票")
     _save(code, data)
+    return {"ok": True, **_summary(code, username)}
+
+
+@router.delete("/{code}/feedback/all")
+def clear_feedback(code: str, username: str = Depends(auth.require_admin)):
+    """admin 清空当前股票的全部反馈。"""
+    _require_stock(code)
+    _save(code, {"votes": []})
     return {"ok": True, **_summary(code, username)}
 
 

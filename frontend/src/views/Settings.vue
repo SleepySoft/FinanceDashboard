@@ -233,6 +233,16 @@
           关闭后，未登录访客完成 POW 即可投票和评论；反馈绑定浏览器 Cookie，可更新和撤回。
         </p>
         <div class="form-row">
+          <label>股票评论可见性</label>
+          <select v-model="commentsVisibility">
+            <option value="public">公开：所有能查看股票的用户都可见</option>
+            <option value="admin">仅管理员可见</option>
+          </select>
+        </div>
+        <p class="settings-hint">
+          仅管理员可见时，普通用户看不到投票数和评论列表，但仍可提交，并更新或撤回自己的反馈。
+        </p>
+        <div class="form-row">
           <label>POW 最低难度（bit，8~64，默认 20）</label>
           <input v-model.number="powDifficulty" type="number" min="8" :max="powMaxDifficulty" />
         </div>
@@ -580,6 +590,7 @@ onMounted(() => {
 const powDifficulty = ref(auth.config.value.pow_difficulty ?? 20)
 const powMaxDifficulty = ref(auth.config.value.pow_max_difficulty ?? 32)
 const commentsRequireLogin = ref(auth.config.value.comments_require_login ?? true)
+const commentsVisibility = ref(auth.config.value.comments_visibility ?? 'public')
 const powMsg = ref('')
 const powError = ref(false)
 const savingPow = ref(false)
@@ -624,10 +635,12 @@ async function savePow() {
       pow_difficulty: minDifficulty,
       pow_max_difficulty: maxDifficulty,
       comments_require_login: commentsRequireLogin.value,
+      comments_visibility: commentsVisibility.value,
     })
     powDifficulty.value = cfg.pow_difficulty
     powMaxDifficulty.value = cfg.pow_max_difficulty
     commentsRequireLogin.value = cfg.comments_require_login
+    commentsVisibility.value = cfg.comments_visibility
     powMsg.value = 'POW 难度已保存，立即生效'
   } catch (e) {
     powError.value = true
@@ -766,6 +779,16 @@ async function doLogout() {
   width: 100%;
   max-width: 360px;
   box-sizing: border-box;
+}
+.form-row select {
+  width: 100%;
+  max-width: 360px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
 }
 .toggle-row {
   display: flex;

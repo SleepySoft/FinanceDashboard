@@ -56,6 +56,7 @@ DEFAULT_CONFIG = {
     "pow_difficulty": 20,
     "pow_max_difficulty": 32,
     "comments_require_login": True,
+    "comments_visibility": "public",
     "stale_view_days": 7,
     "status_categories": [
         {"key": "unassessed", "label": "未分析"},
@@ -459,6 +460,7 @@ class ConfigUpdateReq(BaseModel):
     pow_difficulty: Optional[int] = None
     pow_max_difficulty: Optional[int] = None
     comments_require_login: Optional[bool] = None
+    comments_visibility: Optional[str] = None
     stale_view_days: Optional[int] = None
 
 
@@ -482,6 +484,7 @@ def _config_payload(cfg: dict) -> dict:
         "pow_difficulty": int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or DEFAULT_CONFIG["pow_difficulty"]),
         "pow_max_difficulty": int(cfg.get("pow_max_difficulty", DEFAULT_CONFIG["pow_max_difficulty"]) or DEFAULT_CONFIG["pow_max_difficulty"]),
         "comments_require_login": bool(cfg.get("comments_require_login", True)),
+        "comments_visibility": cfg.get("comments_visibility", DEFAULT_CONFIG["comments_visibility"]),
         "stale_view_days": int(cfg.get("stale_view_days", DEFAULT_CONFIG["stale_view_days"]) or 0),
     }
 
@@ -668,6 +671,10 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
     removed_status_keys = []
     if req.comments_require_login is not None:
         cfg["comments_require_login"] = bool(req.comments_require_login)
+    if req.comments_visibility is not None:
+        if req.comments_visibility not in ("public", "admin"):
+            raise HTTPException(400, "comments_visibility 只能是 public 或 admin")
+        cfg["comments_visibility"] = req.comments_visibility
     min_difficulty = req.pow_difficulty if req.pow_difficulty is not None else int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or 0)
     max_difficulty = req.pow_max_difficulty if req.pow_max_difficulty is not None else int(cfg.get("pow_max_difficulty", DEFAULT_CONFIG["pow_max_difficulty"]) or 0)
     if not (8 <= min_difficulty <= 64):

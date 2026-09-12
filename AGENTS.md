@@ -108,6 +108,8 @@ data/
 - 消息箱 `data/_messages.json`：用户 → 站主单向信箱；admin 看全部/可删，用户只看自己；`/messages` 页。
 - 股票反馈 `data/{code}/feedback.json`：每人一票（赞同/反对 + 可选评论，upsert 覆盖，不记历史），
   可撤回自己的；admin 可删任意条目；展示在 StockPanel「股友反馈」区块。
+- `comments_visibility`（默认 `public`）控制反馈可见性：`admin` 时普通用户不显示投票数和评论列表，
+  仍可提交并更新/撤回自己的反馈；admin 始终可见。admin 可单条删除或清空当前股票反馈。
 - 发消息/提交反馈需完成 POW（`PowPanel` 组件含说明、难度滑块、耗时预估、进度条）。
 - `comments_require_login`（默认 `true`）只控制股票反馈：开启时必须登录；关闭时未登录访客
   仍必须完成 POW，身份绑定 HttpOnly Cookie `fd_guest`（10 年），可更新和撤回自己的唯一反馈。
@@ -183,6 +185,7 @@ data/
 | `/api/messages` | GET/POST | 消息箱：列表（admin 全部/用户看自己）/ 发消息（需 POW） |
 | `/api/messages/{id}` | DELETE | 删除消息（仅 admin） |
 | `/api/stocks/{code}/feedback` | GET/POST/DELETE | 股票反馈：汇总+评论 / 投票（需 POW；`comments_require_login=false` 时游客可提交/撤回）/ 撤回自己的 |
+| `/api/stocks/{code}/feedback/all` | DELETE | 清空当前股票全部反馈（仅 admin） |
 | `/api/stocks/{code}/feedback/{name}` | DELETE | 删除指定用户反馈（仅 admin） |
 | `/api/stocks/{code}/ladder` | GET/PUT | 价格阶梯：读取（含当前价/距离/状态）/ 设阈值或整体替换 manual 档 |
 | `/api/stocks/{code}/ladder/levels` | POST | 加一条 manual 档位 |

@@ -115,7 +115,9 @@ await api.submit({ ..., pow })
 
 面板内置：POW 说明文案、站点最低要求与耗时预估（按实测算力校准）、
 默认 0 bit 的难度滑块（用户必须手动拖到最低难度及以上才能提交，
-实时显示倍数与耗时影响）、计算进度/速度/取消。
+实时显示倍数与耗时影响）、计算进度/速度/取消。计算中显示平均目标距离和鼓励阶段；
+完成后按 `2^difficulty / 实际步数` 得出幸运倍率，分为天选、幸运、稳健、坚持四档，
+并使用不同结果动画给出正向反馈。
 
 复用到其它项目：整个 `powbox/` 目录拷走；后端替换两个 `init` 钩子；
 前端仅需保证 `api.js` 里的 `API_PREFIX` 与后端挂载前缀一致。
@@ -125,11 +127,13 @@ await api.submit({ ..., pow })
 | 业务 | scope | 存储 | 接口 |
 |---|---|---|---|
 | 消息箱 | `message` | `data/_messages.json` | `GET/POST /api/messages`、`DELETE /api/messages/{id}`（admin） |
-| 股票反馈 | `feedback` | `data/{code}/feedback.json` | `GET/POST/DELETE /api/stocks/{code}/feedback`、`DELETE .../feedback/{username}`（admin） |
+| 股票反馈 | `feedback` | `data/{code}/feedback.json` | `GET/POST/DELETE /api/stocks/{code}/feedback`、`DELETE .../feedback/all`（admin）、`DELETE .../feedback/{username}`（admin） |
 
 权限：发消息始终需登录；反馈默认需登录（只读账号可以——中间件对 `/api/pow`、`/api/messages`、
 `/api/stocks/*/feedback` 前缀放行了只读写）；消息 GET 端点内强制登录
 （消息私密：admin 看全部，用户只看自己）；反馈 GET 跟随全局读权限。
+反馈可见性由 `comments_visibility` 控制：`public` 时可见汇总和列表，`admin` 时仅管理员可见；
+非管理员仍可提交并更新/撤回自己的反馈。
 
 当本项目把 `comments_require_login` 设为 `false` 时，未登录访客可读取 POW 配置、获取
 `scope=feedback` 的 challenge，并提交/撤回股票反馈；业务层会用 `anonymous_identity_fn`

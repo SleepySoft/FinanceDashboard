@@ -45,14 +45,28 @@
     </p>
 
     <div v-if="computing" class="pow-progress">
+      <div class="pow-goal">
+        <strong>{{ progressLabel }}</strong>
+        <span>目标 {{ fmtHashes(expectedHashes) }} 次 · {{ targetDistanceText }}</span>
+      </div>
       <div class="pow-bar"><div class="pow-bar-fill" :style="{ width: progressPct + '%' }"></div></div>
       <div class="pow-stats">
-        已计算 {{ fmtHashes(hashes) }} 次 · 速度 {{ fmtRate(rate) }} ·
+        已试 {{ fmtHashes(hashes) }} 步 · 速度 {{ fmtRate(rate) }} ·
         已用 {{ (elapsedMs / 1000).toFixed(1) }}s · 预计还需 {{ fmtDuration(remainingSec) }}
       </div>
       <button class="pow-cancel" @click="cancelSolve">取消</button>
     </div>
-    <p v-else-if="doneInfo" class="pow-done">✓ {{ doneInfo }}</p>
+    <div v-else-if="doneResult" :class="['pow-result', doneResult.tierClass]">
+      <span class="pow-result-icon">{{ doneResult.icon }}</span>
+      <div class="pow-result-body">
+        <strong>{{ doneResult.title }}</strong>
+        <span>{{ doneResult.message }}</span>
+        <div class="pow-result-meta">
+          目标 {{ fmtHashes(doneResult.targetHashes) }} 步 · 实际 {{ fmtHashes(doneResult.hashes) }} 步 ·
+          幸运倍率 {{ fmtLuck(doneResult.luckRatio) }} · 耗时 {{ (doneResult.elapsedMs / 1000).toFixed(1) }}s
+        </div>
+      </div>
+    </div>
     <p v-if="error" class="pow-error">{{ error }}</p>
   </div>
 </template>
@@ -84,7 +98,7 @@ const computing = ref(false)
 const hashes = ref(0)
 const rate = ref(0)
 const elapsedMs = ref(0)
-const doneInfo = ref('')
+const doneResult = ref(null)
 const error = ref('')
 
 let currentSolve = null
@@ -97,6 +111,20 @@ const remainingSec = computed(() => {
 const progressPct = computed(() => {
   // 期望意义上的进度（指数分布，可能超 100%，封顶显示）
   return Math.min(100, (hashes.value / expectedHashes.value) * 100)
+})
+const targetDistance = computed(() => Math.max(0, expectedHashes.value - hashes.value))
+const targetLead = computed(() => Math.max(0, hashes.value - expectedHashes.value))
+const targetDistanceText = computed(() => {
+  if (targetDistance.value > 0) return `还差 ${fmtHashes(targetDistance.value)} 步`
+  if (targetLead.value > 0) return `已越过平均目标 ${fmtHashes(targetLead.value)} 步`
+  return '正好到达平均目标'
+})
+const progressLabel = computed(() => {
+  const pct = progressPct.value
+  if (pct >= 90) return '冲刺区 · 好运就在下一批'
+  if (pct >= 60) return '势能拉满 · 越来越近了'
+  if (pct >= 25) return '节奏很好 · 每一步都在逼近答案'
+  return '热身开局 · 幸运正在路上'
 })
 
 const powReady = computed(() => configLoaded.value && difficulty.value >= minDifficulty.value)
@@ -129,12 +157,34 @@ function fmtDuration(sec) {
   return `约 ${(sec / 3600).toFixed(1)} 小时`
 }
 
+function fmtLuck(value) {
+  if (!Number.isFinite(value)) return '--'
+  if (value >= 1000) return `${fmtHashes(value)}×`
+  if (value >= 10) return `${value.toFixed(1)}×`
+  return `${value.toFixed(2)}×`
+}
+
+function buildResult(result) {
+  const targetHashes = 2 ** difficulty.value
+  const luckRatio = targetHashes / Math.max(1, result.hashes)
+  if (luckRatio >= 4) {
+    return { ...result, targetHashes, luckRatio, tierClass: 'tier-jackpot', icon: '🚀', title: '天选之试！', message: '只用了平均目标的一小部分就命中，今天的手气非常猛。' }
+  }
+  if (luckRatio >= 2) {
+    return { ...result, targetHashes, luckRatio, tierClass: 'tier-lucky', icon: '🍀', title: '幸运命中！', message: '比平均目标更少步数提前撞线，很漂亮的运气。' }
+  }
+  if (luckRatio >= 1) {
+    return { ...result, targetHashes, luckRatio, tierClass: 'tier-steady', icon: '⚡', title: '稳健达标！', message: '节奏踩在平均目标附近，稳稳完成挑战。' }
+  }
+  return { ...result, targetHashes, luckRatio, tierClass: 'tier-persistent', icon: '🔥', title: '坚持破题！', message: '多走了一段路也成功命中，这份耐心比机器人更可靠。' }
+}
+
 async function obtainPow(content) {
   if (computing.value) throw new Error('正在计算中')
   if (!configLoaded.value) throw new Error('POW 配置未加载')
   if (difficulty.value < minDifficulty.value) throw new Error(`POW 难度需拖动到 ${minDifficulty.value} bit 或以上`)
   error.value = ''
-  doneInfo.value = ''
+  doneResult.value = null
   computing.value = true
   hashes.value = 0
   elapsedMs.value = 0
@@ -157,7 +207,7 @@ async function obtainPow(content) {
       measuredRate.value = result.rate
       localStorage.setItem('powbox_hashrate', String(Math.round(result.rate)))
     }
-    doneInfo.value = `验证完成：${difficulty.value} bit · ${fmtHashes(result.hashes)} 次计算 · 耗时 ${(result.elapsedMs / 1000).toFixed(1)}s`
+    doneResult.value = buildResult(result)
     return { challenge: ch.challenge, nonce: result.nonce, difficulty: difficulty.value }
   } catch (e) {
     if (e.message !== '已取消') error.value = e.message || 'POW 计算失败'
@@ -246,6 +296,13 @@ defineExpose({ obtainPow, powReady })
 .pow-progress {
   margin-top: 6px;
 }
+.pow-goal {
+  display: flex; justify-content: space-between; gap: 8px; align-items: center;
+  padding: 6px 8px; margin-bottom: 6px; border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 6px; background: rgba(59, 130, 246, 0.08);
+  color: #93c5fd; font-size: 12px;
+}
+.pow-goal strong { color: #bfdbfe; }
 .pow-bar {
   height: 8px;
   background: #1e293b;
@@ -276,10 +333,44 @@ defineExpose({ obtainPow, powReady })
   color: #f87171;
   border-color: #f87171;
 }
-.pow-done {
-  font-size: 12px;
-  color: #34d399;
-  margin-top: 6px;
+.pow-result {
+  display: flex; align-items: flex-start; gap: 10px; margin-top: 8px;
+  padding: 10px; border-radius: 8px; border: 1px solid #334155;
+  animation: pow-result-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pow-result-icon { font-size: 20px; line-height: 1; }
+.pow-result-body { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.pow-result-body strong { font-size: 13px; }
+.pow-result-meta { color: #94a3b8; }
+.tier-jackpot {
+  color: #fde68a; border-color: rgba(251, 191, 36, 0.55);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(59, 130, 246, 0.12));
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.18);
+  animation: pow-result-in 0.45s cubic-bezier(0.22, 1, 0.36, 1), pow-jackpot-glow 1.4s ease-in-out infinite alternate;
+}
+.tier-jackpot .pow-result-icon { animation: pow-icon-spin 2.2s linear infinite; }
+.tier-lucky {
+  color: #86efac; border-color: rgba(74, 222, 128, 0.4); background: rgba(34, 197, 94, 0.12);
+  animation: pow-result-in 0.45s cubic-bezier(0.22, 1, 0.36, 1), pow-lucky-bounce 1.2s ease-in-out infinite;
+}
+.tier-steady { color: #60a5fa; border-color: rgba(96, 165, 250, 0.35); background: rgba(59, 130, 246, 0.1); }
+.tier-persistent { color: #fdba74; border-color: rgba(251, 146, 60, 0.35); background: rgba(249, 115, 22, 0.1); }
+@keyframes pow-result-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pow-jackpot-glow {
+  from { box-shadow: 0 0 12px rgba(251, 191, 36, 0.14); }
+  to { box-shadow: 0 0 24px rgba(251, 191, 36, 0.28); }
+}
+@keyframes pow-icon-spin {
+  from { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.12); }
+  to { transform: rotate(-8deg) scale(1); }
+}
+@keyframes pow-lucky-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
 }
 .pow-error {
   font-size: 12px;

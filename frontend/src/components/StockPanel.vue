@@ -162,12 +162,16 @@
     <div class="card">
       <div class="section-header">
         <h3>🗳 股友反馈</h3>
-        <span class="fb-tally">
+        <button v-if="isAdmin && feedback.entries.length" class="fb-clear" @click="clearFeedback" title="删除全部反馈">清空</button>
+        <span v-if="!commentsAdminOnly || isAdmin" class="fb-tally">
           <span class="fb-up">👍 {{ feedback.up }}</span>
           <span class="fb-down">👎 {{ feedback.down }}</span>
         </span>
       </div>
-      <div v-if="feedback.entries.length" class="fb-list">
+      <p v-if="commentsAdminOnly && !isAdmin" class="fb-login-tip">
+        评论仅管理员可见；你仍可提交，并更新或撤回自己的反馈。
+      </p>
+      <div v-else-if="feedback.entries.length" class="fb-list">
         <div v-for="v in feedback.entries" :key="v.username" class="fb-entry">
           <div class="fb-entry-head">
             <span class="fb-vote-tag">{{ v.vote === 'up' ? '👍' : '👎' }}</span>
@@ -447,6 +451,7 @@ const statusUnknown = computed(() => !statusCats.categoryKeys.value.has(statusFo
 const isAuthenticated = auth.isAuthenticated
 const isAdmin = auth.isAdmin
 const commentsRequireLogin = computed(() => auth.config.value.comments_require_login ?? true)
+const commentsAdminOnly = computed(() => (auth.config.value.comments_visibility ?? 'public') === 'admin')
 const canSubmitFeedback = computed(() => auth.isAuthenticated.value || !commentsRequireLogin.value)
 const feedback = ref({ up: 0, down: 0, entries: [], my_vote: null })
 const fbVote = ref('up')
@@ -515,6 +520,16 @@ async function removeFeedback(name) {
     applyFeedback(res)
   } catch (e) {
     fbError.value = e.message || '删除失败'
+  }
+}
+
+async function clearFeedback() {
+  if (!window.confirm('删除这只股票的全部反馈？此操作不可恢复。')) return
+  try {
+    const res = await api.feedback.clearAll(props.code)
+    applyFeedback(res)
+  } catch (e) {
+    fbError.value = e.message || '清空失败'
   }
 }
 
@@ -1222,6 +1237,11 @@ onMounted(handleCodeChange)
 .fb-time { color: #64748b; font-size: 12px; }
 .fb-del { margin-left: auto; background: none; border: none; cursor: pointer; opacity: 0.6; }
 .fb-del:hover { opacity: 1; }
+.fb-clear {
+  margin-left: auto; padding: 2px 8px; border: 1px solid #475569; border-radius: 5px;
+  background: transparent; color: #94a3b8; cursor: pointer; font-size: 11px;
+}
+.fb-clear:hover { color: #f87171; border-color: #f87171; }
 .fb-comment { color: #cbd5e1; font-size: 13px; margin-top: 4px; white-space: pre-wrap; line-height: 1.5; }
 .fb-empty { color: #64748b; font-size: 13px; padding: 6px 0 10px; }
 .fb-form { margin-top: 8px; border-top: 1px solid #334155; padding-top: 10px; }

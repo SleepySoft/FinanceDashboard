@@ -111,6 +111,7 @@ export default {
     get: (code) => api(`/stocks/${code}/feedback`),
     submit: (code, vote, comment, pow) => api(`/stocks/${code}/feedback`, { method: 'POST', body: { vote, comment, pow } }),
     withdraw: (code) => api(`/stocks/${code}/feedback`, { method: 'DELETE' }),
+    clearAll: (code) => api(`/stocks/${code}/feedback/all`, { method: 'DELETE' }),
     remove: (code, username) => api(`/stocks/${code}/feedback/${encodeURIComponent(username)}`, { method: 'DELETE' }),
   },
   holdings: {
