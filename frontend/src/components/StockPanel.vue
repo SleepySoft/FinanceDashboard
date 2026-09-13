@@ -158,54 +158,6 @@
       <div v-else class="empty" style="padding: 20px">暂无记录</div>
     </div>
 
-    <!-- 股友反馈（登录即可参与，含只读账号；POW 防刷屏） -->
-    <div class="card">
-      <div class="section-header">
-        <h3>🗳 股友反馈</h3>
-        <button v-if="isAdmin && feedback.entries.length" class="fb-clear" @click="clearFeedback" title="删除全部反馈">清空</button>
-        <span v-if="!commentsAdminOnly || isAdmin" class="fb-tally">
-          <span class="fb-up">👍 {{ feedback.up }}</span>
-          <span class="fb-down">👎 {{ feedback.down }}</span>
-        </span>
-      </div>
-      <p v-if="commentsAdminOnly && !isAdmin" class="fb-login-tip">
-        评论仅管理员可见；你仍可提交，并更新或撤回自己的反馈。
-      </p>
-      <div v-else-if="feedback.entries.length" class="fb-list">
-        <div v-for="v in feedback.entries" :key="v.username" class="fb-entry">
-          <div class="fb-entry-head">
-            <span class="fb-vote-tag">{{ v.vote === 'up' ? '👍' : '👎' }}</span>
-            <span class="fb-user">{{ feedbackUserName(v.username) }}</span>
-            <span class="fb-time">{{ fmtFbTime(v.updated_at) }}</span>
-            <button v-if="isAdmin" class="fb-del" @click="removeFeedback(v.username)" title="删除该反馈">🗑</button>
-          </div>
-          <div v-if="v.comment" class="fb-comment">{{ v.comment }}</div>
-        </div>
-      </div>
-      <div v-else class="fb-empty">还没有人反馈过</div>
-
-      <div v-if="canSubmitFeedback" class="fb-form">
-        <div class="fb-vote-row">
-          <button :class="['fb-vote-btn', { active: fbVote === 'up' }]" @click="fbVote = 'up'">👍 赞同</button>
-          <button :class="['fb-vote-btn', 'down', { active: fbVote === 'down' }]" @click="fbVote = 'down'">👎 反对</button>
-          <button v-if="feedback.my_vote" class="fb-withdraw" @click="withdrawFeedback" :disabled="fbSubmitting">撤回我的反馈</button>
-        </div>
-        <textarea v-model="fbComment" class="fb-input" rows="2" maxlength="500" placeholder="评论（必填，≤500 字）" @input="fbSuccess = ''"></textarea>
-        <PowPanel v-if="fbPowVisible" ref="fbPowPanel" scope="feedback" />
-        <div class="fb-actions">
-          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting || !fbComment.trim() || !fbPowPanel?.powReady">
-            {{ fbSubmitting ? '验证并提交中...' : (feedback.my_vote ? '更新我的反馈' : '提交反馈') }}
-          </button>
-        </div>
-        <p v-if="fbSuccess" class="fb-success" role="status">{{ fbSuccess }}</p>
-        <p v-if="fbError" class="fb-error">{{ fbError }}</p>
-        <p v-if="!isAuthenticated" class="fb-login-tip">
-          未登录反馈绑定当前浏览器身份，可更新和撤回。
-        </p>
-      </div>
-      <div v-else class="fb-login-tip">登录后可投票和评论</div>
-    </div>
-
     <!-- 价格阶梯：买入/卖出计划价位，临近/触及提醒（来源：手动/策略/AI） -->
     <div class="card">
       <div class="section-header">
@@ -402,6 +354,54 @@
       </div>
     </div>
 
+    <!-- 股友反馈：普通用户参与；管理员仅查看/管理已有反馈 -->
+    <div v-if="showFeedbackCard" class="card">
+      <div class="section-header">
+        <h3>🗳 股友反馈</h3>
+        <button v-if="isAdmin && feedback.entries.length" class="fb-clear" @click="clearFeedback" title="删除全部反馈">清空</button>
+        <span v-if="!commentsAdminOnly || isAdmin" class="fb-tally">
+          <span class="fb-up">👍 {{ feedback.up }}</span>
+          <span class="fb-down">👎 {{ feedback.down }}</span>
+        </span>
+      </div>
+      <p v-if="commentsAdminOnly && !isAdmin" class="fb-login-tip">
+        评论仅管理员可见；你仍可提交，并更新或撤回自己的反馈。
+      </p>
+      <div v-else-if="feedback.entries.length" class="fb-list">
+        <div v-for="v in feedback.entries" :key="v.username" class="fb-entry">
+          <div class="fb-entry-head">
+            <span class="fb-vote-tag">{{ v.vote === 'up' ? '👍' : '👎' }}</span>
+            <span class="fb-user">{{ feedbackUserName(v.username) }}</span>
+            <span class="fb-time">{{ fmtFbTime(v.updated_at) }}</span>
+            <button v-if="isAdmin" class="fb-del" @click="removeFeedback(v.username)" title="删除该反馈">🗑</button>
+          </div>
+          <div v-if="v.comment" class="fb-comment">{{ v.comment }}</div>
+        </div>
+      </div>
+      <div v-else class="fb-empty">还没有人反馈过</div>
+
+      <div v-if="showFeedbackForm" class="fb-form">
+        <div class="fb-vote-row">
+          <button :class="['fb-vote-btn', { active: fbVote === 'up' }]" @click="fbVote = 'up'">👍 赞同</button>
+          <button :class="['fb-vote-btn', 'down', { active: fbVote === 'down' }]" @click="fbVote = 'down'">👎 反对</button>
+          <button v-if="feedback.my_vote" class="fb-withdraw" @click="withdrawFeedback" :disabled="fbSubmitting">撤回我的反馈</button>
+        </div>
+        <textarea v-model="fbComment" class="fb-input" rows="2" maxlength="500" placeholder="评论（必填，≤500 字）" @input="fbSuccess = ''"></textarea>
+        <PowPanel v-if="fbPowVisible" ref="fbPowPanel" scope="feedback" />
+        <div class="fb-actions">
+          <button class="primary" @click="submitFeedback" :disabled="fbSubmitting || !fbComment.trim() || !fbPowPanel?.powReady">
+            {{ fbSubmitting ? '验证并提交中...' : (feedback.my_vote ? '更新我的反馈' : '提交反馈') }}
+          </button>
+        </div>
+        <p v-if="fbSuccess" class="fb-success" role="status">{{ fbSuccess }}</p>
+        <p v-if="fbError" class="fb-error">{{ fbError }}</p>
+        <p v-if="!isAuthenticated" class="fb-login-tip">
+          未登录反馈绑定当前浏览器身份，可更新和撤回。
+        </p>
+      </div>
+      <div v-else-if="!isAdmin" class="fb-login-tip">登录后可投票和评论</div>
+    </div>
+
   </div>
 </template>
 
@@ -448,12 +448,14 @@ const statusCategories = statusCats.categories
 const statusBadgeClass = statusCats.statusBadgeClass
 const statusUnknown = computed(() => !statusCats.categoryKeys.value.has(statusForm.value.status))
 
-// 股友反馈（登录即可参与，含只读账号；每股每人一票，可改票；POW 防刷屏）
+// 股友反馈：普通用户参与；管理员仅查看/管理已有反馈
 const isAuthenticated = auth.isAuthenticated
 const isAdmin = auth.isAdmin
 const commentsRequireLogin = computed(() => auth.config.value.comments_require_login ?? true)
 const commentsAdminOnly = computed(() => (auth.config.value.comments_visibility ?? 'public') === 'admin')
 const canSubmitFeedback = computed(() => auth.isAuthenticated.value || !commentsRequireLogin.value)
+const showFeedbackCard = computed(() => !isAdmin.value || feedback.value.entries.length > 0)
+const showFeedbackForm = computed(() => !isAdmin.value && canSubmitFeedback.value)
 const feedback = ref({ up: 0, down: 0, entries: [], my_vote: null })
 const fbVote = ref('up')
 const fbComment = ref('')
