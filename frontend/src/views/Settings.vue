@@ -77,6 +77,39 @@
         </div>
       </div>
 
+      <!-- 价格标记标签 -->
+      <div class="card" v-if="isAdmin">
+        <h3>价格标记标签</h3>
+        <p class="settings-hint">
+          股票面板添加价格标记时，按此列表顺序显示可选标签。拖动 ⠿ 可排序，
+          名称可修改；删除后仅影响以后新增标记的选择项，已有标记不会被删除。
+        </p>
+        <div class="cat-list">
+          <div
+            v-for="(row, idx) in markRows"
+            :key="row.key"
+            :class="['cat-row', { dragging: markDragIndex === idx }]"
+            draggable="true"
+            @dragstart="onMarkDragStart(idx)"
+            @dragover.prevent
+            @drop="onMarkDrop(idx)"
+            @dragend="markDragIndex = null"
+          >
+            <span class="cat-drag" title="拖动排序">⠿</span>
+            <input v-model="row.label" maxlength="20" placeholder="价格标记名称" class="cat-label" />
+            <span class="mark-key">{{ row.key }}</span>
+            <button class="ghost danger-text cat-del" @click="removePriceMarkLabel(idx)">删除</button>
+          </div>
+        </div>
+        <p v-if="markMsg" :class="['config-msg', markError ? 'err' : 'ok']">{{ markMsg }}</p>
+        <div class="settings-actions">
+          <button class="ghost" @click="addPriceMarkLabel">添加标签</button>
+          <button class="primary" @click="savePriceMarkLabels" :disabled="savingMarks">
+            {{ savingMarks ? '保存中...' : '保存价格标记标签' }}
+          </button>
+        </div>
+      </div>
+
       <!-- 用户管理（仅管理员） -->
       <div class="card" v-if="isAdmin">
         <h3>用户管理</h3>
@@ -430,6 +463,69 @@ async function saveCategories() {
   }
 }
 
+// 价格标记标签（改名/新增/删除/拖动排序）
+const markRows = ref([])
+const markMsg = ref('')
+const markError = ref(false)
+const savingMarks = ref(false)
+const markDragIndex = ref(null)
+
+function resetMarkRows() {
+  markRows.value = (auth.config.value.price_mark_labels || []).map(item => ({
+    key: item.key,
+    label: item.label,
+  }))
+}
+
+function addPriceMarkLabel() {
+  markRows.value.push({ key: 'mark_' + Math.random().toString(36).slice(2, 10), label: '' })
+}
+
+function removePriceMarkLabel(idx) {
+  const row = markRows.value[idx]
+  if (!window.confirm(`删除价格标记「${row.label || row.key}」？`)) return
+  markRows.value.splice(idx, 1)
+}
+
+function onMarkDragStart(idx) {
+  markDragIndex.value = idx
+}
+
+function onMarkDrop(idx) {
+  if (markDragIndex.value === null || markDragIndex.value === idx) return
+  const moved = markRows.value.splice(markDragIndex.value, 1)[0]
+  markRows.value.splice(idx, 0, moved)
+  markDragIndex.value = null
+}
+
+async function savePriceMarkLabels() {
+  markMsg.value = ''
+  markError.value = false
+  const labels = markRows.value.map(row => row.label.trim())
+  if (labels.some(label => !label)) {
+    markError.value = true
+    markMsg.value = '价格标记名称不能为空'
+    return
+  }
+  if (new Set(labels).size !== labels.length) {
+    markError.value = true
+    markMsg.value = '价格标记名称不能重复'
+    return
+  }
+  savingMarks.value = true
+  try {
+    const payload = markRows.value.map(row => ({ key: row.key, label: row.label.trim() }))
+    await auth.updateConfig({ price_mark_labels: payload })
+    markMsg.value = '价格标记标签已保存'
+    resetMarkRows()
+  } catch (e) {
+    markError.value = true
+    markMsg.value = e.message || '保存失败'
+  } finally {
+    savingMarks.value = false
+  }
+}
+
 // 权限模式
 const mode = ref(auth.config.value.allow_anonymous_read ? 'readonly' : 'locked')
 const configMsg = ref('')
@@ -583,6 +679,7 @@ onMounted(() => {
   if (!isAdmin.value) return
   loadSchedulerStatus()
   resetCatRows()
+  resetMarkRows()
   loadUsers()
 })
 
@@ -882,6 +979,11 @@ button.ghost.danger-text {
   padding: 4px 10px;
   font-size: 12px;
   flex-shrink: 0;
+}
+.mark-key {
+  color: #64748b;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .info-label {
   color: #64748b;

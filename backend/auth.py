@@ -70,6 +70,16 @@ DEFAULT_CONFIG = {
         {"key": "archive", "label": "归档"},
         {"key": "blacklist", "label": "黑名单"},
     ],
+    "price_mark_labels": [
+        {"key": "target_buy", "label": "目标买入"},
+        {"key": "stop_loss", "label": "止损"},
+        {"key": "take_profit", "label": "止盈"},
+        {"key": "add", "label": "加仓"},
+        {"key": "reduce", "label": "减仓"},
+        {"key": "mark", "label": "标记"},
+        {"key": "last_buy", "label": "最后买入"},
+        {"key": "last_sell", "label": "最后卖出"},
+    ],
 }
 
 # 内置兜底分类：删除有股票的分类时，这些股票移入该分类。
@@ -276,6 +286,47 @@ def _validate_status_categories(raw) -> list:
     return out
 
 
+def get_price_mark_labels(cfg: dict) -> list:
+    """获取价格标记标签；缺失/损坏时回退默认值。返回 [{key, label}, ...]。"""
+    raw = cfg.get("price_mark_labels")
+    if not isinstance(raw, list):
+        return [dict(item) for item in DEFAULT_CONFIG["price_mark_labels"]]
+    return [
+        {"key": item["key"], "label": item["label"]}
+        for item in raw
+        if isinstance(item, dict) and isinstance(item.get("key"), str) and isinstance(item.get("label"), str)
+    ]
+
+
+def _validate_price_mark_labels(raw) -> list:
+    """校验价格标记标签列表，保持用户设置的显示顺序。"""
+    if not isinstance(raw, list):
+        raise HTTPException(400, "price_mark_labels 必须是数组")
+    seen_keys = set()
+    seen_labels = set()
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            raise HTTPException(400, "price_mark_labels 元素必须是对象 {key, label}")
+        key = item.get("key")
+        label = item.get("label")
+        if not isinstance(key, str) or not _STATUS_KEY_RE.match(key):
+            raise HTTPException(400, f"非法的价格标记 key: {key!r}（仅限小写字母/数字/下划线，1~32 字符）")
+        if key in seen_keys:
+            raise HTTPException(400, f"价格标记 key 重复: {key}")
+        if not isinstance(label, str) or not label.strip():
+            raise HTTPException(400, f"价格标记 {key} 的名称不能为空")
+        label = label.strip()
+        if len(label) > 20:
+            raise HTTPException(400, f"价格标记名称过长（≤20 字）: {label}")
+        if label in seen_labels:
+            raise HTTPException(400, f"价格标记名称重复: {label}")
+        seen_keys.add(key)
+        seen_labels.add(label)
+        out.append({"key": key, "label": label})
+    return out
+
+
 def _ensure_api_key():
     """首次运行时自动生成 Agent 访问密钥（未配置 FD_API_KEY / api_key 时）。"""
     if os.environ.get("FD_API_KEY", ""):
@@ -457,6 +508,7 @@ class ConfigUpdateReq(BaseModel):
     price_refresh_interval_min: Optional[int] = None
     anomaly_scan_interval_min: Optional[int] = None
     status_categories: Optional[List[dict]] = None
+    price_mark_labels: Optional[List[dict]] = None
     pow_difficulty: Optional[int] = None
     pow_max_difficulty: Optional[int] = None
     comments_require_login: Optional[bool] = None
@@ -481,6 +533,7 @@ def _config_payload(cfg: dict) -> dict:
             cfg.get("anomaly_scan_interval_min", DEFAULT_CONFIG["anomaly_scan_interval_min"]) or 0
         ),
         "status_categories": get_status_categories(cfg),
+        "price_mark_labels": get_price_mark_labels(cfg),
         "pow_difficulty": int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or DEFAULT_CONFIG["pow_difficulty"]),
         "pow_max_difficulty": int(cfg.get("pow_max_difficulty", DEFAULT_CONFIG["pow_max_difficulty"]) or DEFAULT_CONFIG["pow_max_difficulty"]),
         "comments_require_login": bool(cfg.get("comments_require_login", True)),
@@ -697,6 +750,8 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
         new_keys = {c["key"] for c in new_categories}
         removed_status_keys = sorted(old_keys - new_keys)
         cfg["status_categories"] = new_categories
+    if req.price_mark_labels is not None:
+        cfg["price_mark_labels"] = _validate_price_mark_labels(req.price_mark_labels)
     save_config(cfg)
     payload = _config_payload(cfg)
     # 删除的分类下仍有股票时，移入内置「无分类」（迁移由 main.py 注册的 hook 执行）

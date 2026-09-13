@@ -255,7 +255,7 @@
       </div>
       <div class="price-marks">
         <div v-for="m in meta.price_marks" :key="m.id" class="price-mark">
-          <span :class="['mark-label', 'mark-' + m.type]">{{ m.label }}</span>
+          <span :class="markLabelClass(m.type)">{{ m.label }}</span>
           <span class="mark-price">¥{{ m.price.toFixed(2) }}</span>
           <span v-if="meta.last_price != null" :class="['mark-diff', diffClass(meta.last_price - m.price)]">
             {{ meta.last_price >= m.price ? '+' : '' }}{{ (meta.last_price - m.price).toFixed(2) }}
@@ -267,14 +267,12 @@
       <div v-if="meta.price_marks?.length === 0" class="empty" style="margin-bottom:12px">暂无价格标记</div>
       <div v-if="!readonly" class="add-mark">
         <div class="preset-labels">
-          <span class="preset-label" @click="newMark.label = '目标买入'; newMark.type = 'target_buy'">目标买入</span>
-          <span class="preset-label" @click="newMark.label = '止损'; newMark.type = 'stop_loss'">止损</span>
-          <span class="preset-label" @click="newMark.label = '止盈'; newMark.type = 'take_profit'">止盈</span>
-          <span class="preset-label" @click="newMark.label = '加仓'; newMark.type = 'add'">加仓</span>
-          <span class="preset-label" @click="newMark.label = '减仓'; newMark.type = 'reduce'">减仓</span>
-          <span class="preset-label" @click="newMark.label = '标记'; newMark.type = 'mark'">标记</span>
-          <span class="preset-label preset-trade" @click="fillLastTrade('buy')">最后买入</span>
-          <span class="preset-label preset-trade" @click="fillLastTrade('sell')">最后卖出</span>
+          <span
+            v-for="tag in priceMarkLabels"
+            :key="tag.key"
+            :class="['preset-label', { 'preset-trade': tag.key === 'last_buy' || tag.key === 'last_sell' }]"
+            @click="selectPriceMarkLabel(tag)"
+          >{{ tag.label }}</span>
         </div>
         <div class="add-mark-row">
           <input v-model="newMark.label" placeholder="标签（可自定义）" style="flex:1" />
@@ -708,6 +706,27 @@ async function clearAgentLevels() {
 }
 const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
+
+const priceMarkLabels = computed(() => {
+  const labels = auth.config.value.price_mark_labels
+  return Array.isArray(labels) && labels.length ? labels : []
+})
+
+function markLabelClass(type) {
+  const known = new Set([
+    'target_buy', 'stop_loss', 'take_profit', 'add', 'reduce', 'mark', 'last_buy', 'last_sell',
+  ])
+  return ['mark-label', known.has(type) ? `mark-${type}` : 'mark-custom']
+}
+
+function selectPriceMarkLabel(tag) {
+  if (tag.key === 'last_buy' || tag.key === 'last_sell') {
+    fillLastTrade(tag.key === 'last_buy' ? 'buy' : 'sell')
+    return
+  }
+  newMark.value.label = tag.label
+  newMark.value.type = tag.key
+}
 
 const holdingsData = ref({ trades: [], summary: null })
 const showHoldings = ref(false)
@@ -1506,6 +1525,7 @@ onMounted(handleCodeChange)
 .mark-mark { background: #334155; color: #94a3b8; }
 .mark-last_buy { background: #3b2f06; color: #fbbf24; }
 .mark-last_sell { background: #312e81; color: #a5b4fc; }
+.mark-custom { background: #334155; color: #cbd5e1; }
 .mark-price { font-size: 14px; font-weight: 600; }
 .mark-diff { font-size: 12px; font-weight: 500; }
 .up { color: #f87171; }
