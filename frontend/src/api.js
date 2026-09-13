@@ -84,6 +84,7 @@ export default {
   dashboard: {
     get: () => api('/dashboard'),
     refresh: () => api('/dashboard/refresh'),
+    saveOrder: (order) => api('/dashboard/order', { method: 'PUT', body: { order } }),
   },
   prices: {
     refresh: () => api('/prices/refresh'),

@@ -13,6 +13,11 @@
         </button>
       </div>
       <div class="toolbar-inline">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input v-model="searchQuery" type="search" placeholder="搜索名称 / 代码" />
+          <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''" title="清除搜索">×</button>
+        </div>
         <router-link to="/anomalies" class="anomaly-link">📡 异动雷达</router-link>
         <div class="group-tabs" v-if="viewMode === 'grouped'">
           <button
@@ -70,6 +75,9 @@
 
     <!-- VIEW 1: Grouped -->
     <template v-if="viewMode === 'grouped'">
+      <div v-if="!loading && !loadError && filteredStocks.length === 0" class="card empty">
+        未找到匹配的股票
+      </div>
       <!-- By Status -->
       <template v-if="groupMode === 'status'">
         <div v-for="group in statusGroups" :key="group.key" class="sector-group">
@@ -83,7 +91,12 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
-              :class="{ 'status-card-open': statusMenuCode === s.code }"
+              :class="cardDragClass(s, group, 'status', statusMenuCode === s.code)"
+              :draggable="canWrite"
+              @dragstart="onDragStart($event, s, group, 'status')"
+              @dragover="onDragOver($event, s, group, 'status')"
+              @drop="onDrop($event, s, group, 'status')"
+              @dragend="onDragEnd"
               @click="openStock(s.code)"
             >
               <div class="stock-main">
@@ -202,7 +215,12 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
-              :class="{ 'status-card-open': statusMenuCode === s.code }"
+              :class="cardDragClass(s, group, 'rating', statusMenuCode === s.code)"
+              :draggable="canWrite"
+              @dragstart="onDragStart($event, s, group, 'rating')"
+              @dragover="onDragOver($event, s, group, 'rating')"
+              @drop="onDrop($event, s, group, 'rating')"
+              @dragend="onDragEnd"
               @click="openStock(s.code)"
             >
               <div class="stock-main">
@@ -321,7 +339,12 @@
               v-for="s in group.stocks"
               :key="s.code"
               class="stock-card card"
-              :class="{ 'status-card-open': statusMenuCode === s.code }"
+              :class="cardDragClass(s, group, 'sector', statusMenuCode === s.code)"
+              :draggable="canWrite"
+              @dragstart="onDragStart($event, s, group, 'sector')"
+              @dragover="onDragOver($event, s, group, 'sector')"
+              @drop="onDrop($event, s, group, 'sector')"
+              @dragend="onDragEnd"
               @click="openStock(s.code)"
             >
               <div class="stock-main">
@@ -656,8 +679,10 @@ const router = useRouter()
 const canWrite = auth.canWrite
 
 const stocks = shallowRef([])
+const stockOrder = ref([])
 const loading = ref(false)
 const loadError = ref('')
+const searchQuery = ref('')
 const lastRefresh = ref(null)
 const viewMode = ref('grouped')
 const filterSector = ref('')
@@ -668,6 +693,134 @@ const sortKey = ref('code')
 const sortAsc = ref(true)
 const selectedStock = ref(null)
 const showModal = ref(false)
+
+const dragState = ref(null)
+const dropTarget = ref(null)
+
+function normalizeSearchText(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function isSubsequence(needle, haystack) {
+  let index = 0
+  for (const char of haystack) {
+    if (char === needle[index]) index += 1
+    if (index === needle.length) return true
+  }
+  return false
+}
+
+function matchesSearch(stock, query) {
+  if (!query) return true
+  const code = normalizeSearchText(stock.code)
+  const codeDigits = code.replace(/[^0-9a-z]/g, '')
+  const name = normalizeSearchText(stock.name)
+  return [name, code, codeDigits].some(text =>
+    text.includes(query) || (query.length > 1 && isSubsequence(query, text))
+  )
+}
+
+function orderedStocks(list, order) {
+  const items = Array.isArray(list) ? list : []
+  const orderIndex = new Map((Array.isArray(order) ? order : []).map((code, index) => [code, index]))
+  return [...items].sort((a, b) => {
+    const left = orderIndex.has(a.code) ? orderIndex.get(a.code) : Number.MAX_SAFE_INTEGER
+    const right = orderIndex.has(b.code) ? orderIndex.get(b.code) : Number.MAX_SAFE_INTEGER
+    return left - right
+  })
+}
+
+function dragGroupKey(group, mode) {
+  const key = mode === 'sector' ? (group.sector || '未分类') : group.key
+  return `${mode}:${key}`
+}
+
+function cardDragClass(stock, group, mode, statusOpen) {
+  const groupKey = dragGroupKey(group, mode)
+  const inGroup = dropTarget.value?.groupKey === groupKey
+  return {
+    'status-card-open': statusOpen,
+    dragging: dragState.value?.groupKey === groupKey && dragState.value?.code === stock.code,
+    'drop-before': inGroup && dropTarget.value?.code === stock.code && dropTarget.value?.after === false,
+    'drop-after': inGroup && dropTarget.value?.code === stock.code && dropTarget.value?.after === true,
+  }
+}
+
+function dropAfter(event) {
+  const rect = event.currentTarget.getBoundingClientRect()
+  const offsetX = (event.clientX - rect.left) / rect.width
+  const offsetY = (event.clientY - rect.top) / rect.height
+  return Math.abs(offsetY - 0.5) > Math.abs(offsetX - 0.5)
+    ? offsetY > 0.5
+    : offsetX > 0.5
+}
+
+function onDragStart(event, stock, group, mode) {
+  if (!canWrite.value) {
+    event.preventDefault()
+    return
+  }
+  const groupKey = dragGroupKey(group, mode)
+  dragState.value = { code: stock.code, groupKey }
+  dropTarget.value = null
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', stock.code)
+}
+
+function onDragOver(event, stock, group, mode) {
+  if (!canWrite.value || !dragState.value) return
+  const groupKey = dragGroupKey(group, mode)
+  if (dragState.value.groupKey !== groupKey) return
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  dropTarget.value = { code: stock.code, groupKey, after: dropAfter(event) }
+}
+
+async function onDrop(event, stock, group, mode) {
+  const drag = dragState.value
+  if (!canWrite.value || !drag || drag.groupKey !== dragGroupKey(group, mode)) return
+  event.preventDefault()
+  const targetCode = stock.code
+  if (drag.code === targetCode) {
+    dragState.value = null
+    dropTarget.value = null
+    return
+  }
+
+  const visibleCodes = group.stocks.map(item => item.code)
+  const withoutDragged = visibleCodes.filter(code => code !== drag.code)
+  const targetIndex = withoutDragged.indexOf(targetCode)
+  if (targetIndex === -1) return
+  const after = dropTarget.value?.code === targetCode ? dropTarget.value.after : dropAfter(event)
+  const nextVisible = [...withoutDragged]
+  nextVisible.splice(targetIndex + (after ? 1 : 0), 0, drag.code)
+
+  const visibleSet = new Set(visibleCodes)
+  let visibleIndex = 0
+  const previousStocks = stocks.value
+  const previousOrder = [...stockOrder.value]
+  const nextOrder = previousStocks.map(item => (
+    visibleSet.has(item.code) ? nextVisible[visibleIndex++] : item.code
+  ))
+  nextOrder.push(...nextVisible.filter(code => !nextOrder.includes(code)))
+
+  stocks.value = orderedStocks(previousStocks, nextOrder)
+  stockOrder.value = nextOrder
+  dragState.value = null
+  dropTarget.value = null
+  try {
+    await api.dashboard.saveOrder(nextOrder)
+  } catch (e) {
+    console.error(e)
+    stocks.value = previousStocks
+    stockOrder.value = previousOrder
+  }
+}
+
+function onDragEnd() {
+  dragState.value = null
+  dropTarget.value = null
+}
 
 // 滚动位置保存/恢复：手机切后台被刷新后回到上次浏览位置
 const { restore: restoreScroll } = useScrollRestore('dash:scroll')
@@ -824,7 +977,8 @@ async function load() {
     console.log('[Dashboard] API returned', data.stocks?.length || 0, 'stocks')
     console.log('[Dashboard] data type:', typeof data, 'isArray:', Array.isArray(data), 'keys:', Object.keys(data || {}))
     console.log('[Dashboard] data.stocks type:', typeof data.stocks, 'isArray:', Array.isArray(data.stocks), 'length:', data.stocks?.length)
-    stocks.value = data.stocks
+    stockOrder.value = Array.isArray(data.stock_order) ? data.stock_order : []
+    stocks.value = orderedStocks(data.stocks, stockOrder.value)
     lastRefresh.value = data.price_data_time || data.last_update
     const requestedStock = typeof route.query.stock === 'string' ? route.query.stock : ''
     if (requestedStock) {
@@ -959,7 +1113,9 @@ async function submitTrade() {
 
 // ── Filtered stocks ──
 const filteredStocks = computed(() => {
+  const query = normalizeSearchText(searchQuery.value)
   const result = stocks.value.filter(s => {
+    if (!matchesSearch(s, query)) return false
     if (filterSector.value && s.sector !== filterSector.value) return false
     const verdict = s.dimensions?.verdict || s.overall
     if (filterVerdict.value && verdict !== filterVerdict.value) return false
@@ -1240,6 +1396,13 @@ onUnmounted(stopAutoRefresh)
 .filter-check { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #94a3b8; cursor: pointer; white-space: nowrap; }
 .filter-check input { accent-color: #3b82f6; width: 14px; height: 14px; }
 
+.search-box { display: flex; align-items: center; gap: 5px; min-width: 190px; background: #0f172a; border: 1px solid #334155; border-radius: 5px; padding: 0 6px; }
+.search-box input { min-width: 0; flex: 1; border: 0; outline: none; background: transparent; color: #e2e8f0; font-size: 12px; padding: 5px 0; }
+.search-box input::placeholder { color: #64748b; }
+.search-icon { font-size: 11px; opacity: .75; }
+.search-clear { border: 0; background: transparent; color: #94a3b8; cursor: pointer; padding: 0 2px; line-height: 1; }
+.search-clear:hover { color: #e2e8f0; }
+
 /* ── Grouped view ── */
 .sector-group { margin-bottom: 20px; }
 .sector-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; user-select: none; }
@@ -1251,6 +1414,9 @@ onUnmounted(stopAutoRefresh)
 
 .stock-card { cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 14px; position: relative; min-width: 0; max-width: 100%; }
 .stock-card:hover { transform: translateY(-1px); border-color: #3b82f6; }
+.stock-card[draggable="true"] { cursor: grab; }
+.stock-card.dragging { opacity: .5; }
+.stock-card.drop-before, .stock-card.drop-after { outline: 2px dashed #60a5fa; outline-offset: -2px; }
 
 .stock-main { margin-bottom: 10px; }
 .stock-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -1546,6 +1712,8 @@ onUnmounted(stopAutoRefresh)
   .view-tabs.mini .tab { padding: 3px 8px; font-size: 11px; }
   .group-tab { padding: 2px 6px; font-size: 10px; }
   .filter-check { font-size: 11px; }
+  .search-box { flex: 1; width: 100%; min-width: 0; order: -1; }
+  .search-box input { width: 100%; font-size: 16px; }
   .stock-grid { grid-template-columns: 1fr; gap: 10px; }
   .stock-card { padding: 14px; }
   .stock-title-row { gap: 6px; }

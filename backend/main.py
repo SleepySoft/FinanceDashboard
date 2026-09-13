@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -720,6 +720,21 @@ def _load_dashboard() -> dict:
         }
     return dashboard
 
+
+def _normalize_stock_order(order, stock_codes):
+    """Keep saved order first and append newly tracked stock codes."""
+    if not isinstance(order, list):
+        return list(stock_codes)
+    known = set(stock_codes)
+    result = []
+    seen = set()
+    for code in order:
+        if isinstance(code, str) and code in known and code not in seen:
+            result.append(code)
+            seen.add(code)
+    result.extend(code for code in stock_codes if code not in seen)
+    return result
+
 def _fetch_stock_name(code: str) -> str:
     """Fetch stock name from Sina API."""
     try:
@@ -1347,9 +1362,44 @@ def get_dashboard(request: Request):
     
     return {
         "stocks": stocks,
+        "stock_order": _normalize_stock_order(
+            dashboard.get("stock_order"),
+            [stock["code"] for stock in stocks],
+        ),
         "last_update": dashboard.get("last_update"),
         "price_data_time": _now()
     }
+
+
+class DashboardOrderRequest(BaseModel):
+    order: List[str]
+
+
+@app.put("/api/dashboard/order")
+def update_dashboard_order(
+    req: DashboardOrderRequest,
+    username: str = Depends(auth.require_admin),
+):
+    """Save homepage card order. Only admins can change it."""
+    stock_codes = []
+    for entry in os.listdir(REPORTS_DIR):
+        if entry.startswith("_"):
+            continue
+        meta_path = os.path.join(REPORTS_DIR, entry, "meta.json")
+        if not os.path.exists(meta_path):
+            continue
+        try:
+            meta = _load_meta(entry)
+            stock_codes.append(meta.get("code", entry))
+        except Exception:
+            continue
+
+    stock_codes = list(dict.fromkeys(stock_codes))
+    order = _normalize_stock_order(req.order, stock_codes)
+    dashboard = _load_dashboard()
+    dashboard["stock_order"] = order
+    _atomic_json_dump(DASHBOARD_FILE, dashboard)
+    return {"stock_order": order}
 
 @app.get("/api/dashboard/refresh")
 def refresh_dashboard():

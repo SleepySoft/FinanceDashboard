@@ -40,7 +40,7 @@ Internet: https://www.sleepysoft.dev/dashboard/
 
 ```
 data/
-├── _dashboard.json          # Price snapshot (updated by backend via Sina API)
+├── _dashboard.json          # Price snapshot (updated by backend via Sina API) + stock_order
 ├── _tasks.json              # Pending analysis task queue
 ├── _users.json              # 用户账号（PBKDF2 密码哈希；首次运行自动创建 admin）
 ├── _sessions.json           # 登录会话（token → username/expires_at）
@@ -85,6 +85,7 @@ data/
 9. **记录价格快照（2026-09-03 新增）** — 新增笔记和 Agent 完成分析时，从 `_dashboard.json` 读取可用价格并写入股票 `state.json.record_prices`；时间线按固定列显示，旧记录或取价失败显示 `--`。报告键为文件名主干，笔记键为 `##` 时间戳。
 10. **价格阶梯（2026-09-10 新增，`backend/ladder.py`）** — 每股票 `ladder.json` 存买入/卖出计划价位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换，用于压力位/支撑位场景）。提醒语义基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
 11. **最后浏览时间（2026-09-11 新增，`backend/views.py`；2026-09-12 改为管理员专属）** — 管理员打开股票面板/详情页时前端调 `POST /api/stocks/{code}/viewed` 记录（按用户存 `views.json`）；`/api/dashboard` 与 `/api/stocks/{code}` 仅对管理员返回 `last_viewed`（展示的是「上次」浏览，本次记录在返回之后）。非管理员不记录、不返回、不显示浏览时间。超过配置 `stale_view_days`（默认 7 天，0=关闭，设置页可改）未浏览时，卡片/面板上的「👁 最后浏览」闪烁提醒；从未浏览不闪烁。
+12. **首页卡片顺序与搜索（2026-09-13 新增）** — 分组视图下的股票卡支持管理员 HTML5 拖动排序；拖动仅在当前分组内生效，不跨组。全局顺序保存在 `data/_dashboard.json` 的 `stock_order`，`/api/dashboard` 返回并用于初始排序；`PUT /api/dashboard/order`（仅 admin）保存规范化后的全局顺序。首页工具栏提供名称/代码实时模糊搜索，前端在所有视图的股票列表上过滤。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -164,6 +165,7 @@ data/
 | `/api/auth/users/{name}/password` | POST | 重置指定用户密码并吊销其会话（仅 admin） |
 | `/api/auth/config` | PATCH | 修改权限/Tushare token/定时任务间隔（需登录） |
 | `/api/dashboard` | GET | All stocks with prices and mark diffs |
+| `/api/dashboard/order` | PUT | Save homepage card order (admin only; same-group drag in UI) |
 | `/api/prices/refresh` | GET | Fetch live prices from Sina, update `_dashboard.json` |
 | `/api/scheduler/status` | GET | 定时任务运行状态（间隔、上次/下次运行、结果/错误） |
 | `/api/tushare/test` | POST | 测试 Tushare token 连通性（需登录，不保存） |
