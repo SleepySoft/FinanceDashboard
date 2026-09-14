@@ -7,16 +7,32 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "19fc874d",
+      "label": "标记",
+      "price": 4.33,
+      "type": "mark",
+      "created_at": "2026-09-13T14:40:25.606185+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-13 14:40",
+      "content": "ROE 9%，卖电占96%，毛利46%。运营的可能比核建好，现在有点贵。",
+      "price": 4.33
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 14:40": 4.33
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "neutral"
 }

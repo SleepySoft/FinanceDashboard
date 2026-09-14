@@ -7,16 +7,24 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
   "price_marks": [],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-13 14:05",
+      "content": "如果能等到股息率在5%以上那是最好的。",
+      "price": 14.46
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 14:05": 14.46
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "core_position"
 }

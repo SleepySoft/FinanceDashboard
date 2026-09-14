@@ -7,16 +7,32 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "00cab6a8",
+      "label": "标记",
+      "price": 84.4,
+      "type": "mark",
+      "created_at": "2026-09-13T14:16:45.036060+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-13 14:18",
+      "content": "ROE高，负债高，ROA是11%左右，财务漂亮，龙头。但新能源这块比较卷，如果有更好的机会再买。",
+      "price": 84.4
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 14:18": 84.4
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "waiting"
 }

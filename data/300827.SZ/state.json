@@ -7,16 +7,31 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
   "price_marks": [],
   "daily_briefs": [],
-  "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "updated_at": "2026-09-13T22:40:00+08:00",
+  "notes": [
+    {
+      "time": "2026-09-13 14:45",
+      "content": "大跌后股价不算高，家族企业，负面信息较少。财务上升，经营现金流较低。可能是机会，可能是坑，看接下来的财报。",
+      "price": 23.94
+    },
+    {
+      "time": "2026-09-13 22:40",
+      "content": "光伏逆变器全球第三，储能PCS国内前二。业绩增但现金流差，应收31.91亿+存货20.60亿。股价腰斩，等现金流拐点。",
+      "price": 23.94
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 22:40": 23.94,
+      "2026-09-13 14:45": 23.94
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "waiting",
+  "report_generated_at": "2026-09-13T22:40:00+08:00"
 }

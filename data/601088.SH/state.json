@@ -7,16 +7,33 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "665d2508",
+      "label": "标记",
+      "price": 47.51,
+      "type": "mark",
+      "created_at": "2026-09-13T14:34:37.733168+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-13 14:34",
+      "content": "没什么说的，龙头，等便宜。",
+      "price": 47.51
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 14:34": 47.51
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "waiting",
+  "report_generated_at": "2026-09-13T22:34:00+08:00"
 }

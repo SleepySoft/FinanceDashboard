@@ -7,16 +7,32 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "8da81c5e",
+      "label": "标记",
+      "price": 7.02,
+      "type": "mark",
+      "created_at": "2026-09-13T14:28:18.736717+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-13 14:28",
+      "content": "煤+LNG，近几年表现不好，便宜一半再说。",
+      "price": 7.02
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 14:28": 7.02
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "neutral"
 }

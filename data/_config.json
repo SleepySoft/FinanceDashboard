@@ -11,7 +11,7 @@
   "status_categories": [
     {
       "key": "unassessed",
-      "label": "未阅",
+      "label": "未读",
       "desc": "AI刚加入，还没仔细看。"
     },
     {
@@ -31,28 +31,28 @@
     },
     {
       "key": "core_position",
-      "label": "底仓",
-      "desc": "长时间持仓收股息。"
+      "label": "底仓备选",
+      "desc": "在高位退出后备选，稳定适合长时间持仓收股息。"
     },
     {
       "key": "no_interest",
-      "label": "无兴趣",
+      "label": "冷置",
       "desc": "可能公司还行，但没兴趣。"
+    },
+    {
+      "key": "archive",
+      "label": "归档",
+      "desc": "不再关注。"
     },
     {
       "key": "avoid",
       "label": "回避",
-      "desc": "不看，但不至于是黑公司。"
+      "desc": "有明显问题或不适合我，当前不参与。"
     },
     {
       "key": "blacklist",
       "label": "黑名单",
       "desc": "绝对绝对不要碰，就是黑。"
-    },
-    {
-      "key": "archive",
-      "label": "归档",
-      "desc": "忘了为什么设置这个分类。"
     }
   ]
 }

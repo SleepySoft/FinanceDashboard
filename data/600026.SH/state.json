@@ -7,16 +7,24 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
   "price_marks": [],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-13 14:13",
+      "content": "讲真还可以，能源运输，股息也不错，不过我不喜欢海运。",
+      "price": 20.86
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-13 14:13": 20.86
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "no_interest"
 }
