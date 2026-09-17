@@ -11,33 +11,39 @@
   "price_marks": [
     {
       "type": "support",
-      "note": "7/14历史大底，多空生命线",
-      "price": 24.17
+      "price": 24.17,
+      "label": "7/14历史大底，多空生命线",
+      "id": "ff7fbc10"
     },
     {
       "type": "support",
-      "note": "布林下轨+9/16盘中低点",
-      "price": 24.77
+      "price": 24.77,
+      "label": "布林下轨+9/16盘中低点",
+      "id": "5c4b9347"
     },
     {
       "type": "resistance",
-      "note": "MA20+布林中轨，第一争夺位",
-      "price": 26.34
+      "price": 26.34,
+      "label": "MA20+布林中轨，第一争夺位",
+      "id": "bd67976b"
     },
     {
       "type": "resistance",
-      "note": "MA60+MA30压力带",
-      "price": 26.88
+      "price": 26.88,
+      "label": "MA60+MA30压力带",
+      "id": "bdff258e"
     },
     {
       "type": "resistance",
-      "note": "8/26高点，双底颈线",
-      "price": 28.02
+      "price": 28.02,
+      "label": "8/26高点，双底颈线",
+      "id": "2246c738"
     },
     {
       "type": "resistance",
-      "note": "7/21+7/30双顶强压力",
-      "price": 29.09
+      "price": 29.09,
+      "label": "7/21+7/30双顶强压力",
+      "id": "b91207e9"
     }
   ],
   "daily_briefs": [],

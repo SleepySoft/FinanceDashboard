@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, List, Literal
 import asyncio
+import hashlib
 import json
 import math
 import os
@@ -529,6 +530,33 @@ def _notes_path(code: str) -> str:
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
+def _normalize_price_marks(marks) -> list:
+    """规范化价格标记：补 id（内容哈希，确定性，多次加载稳定）、note→label 兼容、
+    price 转 float，丢弃无法修复的条目。防止历史脏数据（缺 id/用 note 字段）导致删除 500。"""
+    if not isinstance(marks, list):
+        return []
+    result = []
+    for m in marks:
+        if not isinstance(m, dict):
+            continue
+        m = dict(m)
+        if "label" not in m and "note" in m:
+            m["label"] = m.pop("note")
+        m.setdefault("label", "标记")
+        try:
+            m["price"] = float(m.get("price"))
+        except (TypeError, ValueError):
+            print(f"[data-guard] 价格标记缺有效 price，已丢弃: {m}")
+            continue
+        m.setdefault("type", "custom")
+        if not m.get("id"):
+            m["id"] = hashlib.md5(
+                f"{m['type']}|{m['label']}|{m['price']}".encode("utf-8")
+            ).hexdigest()[:8]
+        result.append(m)
+    return result
+
+
 def _load_meta(code: str) -> dict:
     """Load meta.json (static) + state.json (mutable), merge and return.
     Ensures all expected fields exist with sensible defaults to prevent downstream crashes.
@@ -561,6 +589,7 @@ def _load_meta(code: str) -> dict:
         merged["holdings"] = {}
     if not isinstance(merged.get("price_marks"), list):
         merged["price_marks"] = []
+    merged["price_marks"] = _normalize_price_marks(merged["price_marks"])
     if not isinstance(merged.get("record_prices"), dict):
         merged["record_prices"] = {}
     for record_type in ("notes", "reports"):
@@ -820,7 +849,7 @@ class TagUpdateReq(BaseModel):
 class PriceMarkReq(BaseModel):
     label: str
     price: float
-    type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell"] = "mark"
+    type: Literal["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell", "support", "resistance", "custom"] = "mark"
 
 class StatusReq(BaseModel):
     status: str
@@ -1066,7 +1095,11 @@ def add_price_mark(code: str, req: PriceMarkReq):
 @app.delete("/api/stocks/{code}/price-marks/{mark_id}")
 def delete_price_mark(code: str, mark_id: str):
     meta = _load_meta(code)
-    meta["price_marks"] = [m for m in meta["price_marks"] if m["id"] != mark_id]
+    marks = meta.get("price_marks", [])
+    remaining = [m for m in marks if m.get("id") != mark_id]
+    if len(remaining) == len(marks):
+        raise HTTPException(404, f"价格标记不存在: {mark_id}")
+    meta["price_marks"] = remaining
     _save_meta(code, meta)
     return {"ok": True}
 

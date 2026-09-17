@@ -1,43 +1,49 @@
 {
   "tags": {
-    "overall": "neutral-positive",
+    "overall": "none",
     "watchlist": true,
-    "quality": "good",
-    "valuation": "undervalued",
-    "timing": "wait-left-side",
-    "risk": "medium-high",
+    "quality": "none",
+    "valuation": "none",
+    "timing": "none",
+    "risk": "none",
     "verdict": "yellow"
   },
   "price_marks": [
     {
       "type": "support",
-      "note": "整数关口+2024年9月平台，证伪线",
-      "price": 45.0
+      "price": 45.0,
+      "label": "整数关口+2024年9月平台，证伪线",
+      "id": "d73ce6d3"
     },
     {
       "type": "support",
-      "note": "9/16盘中最低+布林下轨共振",
-      "price": 47.0
+      "price": 47.0,
+      "label": "9/16盘中最低+布林下轨共振",
+      "id": "46933c7e"
     },
     {
       "type": "support",
-      "note": "9/15收盘，一年最低收盘",
-      "price": 48.36
+      "price": 48.36,
+      "label": "9/15收盘，一年最低收盘",
+      "id": "db7cf8b8"
     },
     {
       "type": "resistance",
-      "note": "MA20+布林中轨，右侧确认第一关",
-      "price": 52.1
+      "price": 52.1,
+      "label": "MA20+布林中轨，右侧确认第一关",
+      "id": "f77b0935"
     },
     {
       "type": "resistance",
-      "note": "MA60+8月枢轴高点密集区",
-      "price": 55.9
+      "price": 55.9,
+      "label": "MA60+8月枢轴高点密集区",
+      "id": "dfb27d3c"
     },
     {
-      "type": "resistance",
-      "note": "3月VWAP，解套抛压区",
-      "price": 57.35
+      "id": "ad52c69f",
+      "label": "3月VWAP，解套抛压区",
+      "price": 57.35,
+      "type": "resistance"
     }
   ],
   "daily_briefs": [],
@@ -45,5 +51,10 @@
     "2026-09-16: 基本面评级🟡中性偏多。2026H1营收456.9亿(+62.2%)，扣非净利24.5亿(+111.9%)，但经营现金流-3.88亿转负，存货154亿(+87%)。机构预测2026E PE仅14.8x，估值偏低。技术面完全空头排列，RSI12=17.5极端超卖，9/16放量下影线创52周新低47.00。等待现金流改善信号或技术企稳后再介入。",
     "2026-09-16 深度分析(4份报告)完成。基本面🟡质地好(扣非+112%/PE26E~14x)但时机未到：现金流-3.9亿与利润背离、板块主跌未止、无底分型结构。技术面RSI12极端超卖+通道下轨，左侧底区。转🟢条件：Q3现金流转正+站稳52.1。报告见reports/fundamental_20260916.md & technical_20260916.md"
   ],
-  "status": "neutral"
+  "status": "neutral",
+  "holdings": {},
+  "record_prices": {
+    "notes": {},
+    "reports": {}
+  }
 }
