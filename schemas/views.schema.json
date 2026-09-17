@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/{code}/views.json — 按用户的最后浏览时间（管理员专属）",
+  "type": "object",
+  "properties": {
+    "views": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "description": "ISO 时间戳，键为用户名" }
+    }
+  }
+}

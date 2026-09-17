@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_config.json — 权限/调度/界面配置（不含密钥，密钥在 _secrets.json）",
+  "type": "object",
+  "properties": {
+    "allow_anonymous_read": { "type": "boolean" },
+    "session_ttl_hours":    { "type": "number" },
+    "price_refresh_interval_min":  { "type": "number" },
+    "anomaly_scan_interval_min":   { "type": "number" },
+    "pow_difficulty":     { "type": "integer" },
+    "pow_max_difficulty": { "type": "integer" },
+    "comments_require_login": { "type": "boolean" },
+    "comments_visibility": { "type": "string", "enum": ["public", "login", "admin"] },
+    "stale_view_days": { "type": "number" },
+    "status_categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label"],
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" },
+          "desc": { "type": "string" }
+        }
+      }
+    },
+    "price_mark_labels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label"],
+        "properties": {
+          "key": { "type": "string" },
+          "label": { "type": "string" }
+        }
+      }
+    }
+  }
+}

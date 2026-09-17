@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_messages.json — 留言箱",
+  "type": "object",
+  "required": ["messages"],
+  "properties": {
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "username", "content"],
+        "properties": {
+          "id":        { "type": "string" },
+          "username":  { "type": "string" },
+          "content":   { "type": "string" },
+          "created_at": { "type": "string" },
+          "pow_difficulty": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

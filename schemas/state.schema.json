@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/{code}/state.json — 股票可变状态",
+  "type": "object",
+  "properties": {
+    "tags": {
+      "type": "object",
+      "properties": {
+        "overall":   { "type": "string", "enum": ["green", "yellow", "red", "none"] },
+        "watchlist": { "type": "boolean" },
+        "quality":   { "type": "string", "enum": ["green", "yellow", "red", "none"] },
+        "valuation": { "type": "string", "enum": ["green", "yellow", "red", "none"] },
+        "timing":    { "type": "string", "enum": ["green", "yellow", "red", "none"] },
+        "risk":      { "type": "string", "enum": ["green", "yellow", "red", "none"] },
+        "verdict":   { "type": "string", "enum": ["green", "yellow", "red", "none"] },
+        "unread":    { "type": "boolean" }
+      }
+    },
+    "status": { "type": "string" },
+    "price_marks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label", "price"],
+        "properties": {
+          "id":    { "type": "string", "description": "缺失时后端按内容哈希自动生成" },
+          "label": { "type": "string" },
+          "price": { "type": "number" },
+          "type":  { "type": "string", "enum": ["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell", "support", "resistance", "custom"] },
+          "created_at": { "type": "string" }
+        }
+      }
+    },
+    "notes": { "type": "array" },
+    "record_prices": {
+      "type": "object",
+      "properties": {
+        "notes":   { "type": "object", "additionalProperties": { "type": ["number", "null"] } },
+        "reports": { "type": "object", "additionalProperties": { "type": ["number", "null"] } }
+      }
+    },
+    "holdings": { "type": ["object", "null"] }
+  }
+}

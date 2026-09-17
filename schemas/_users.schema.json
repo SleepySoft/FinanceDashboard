@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_users.json — 用户账号（PBKDF2 哈希）",
+  "type": "object",
+  "required": ["users"],
+  "properties": {
+    "users": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["username", "password_hash", "salt"],
+        "properties": {
+          "username":      { "type": "string" },
+          "password_hash": { "type": "string" },
+          "salt":          { "type": "string" },
+          "role":          { "type": "string", "enum": ["admin", "user"] },
+          "created_at":    { "type": "string" },
+          "password_changed_at": { "type": "string" }
+        }
+      }
+    }
+  }
+}

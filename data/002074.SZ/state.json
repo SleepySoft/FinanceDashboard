@@ -1,11 +1,11 @@
 {
   "tags": {
-    "overall": "neutral",
+    "overall": "none",
     "watchlist": true,
-    "quality": "weak",
-    "valuation": "fair",
-    "timing": "early-right-side",
-    "risk": "high",
+    "quality": "none",
+    "valuation": "none",
+    "timing": "none",
+    "risk": "none",
     "verdict": "yellow"
   },
   "price_marks": [

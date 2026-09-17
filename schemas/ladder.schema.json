@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/{code}/ladder.json — 价格阶梯（买入/卖出计划价位）",
+  "type": "object",
+  "properties": {
+    "alert_threshold_pct": { "type": "number" },
+    "strategy": {
+      "type": ["object", "null"],
+      "properties": {
+        "type": { "type": "string", "enum": ["grid"] },
+        "params": { "type": "object" },
+        "updated_at": { "type": "string" }
+      }
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "side", "price", "source"],
+        "properties": {
+          "id":     { "type": "string" },
+          "side":   { "type": "string", "enum": ["buy", "sell"] },
+          "price":  { "type": "number" },
+          "qty":    { "type": ["number", "null"] },
+          "note":   { "type": "string" },
+          "source": { "type": "string", "enum": ["manual", "strategy", "agent"] },
+          "enabled": { "type": "boolean" },
+          "created_at": { "type": "string" },
+          "updated_at": { "type": "string" }
+        }
+      }
+    }
+  }
+}

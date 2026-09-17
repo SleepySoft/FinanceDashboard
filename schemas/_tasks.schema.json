@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_tasks.json — 分析任务队列",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "code", "type", "status"],
+    "properties": {
+      "id":     { "type": "string" },
+      "code":   { "type": "string" },
+      "name":   { "type": "string" },
+      "sector": { "type": "string" },
+      "type":   { "type": "string", "enum": ["fundamental", "technical", "full"] },
+      "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "failed"] },
+      "note":   { "type": ["string", "null"] },
+      "created_at":    { "type": "string" },
+      "claimed_at":    { "type": ["string", "null"] },
+      "completed_at":  { "type": ["string", "null"] },
+      "error":  { "type": ["string", "null"] },
+      "result": {}
+    }
+  }
+}

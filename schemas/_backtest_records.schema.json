@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_backtest_records.json — 回测记录",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "strategy_id"],
+    "properties": {
+      "id":          { "type": "string" },
+      "strategy_id": { "type": "string" },
+      "codes":      { "type": "array", "items": { "type": "string" } },
+      "start_date": { "type": "string" },
+      "end_date":   { "type": "string" },
+      "config":  { "type": "object" },
+      "params":  { "type": "object" },
+      "summary": { "type": "object" },
+      "created_at": { "type": "string" }
+    }
+  }
+}

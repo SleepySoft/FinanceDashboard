@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/{code}/feedback.json — 个股反馈投票",
+  "type": "object",
+  "properties": {
+    "votes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["username"],
+        "properties": {
+          "username": { "type": "string" },
+          "vote":     { "type": ["string", "null"] },
+          "comment":  { "type": ["string", "null"] },
+          "updated_at": { "type": "string" },
+          "pow_difficulty": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_dashboard.json — 价格快照与看板状态",
+  "type": "object",
+  "required": ["prices"],
+  "properties": {
+    "prices": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "price":      { "type": ["number", "null"] },
+          "open":       { "type": ["number", "null"] },
+          "high":       { "type": ["number", "null"] },
+          "low":        { "type": ["number", "null"] },
+          "prev_close": { "type": ["number", "null"] },
+          "change_pct": { "type": ["number", "null"] },
+          "amplitude":  { "type": ["number", "null"] },
+          "volume":     { "type": ["number", "null"] },
+          "amount":     { "type": ["number", "null"] },
+          "updated_at": { "type": "string" }
+        }
+      }
+    },
+    "last_update": { "type": ["string", "null"] },
+    "stock_order": { "type": "array", "items": { "type": "string" } }
+  }
+}

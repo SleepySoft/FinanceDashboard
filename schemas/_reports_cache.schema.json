@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_reports_cache.json — 报告索引缓存（程序管理，损坏会自动重建）",
+  "type": "object",
+  "additionalProperties": {
+    "type": "object",
+    "required": ["name", "report_count", "reports"],
+    "properties": {
+      "name":         { "type": "string" },
+      "report_count": { "type": "integer" },
+      "last_analysis": { "type": ["string", "null"] },
+      "reports": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "filename", "type"],
+          "properties": {
+            "id":       { "type": "string" },
+            "filename": { "type": "string" },
+            "type":     { "type": "string" },
+            "created_at": { "type": "string" }
+          }
+        }
+      },
+      "updated_at": { "type": "string" }
+    }
+  }
+}

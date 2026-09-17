@@ -89,6 +89,7 @@ data/
 12. **首页卡片顺序与搜索（2026-09-13 新增）** — 分组视图下的股票卡支持管理员 HTML5 拖动排序；拖动仅在当前分组内生效，不跨组。全局顺序保存在 `data/_dashboard.json` 的 `stock_order`，`/api/dashboard` 返回并用于初始排序；`PUT /api/dashboard/order`（仅 admin）保存规范化后的全局顺序。首页工具栏提供名称/代码实时模糊搜索，前端在所有视图的股票列表上过滤。首页工具栏另提供按交易所过滤（全部/沪/深/北，2026-09-17 新增），按代码后缀 `.SH`/`.SZ`/`.BJ` 过滤，选择同步到 URL `?exchange=` 与 `dash:context` 会话记录。
 13. **笔记只能用户写（硬性约束）** — `notes.md` 是用户的私人记录区。AI 只负责编写 `reports/` 下的分析报告，**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记；读取笔记用于了解用户想法是允许的。分析结论一律写进报告文件，不是笔记。
 14. **「价格网格」= 价格阶梯功能，不是价格标记（硬性约束）** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`：`POST /api/stocks/{code}/ladder/strategy` 应用 grid 策略，或 `PUT /api/agent/stocks/{code}/ladder` 写 agent 档），**不要**用 `/api/stocks/{code}/price-marks` 价格标记。价格标记只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
+15. **数据文件 Schema 与强制校验（2026-09-17 新增）** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应的 `{文件名}.schema.json`（顶层 `data/_xxx.json` ↔ `schemas/_xxx.schema.json`；个股 `data/{code}/xxx.json` ↔ `schemas/xxx.schema.json`）。校验脚本 `scripts/validate_data.py`（纯 stdlib，Windows 用根目录 `validate.bat`），发现 JSON 损坏/字段缺失/枚举越界会非零退出。**凡是改了读写数据文件的代码、新增数据文件种类、或手工/批量修改过 data/ 内容，都必须跑一次 `validate.bat`**；新增数据文件种类时必须同步新增对应 schema（顶层文件缺 schema 直接判失败）。schema 变更时同步更新 `docs/STOCK_SCHEMA.md`。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -272,6 +273,13 @@ npm run smoke   # 冒烟测试：自动拉起前后端 → 无头 Chrome 验证�
 根目录也提供一键脚本：`lint.bat`、`smoke.bat`（注意：必须在 frontend/ 目录或用这两个 bat，项目根目录没有 package.json）
 - 冒烟测试脚本：`frontend/tests/smoke.mjs`（playwright-core + 系统 Chrome，无需下载浏览器）
 - 修改任何 `.vue`/`.js` 后、提交前，务必跑这两个命令
+
+### Data Validation Gate（项目根目录）
+```cmd
+validate.bat    # 等价于 backend\venv\Scripts\python.exe scripts\validate_data.py
+```
+- 用 `schemas/*.schema.json` 校验 `data/` 下所有会被载入的 JSON 文件（顶层 + 个股），失败时非零退出
+- **改了任何读写数据文件的代码、新增数据文件种类、或手工/批量改过 `data/` 后、提交前，务必跑一次**
 
 ### Mobile State Persistence (2026-08-02)
 

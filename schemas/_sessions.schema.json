@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/_sessions.json — 登录会话（token → 会话记录）",
+  "type": "object",
+  "additionalProperties": {
+    "type": "object",
+    "required": ["username"],
+    "properties": {
+      "username":   { "type": "string" },
+      "expires_at": { "type": "string" },
+      "created_at": { "type": "string" }
+    }
+  }
+}
