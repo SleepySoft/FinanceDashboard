@@ -7,16 +7,32 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "3b0dcb71",
+      "label": "观察标记",
+      "price": 116.5,
+      "type": "mark",
+      "created_at": "2026-09-14T01:28:59.255169+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-14 01:28",
+      "content": "做压裂设备等石油设备，财务看起来非常好，价格高位。",
+      "price": 116.5
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-14 01:28": 116.5
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "waiting"
 }

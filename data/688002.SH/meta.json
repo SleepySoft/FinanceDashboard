@@ -1,0 +1,31 @@
+{
+  "code": "688002.SH",
+  "name": "睿创微纳",
+  "sector": "军工电子",
+  "added_at": "2026-09-14T17:55:00+08:00",
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "yellow",
+    "valuation": "yellow",
+    "timing": "yellow",
+    "risk": "red",
+    "verdict": "yellow",
+    "unread": false
+  },
+  "price_marks": [],
+  "notes": [],
+  "reports": [
+    {
+      "path": "reports/fundamental_20260914.md",
+      "type": "fundamental",
+      "date": "2026-09-14"
+    },
+    {
+      "path": "reports/technical_20260914.md",
+      "type": "technical",
+      "date": "2026-09-14"
+    }
+  ],
+  "last_analysis": "2026-09-14"
+}

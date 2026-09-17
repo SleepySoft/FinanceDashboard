@@ -1,0 +1,50 @@
+{
+  "levels": [
+    {
+      "id": "03023ca8e5",
+      "side": "sell",
+      "price": 4.95,
+      "qty": 800,
+      "note": "宽网格S2 8月上沿 等一波像样的反弹",
+      "source": "agent",
+      "enabled": true,
+      "created_at": "2026-09-16T09:51:04.264094+00:00",
+      "updated_at": "2026-09-16T09:51:04.264094+00:00"
+    },
+    {
+      "id": "3c0780ebfd",
+      "side": "sell",
+      "price": 4.82,
+      "qty": 800,
+      "note": "宽网格S1 9月多次冲4.82-4.87未破 反T首选",
+      "source": "agent",
+      "enabled": true,
+      "created_at": "2026-09-16T09:51:04.264140+00:00",
+      "updated_at": "2026-09-16T09:51:04.264140+00:00"
+    },
+    {
+      "id": "56f2aa9ba6",
+      "side": "buy",
+      "price": 4.62,
+      "qty": 800,
+      "note": "宽网格B1 8月下旬双底支撑",
+      "source": "agent",
+      "enabled": true,
+      "created_at": "2026-09-16T09:51:04.264160+00:00",
+      "updated_at": "2026-09-16T09:51:04.264160+00:00"
+    },
+    {
+      "id": "5e4b23efa4",
+      "side": "buy",
+      "price": 4.48,
+      "qty": 800,
+      "note": "宽网格B2 强支撑 7月平台+6月低点上方",
+      "source": "agent",
+      "enabled": true,
+      "created_at": "2026-09-16T09:51:04.264178+00:00",
+      "updated_at": "2026-09-16T09:51:04.264178+00:00"
+    }
+  ],
+  "strategy": null,
+  "alert_threshold_pct": 2.0
+}

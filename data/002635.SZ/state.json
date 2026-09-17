@@ -1,0 +1,28 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "yellow",
+    "valuation": "yellow",
+    "timing": "red",
+    "risk": "yellow",
+    "verdict": "none",
+    "unread": false
+  },
+  "notes": [
+    {
+      "time": "2026-09-15 08:53",
+      "content": "2026-09-15：苹果+特斯拉精密件基本盘，H1归母+165%全靠资产处置，扣非2229万-35%主业真实走弱。题材：Optimus电子皮肤送样、AI液冷、折叠屏、氢能双极板，均未兑现进报表。均线完全空头，缩量阴跌接近超卖，无右侧信号。左侧关注13.1-12.1，右侧等放量站上15.3。9/17临时股东大会看有无新业务实质进展。",
+      "price": 14.7
+    }
+  ],
+  "holdings": {},
+  "price_marks": [],
+  "record_prices": {
+    "notes": {
+      "2026-09-15 08:53": 14.7
+    },
+    "reports": {}
+  },
+  "status": "unassessed"
+}

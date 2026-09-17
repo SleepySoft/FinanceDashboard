@@ -90,6 +90,19 @@
       "created_at": "2026-08-11T07:30:01.287855+00:00"
     }
   ],
-  "notes": [],
-  "status": "bullish"
+  "notes": [
+    {
+      "time": "2026-09-14 01:38",
+      "content": "重卡曲轴连杆，典型重工业。当前价格不算贵，未来怎样不好说（电动化）。",
+      "price": 8.02
+    }
+  ],
+  "status": "bullish",
+  "holdings": {},
+  "record_prices": {
+    "notes": {
+      "2026-09-14 01:38": 8.02
+    },
+    "reports": {}
+  }
 }

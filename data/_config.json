@@ -1,58 +1,92 @@
 {
-  "allow_anonymous_read": true,
-  "session_ttl_hours": 168,
-  "price_refresh_interval_min": 5,
-  "anomaly_scan_interval_min": 0,
-  "pow_difficulty": 22,
-  "pow_max_difficulty": 32,
-  "comments_require_login": false,
-  "comments_visibility": "public",
-  "stale_view_days": 7,
-  "status_categories": [
-    {
-      "key": "unassessed",
-      "label": "未读",
-      "desc": "AI刚加入，还没仔细看。"
-    },
-    {
-      "key": "bullish",
-      "label": "看好",
-      "desc": "好公司，价格在目标附近，想买。"
-    },
-    {
-      "key": "waiting",
-      "label": "伺机",
-      "desc": "价格高了，等价格低了再说。"
-    },
-    {
-      "key": "neutral",
-      "label": "观察",
-      "desc": "偶尔看一眼。"
-    },
-    {
-      "key": "core_position",
-      "label": "底仓备选",
-      "desc": "在高位退出后备选，稳定适合长时间持仓收股息。"
-    },
-    {
-      "key": "no_interest",
-      "label": "冷置",
-      "desc": "可能公司还行，但没兴趣。"
-    },
-    {
-      "key": "archive",
-      "label": "归档",
-      "desc": "不再关注。"
-    },
-    {
-      "key": "avoid",
-      "label": "回避",
-      "desc": "有明显问题或不适合我，当前不参与。"
-    },
-    {
-      "key": "blacklist",
-      "label": "黑名单",
-      "desc": "绝对绝对不要碰，就是黑。"
-    }
-  ]
+    "allow_anonymous_read": true,
+    "session_ttl_hours": 168,
+    "price_refresh_interval_min": 1,
+    "anomaly_scan_interval_min": 0,
+    "pow_difficulty": 22,
+    "pow_max_difficulty": 32,
+    "comments_require_login": false,
+    "comments_visibility": "public",
+    "stale_view_days": 7,
+    "status_categories": [
+        {
+            "key": "unassessed",
+            "label": "未读",
+            "desc": "AI刚加入，还没仔细看。"
+        },
+        {
+            "key": "bullish",
+            "label": "看好",
+            "desc": "好公司，价格在目标附近，想买。"
+        },
+        {
+            "key": "waiting",
+            "label": "伺机",
+            "desc": "价格高了，等价格低了再说。"
+        },
+        {
+            "key": "neutral",
+            "label": "观察",
+            "desc": "偶尔看一眼。"
+        },
+        {
+            "key": "core_position",
+            "label": "底仓备选",
+            "desc": "在高位退出后备选，稳定适合长时间持仓收股息。"
+        },
+        {
+            "key": "no_interest",
+            "label": "冷置",
+            "desc": "可能公司还行，但没兴趣。"
+        },
+        {
+            "key": "archive",
+            "label": "归档",
+            "desc": "不再关注。"
+        },
+        {
+            "key": "avoid",
+            "label": "回避",
+            "desc": "有明显问题或不适合我，当前不参与。"
+        },
+        {
+            "key": "blacklist",
+            "label": "黑名单",
+            "desc": "绝对绝对不要碰，就是黑。"
+        }
+    ],
+    "price_mark_labels": [
+        {
+            "key": "mark",
+            "label": "观察标记"
+        },
+        {
+            "key": "target_buy",
+            "label": "目标价格"
+        },
+        {
+            "key": "stop_loss",
+            "label": "止损"
+        },
+        {
+            "key": "take_profit",
+            "label": "止盈"
+        },
+        {
+            "key": "add",
+            "label": "加仓"
+        },
+        {
+            "key": "reduce",
+            "label": "减仓"
+        },
+        {
+            "key": "last_buy",
+            "label": "最后买入"
+        },
+        {
+            "key": "last_sell",
+            "label": "最后卖出"
+        }
+    ]
 }

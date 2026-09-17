@@ -112,5 +112,19 @@
       "created_at": "2026-08-11T07:30:01.284120+00:00"
     }
   ],
-  "status": "bullish"
+  "status": "bullish",
+  "notes": [
+    {
+      "time": "2026-09-14 01:36",
+      "content": "试剂和诊断仪器，看着很不错，股价低点。",
+      "price": 48.19
+    }
+  ],
+  "holdings": {},
+  "record_prices": {
+    "notes": {
+      "2026-09-14 01:36": 48.19
+    },
+    "reports": {}
+  }
 }

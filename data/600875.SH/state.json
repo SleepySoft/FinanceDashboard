@@ -7,16 +7,32 @@
     "timing": "none",
     "risk": "none",
     "verdict": "none",
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "0fa4b80e",
+      "label": "观察标记",
+      "price": 24.8,
+      "type": "mark",
+      "created_at": "2026-09-14T01:32:06.882515+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-11T18:26:54.741742+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-14 01:31",
+      "content": "全类型发电设备制造商，典型大，稳但不是非常赚钱的那种公司。但股份上窜下跳挺有意思的，低的时候应该可以偷一把。",
+      "price": 24.8
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-14 01:31": 24.8
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "waiting"
 }

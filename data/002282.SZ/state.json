@@ -1,12 +1,13 @@
 {
   "tags": {
-    "overall": "none",
-    "watchlist": false,
-    "quality": "red",
-    "valuation": "yellow",
-    "timing": "none",
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "yellow",
+    "valuation": "green",
+    "timing": "yellow",
     "risk": "yellow",
-    "verdict": "none"
+    "verdict": "none",
+    "unread": true
   },
   "price_marks": [],
   "daily_briefs": [
@@ -91,6 +92,19 @@
       "created_at": "2026-08-11T07:30:01.299751+00:00"
     }
   ],
-  "notes": [],
-  "status": "neutral"
+  "notes": [
+    {
+      "time": "2026-09-15 06:35",
+      "content": "2026-09-15 深度分析更新：破净(PB0.87)+货币资金8.3亿占市值26%，Q2利润拐点(+12.4%)，轨交订单恢复待验证。技术面5.47-6.46底部震荡偏弱，60日线5.88为多空分界。9/16业绩说明会为近期催化。详报见 reports/fundamental_20260915.md 与 technical_20260915.md",
+      "price": 5.93
+    }
+  ],
+  "status": "neutral",
+  "holdings": {},
+  "record_prices": {
+    "notes": {
+      "2026-09-15 06:35": 5.93
+    },
+    "reports": {}
+  }
 }
