@@ -86,6 +86,8 @@ data/
 10. **价格阶梯（2026-09-10 新增，`backend/ladder.py`）** — 每股票 `ladder.json` 存买入/卖出计划价位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换，用于压力位/支撑位场景）。提醒语义基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
 11. **最后浏览时间（2026-09-11 新增，`backend/views.py`；2026-09-12 改为管理员专属）** — 管理员打开股票面板/详情页时前端调 `POST /api/stocks/{code}/viewed` 记录（按用户存 `views.json`）；`/api/dashboard` 与 `/api/stocks/{code}` 仅对管理员返回 `last_viewed`（展示的是「上次」浏览，本次记录在返回之后）。非管理员不记录、不返回、不显示浏览时间。超过配置 `stale_view_days`（默认 7 天，0=关闭，设置页可改）未浏览时，卡片/面板上的「👁 最后浏览」闪烁提醒；从未浏览不闪烁。
 12. **首页卡片顺序与搜索（2026-09-13 新增）** — 分组视图下的股票卡支持管理员 HTML5 拖动排序；拖动仅在当前分组内生效，不跨组。全局顺序保存在 `data/_dashboard.json` 的 `stock_order`，`/api/dashboard` 返回并用于初始排序；`PUT /api/dashboard/order`（仅 admin）保存规范化后的全局顺序。首页工具栏提供名称/代码实时模糊搜索，前端在所有视图的股票列表上过滤。
+13. **笔记只能用户写（硬性约束）** — `notes.md` 是用户的私人记录区。AI 只负责编写 `reports/` 下的分析报告，**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记；读取笔记用于了解用户想法是允许的。分析结论一律写进报告文件，不是笔记。
+14. **「价格网格」= 价格阶梯功能，不是价格标记（硬性约束）** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`：`POST /api/stocks/{code}/ladder/strategy` 应用 grid 策略，或 `PUT /api/agent/stocks/{code}/ladder` 写 agent 档），**不要**用 `/api/stocks/{code}/price-marks` 价格标记。价格标记只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -173,8 +175,8 @@ data/
 | `/api/stocks` | GET | List all analyzed stocks |
 | `/api/stocks/{code}` | GET | Stock detail (meta + injected price) |
 | `/api/stocks/{code}/tags` | PATCH | Update overall/watchlist/unread tags |
-| `/api/stocks/{code}/price-marks` | POST | Add price mark |
-| `/api/stocks/{code}/notes` | GET/POST | Notes |
+| `/api/stocks/{code}/price-marks` | POST | Add price mark（仅单个关注价位；「价格网格/阶梯」用 ladder 接口，见决策 14） |
+| `/api/stocks/{code}/notes` | GET/POST | Notes（POST 仅限用户在前端使用；AI 严禁写笔记，见决策 13） |
 | `/api/stocks/{code}/notes/{time}` | DELETE | Delete note(s) by timestamp |
 | `/api/stocks/{code}/reports/{id}` | GET | Report content (Markdown) |
 | `/api/holdings` | GET | List all holdings summaries |

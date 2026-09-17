@@ -11,6 +11,11 @@ The AI agent is the **analysis engine** of FinanceDashboard. It does NOT serve t
 3. **Write reports** as Markdown files
 4. **Mark tasks complete** so the frontend can display results
 
+## Hard Constraints (硬性约束)
+
+1. **笔记只能用户写，AI 严禁写笔记** — `data/{code}/notes.md` 是用户的私人记录区。Agent 只负责编写 `reports/` 下的分析报告；**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记（读取笔记了解用户想法是允许的）。分析结论一律写进报告文件，不是笔记。
+2. **「价格网格」= 价格阶梯功能，不是价格标记** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`）：内置 grid 策略走 `POST /api/stocks/{code}/ladder/strategy`，AI 自定义档位（如压力位/支撑位）走 `PUT /api/agent/stocks/{code}/ladder`。**不要**用 `/api/stocks/{code}/price-marks` 价格标记——它只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
+
 ## What the Agent Does
 
 ### 1. Stock Analysis (Primary)
@@ -91,6 +96,7 @@ Users can talk to the agent directly via WeChat (openclaw-weixin channel):
 | "刷新价格" | Manually refresh price snapshot via kimi_finance |
 | "看看 {code}" | Show current status, latest report summary |
 | "标记 {code} {label} {price}" | Add price mark |
+| "设置价格网格 {code}" | 用价格阶梯 grid 策略（`/api/stocks/{code}/ladder/strategy`），**不是** price mark |
 
 ### Web Interface
 
@@ -222,7 +228,7 @@ All data lives in `/root/data/FinanceDashboard/data/`:
     - `technical_YYYYMMDD.md` — type: `technical`
   - **Do NOT** combine both into a single `full` report file
 - `data/{code}/briefs.json` — daily briefs
-- `data/{code}/notes.md` — user notes
+- `data/{code}/notes.md` — user notes（用户专用；Agent 只读，严禁写入，见上方硬性约束）
 - `data/_dashboard.json` — price snapshot cache
 - `data/_tasks.json` — pending analysis tasks
 - Git tracks code, NOT data (data/ is in .gitignore except templates)
