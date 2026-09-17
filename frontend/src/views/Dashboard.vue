@@ -29,6 +29,16 @@
             {{ gm.label }}
           </button>
         </div>
+        <div class="group-tabs" title="按交易所过滤">
+          <button
+            v-for="ex in exchanges"
+            :key="ex.key"
+            :class="['group-tab', { active: filterExchange === ex.key }]"
+            @click="filterExchange = ex.key"
+          >
+            {{ ex.label }}
+          </button>
+        </div>
         <label class="filter-check">
           <input type="checkbox" v-model="filterWatchlist" />
           仅关注
@@ -689,6 +699,13 @@ const filterSector = ref('')
 const filterVerdict = ref('')
 const filterWatchlist = ref(false)
 const filterHoldings = ref(false)
+const filterExchange = ref('')  // '' = 全部；否则 'SH' / 'SZ' / 'BJ'
+const exchanges = [
+  { key: '', label: '全部' },
+  { key: 'SH', label: '沪' },
+  { key: 'SZ', label: '深' },
+  { key: 'BJ', label: '北' }
+]
 const sortKey = ref('code')
 const sortAsc = ref(true)
 const selectedStock = ref(null)
@@ -919,9 +936,12 @@ if (route.query.group && groupModes.some(g => g.key === route.query.group)) {
 }
 if (route.query.watchlist === '1') filterWatchlist.value = true
 if (route.query.holdings === '1') filterHoldings.value = true
+if (exchanges.some(e => e.key && e.key === route.query.exchange)) {
+  filterExchange.value = route.query.exchange
+}
 
 // 若 URL 没有上下文（例如从详情页返回“/”），回退到最近一次的会话记录
-const hasUrlContext = !!(route.query.view || route.query.group || route.query.watchlist || route.query.holdings)
+const hasUrlContext = !!(route.query.view || route.query.group || route.query.watchlist || route.query.holdings || route.query.exchange)
 if (!hasUrlContext) {
   const savedContext = readState('dash:context', null)
   if (savedContext) {
@@ -929,6 +949,7 @@ if (!hasUrlContext) {
     if (groupModes.some(g => g.key === savedContext.group)) groupMode.value = savedContext.group
     if (savedContext.watchlist) filterWatchlist.value = true
     if (savedContext.holdings) filterHoldings.value = true
+    if (exchanges.some(e => e.key && e.key === savedContext.exchange)) filterExchange.value = savedContext.exchange
   }
 }
 
@@ -936,6 +957,7 @@ function syncUrlState() {
   const q = { view: viewMode.value, group: groupMode.value }
   if (filterWatchlist.value) q.watchlist = '1'
   if (filterHoldings.value) q.holdings = '1'
+  if (filterExchange.value) q.exchange = filterExchange.value
   if (showModal.value && selectedStock.value?.code) q.stock = selectedStock.value.code
   router.replace({ query: q })
   writeState('dash:context', {
@@ -943,9 +965,10 @@ function syncUrlState() {
     group: groupMode.value,
     watchlist: filterWatchlist.value,
     holdings: filterHoldings.value,
+    exchange: filterExchange.value,
   })
 }
-watch([viewMode, groupMode, filterWatchlist, filterHoldings], syncUrlState)
+watch([viewMode, groupMode, filterWatchlist, filterHoldings, filterExchange], syncUrlState)
 
 // 分组折叠状态保存到 sessionStorage，刷新后不重置
 const collapsedGroups = usePersistentSet('dash:collapsed')
@@ -1116,6 +1139,7 @@ const filteredStocks = computed(() => {
   const query = normalizeSearchText(searchQuery.value)
   const result = stocks.value.filter(s => {
     if (!matchesSearch(s, query)) return false
+    if (filterExchange.value && !(s.code || '').endsWith('.' + filterExchange.value)) return false
     if (filterSector.value && s.sector !== filterSector.value) return false
     const verdict = s.dimensions?.verdict || s.overall
     if (filterVerdict.value && verdict !== filterVerdict.value) return false
@@ -1127,7 +1151,7 @@ const filteredStocks = computed(() => {
     return true
   })
   console.log('[Dashboard] filteredStocks:', result.length, 'of', stocks.value.length,
-    'sector=', filterSector.value, 'verdict=', filterVerdict.value,
+    'exchange=', filterExchange.value, 'sector=', filterSector.value, 'verdict=', filterVerdict.value,
     'watchlist=', filterWatchlist.value, 'holdings=', filterHoldings.value)
   return result
 })
