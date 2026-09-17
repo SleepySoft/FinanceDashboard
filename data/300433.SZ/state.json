@@ -9,12 +9,28 @@
     "verdict": "none",
     "unread": false
   },
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-17 11:28",
+      "content": "精密制造，苹果特斯拉，和安洁科技一样。一季度业绩雷，不过可以解释。个人认为强于安洁，观察。",
+      "price": 33.44
+    }
+  ],
   "holdings": {},
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "6529d92c",
+      "label": "观察标记",
+      "price": 33.44,
+      "type": "mark",
+      "created_at": "2026-09-17T11:28:33.637691+00:00"
+    }
+  ],
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-17 11:28": 33.44
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "neutral"
 }

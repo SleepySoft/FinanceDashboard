@@ -959,5 +959,19 @@
       "reports": null
     },
     "error": null
+  },
+  {
+    "id": "fc4663c8-92d",
+    "code": "688002.SH",
+    "name": "睿创微纳",
+    "sector": "军工电子",
+    "note": "",
+    "type": "fundamental",
+    "status": "pending",
+    "created_at": "2026-09-17T11:30:40.737840+00:00",
+    "claimed_at": null,
+    "completed_at": null,
+    "result": null,
+    "error": null
   }
 ]

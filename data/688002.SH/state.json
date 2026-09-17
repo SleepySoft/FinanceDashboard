@@ -1,0 +1,29 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "yellow",
+    "valuation": "yellow",
+    "timing": "yellow",
+    "risk": "red",
+    "verdict": "yellow",
+    "unread": false
+  },
+  "price_marks": [],
+  "notes": [
+    {
+      "time": "2026-09-17 11:30",
+      "content": "非制冷红外热成像探测器芯片，NB，而且一路上涨。制裁和实控人留置不好判断，但贵是肯定的。",
+      "price": 185.0
+    }
+  ],
+  "last_analysis": "2026-09-14",
+  "holdings": {},
+  "record_prices": {
+    "notes": {
+      "2026-09-17 11:30": 185.0
+    },
+    "reports": {}
+  },
+  "status": "waiting"
+}
