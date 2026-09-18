@@ -1,0 +1,23 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "yellow",
+    "valuation": "green",
+    "timing": "red",
+    "risk": "yellow",
+    "verdict": "yellow",
+    "unread": false
+  },
+  "price_marks": [],
+  "daily_briefs": [],
+  "notes": [],
+  "status": "unassessed",
+  "holdings": {},
+  "record_prices": {
+    "notes": {},
+    "reports": {
+      "fundamental_20260918": 17.78
+    }
+  }
+}

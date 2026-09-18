@@ -1,0 +1,25 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "yellow",
+    "valuation": "yellow",
+    "timing": "yellow",
+    "risk": "red",
+    "verdict": "none",
+    "unread": false
+  },
+  "price_marks": [],
+  "daily_briefs": [],
+  "updated_at": "2026-09-18T18:45:00+08:00",
+  "notes": [],
+  "holdings": {},
+  "record_prices": {
+    "notes": {},
+    "reports": {
+      "fundamental_20260918": 5.71
+    }
+  },
+  "status": "unassessed",
+  "report_generated_at": "2026-09-18T18:45:00+08:00"
+}
