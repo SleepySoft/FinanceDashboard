@@ -1,4 +1,26 @@
 {
+  "600886.SH": {
+    "name": "国投电力",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.470885+00:00"
+  },
   "688401.SH": {
     "name": "路维光电",
     "report_count": 2,
@@ -19,7 +41,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.206529+00:00"
+    "updated_at": "2026-09-18T23:50:59.471101+00:00"
+  },
+  "600026.SH": {
+    "name": "中远海能",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.471280+00:00"
   },
   "600893.SH": {
     "name": "航发动力",
@@ -41,7 +85,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.206654+00:00"
+    "updated_at": "2026-09-18T23:50:59.471432+00:00"
   },
   "601100.SH": {
     "name": "恒立液压",
@@ -63,7 +107,51 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.206790+00:00"
+    "updated_at": "2026-09-18T23:50:59.471609+00:00"
+  },
+  "002635.SZ": {
+    "name": "安洁科技",
+    "report_count": 2,
+    "last_analysis": "2026-09-15",
+    "reports": [
+      {
+        "id": "fundamental_20260915",
+        "filename": "fundamental_20260915.md",
+        "type": "fundamental",
+        "created_at": "2026-09-15",
+        "price": null
+      },
+      {
+        "id": "technical_20260915",
+        "filename": "technical_20260915.md",
+        "type": "technical",
+        "created_at": "2026-09-15",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.471773+00:00"
+  },
+  "300274.SZ": {
+    "name": "阳光电源",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.471945+00:00"
   },
   "688018.SH": {
     "name": "乐鑫科技",
@@ -85,7 +173,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.206912+00:00"
+    "updated_at": "2026-09-18T23:50:59.472299+00:00"
   },
   "300832.SZ": {
     "name": "新产业",
@@ -114,7 +202,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207076+00:00"
+    "updated_at": "2026-09-18T23:50:59.472471+00:00"
   },
   "300346.SZ": {
     "name": "南大光电",
@@ -150,7 +238,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207211+00:00"
+    "updated_at": "2026-09-18T23:50:59.472647+00:00"
+  },
+  "601225.SH": {
+    "name": "陕西煤业",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.472786+00:00"
   },
   "002281.SZ": {
     "name": "光迅科技",
@@ -172,7 +282,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207307+00:00"
+    "updated_at": "2026-09-18T23:50:59.472919+00:00"
   },
   "000526.SZ": {
     "name": "学大教育",
@@ -194,7 +304,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207425+00:00"
+    "updated_at": "2026-09-18T23:50:59.473105+00:00"
   },
   "300408.SZ": {
     "name": "三环集团",
@@ -223,7 +333,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207543+00:00"
+    "updated_at": "2026-09-18T23:50:59.473281+00:00"
   },
   "002179.SZ": {
     "name": "中航光电",
@@ -245,7 +355,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207642+00:00"
+    "updated_at": "2026-09-18T23:50:59.473425+00:00"
   },
   "002283.SZ": {
     "name": "天润工业",
@@ -267,7 +377,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207761+00:00"
+    "updated_at": "2026-09-18T23:50:59.473578+00:00"
+  },
+  "600256.SH": {
+    "name": "广汇能源",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.473720+00:00"
   },
   "605499.SH": {
     "name": "东鹏饮料",
@@ -289,7 +421,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.207875+00:00"
+    "updated_at": "2026-09-18T23:50:59.473868+00:00"
   },
   "600900.SH": {
     "name": "长江电力",
@@ -311,7 +443,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208129+00:00"
+    "updated_at": "2026-09-18T23:50:59.474024+00:00"
   },
   "002661.SZ": {
     "name": "克明食品",
@@ -347,7 +479,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208262+00:00"
+    "updated_at": "2026-09-18T23:50:59.474172+00:00"
   },
   "300760.SZ": {
     "name": "迈瑞医疗",
@@ -369,7 +501,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208370+00:00"
+    "updated_at": "2026-09-18T23:50:59.474332+00:00"
   },
   "000001.SZ": {
     "name": "平安银行",
@@ -391,7 +523,36 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208470+00:00"
+    "updated_at": "2026-09-18T23:50:59.474472+00:00"
+  },
+  "300827.SZ": {
+    "name": "上能电气",
+    "report_count": 3,
+    "last_analysis": "2026-09-13",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "fundamental_20260913",
+        "filename": "fundamental_20260913.md",
+        "type": "fundamental",
+        "created_at": "2026-09-13",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.474587+00:00"
   },
   "000668.SZ": {
     "name": "荣丰控股",
@@ -413,7 +574,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208598+00:00"
+    "updated_at": "2026-09-18T23:50:59.474754+00:00"
   },
   "300394.SZ": {
     "name": "天孚通信",
@@ -435,7 +596,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208694+00:00"
+    "updated_at": "2026-09-18T23:50:59.474900+00:00"
+  },
+  "002074.SZ": {
+    "name": "国轩高科",
+    "report_count": 2,
+    "last_analysis": "2026-09-16",
+    "reports": [
+      {
+        "id": "fundamental_20260916",
+        "filename": "fundamental_20260916.md",
+        "type": "fundamental",
+        "created_at": "2026-09-16",
+        "price": null
+      },
+      {
+        "id": "technical_20260916",
+        "filename": "technical_20260916.md",
+        "type": "technical",
+        "created_at": "2026-09-16",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.475130+00:00"
   },
   "000636.SZ": {
     "name": "风华高科",
@@ -464,7 +647,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208810+00:00"
+    "updated_at": "2026-09-18T23:50:59.475313+00:00"
   },
   "600760.SH": {
     "name": "中航沈飞",
@@ -486,7 +669,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.208903+00:00"
+    "updated_at": "2026-09-18T23:50:59.475475+00:00"
   },
   "002138.SZ": {
     "name": "顺络电子",
@@ -522,7 +705,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209046+00:00"
+    "updated_at": "2026-09-18T23:50:59.475638+00:00"
   },
   "300308.SZ": {
     "name": "中际旭创",
@@ -544,7 +727,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209138+00:00"
+    "updated_at": "2026-09-18T23:50:59.475782+00:00"
   },
   "000539.SZ": {
     "name": "粤电力A",
@@ -566,7 +749,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209256+00:00"
+    "updated_at": "2026-09-18T23:50:59.475983+00:00"
   },
   "601006.SH": {
     "name": "大秦铁路",
@@ -602,7 +785,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209365+00:00"
+    "updated_at": "2026-09-18T23:50:59.476174+00:00"
   },
   "600330.SH": {
     "name": "天通股份",
@@ -617,7 +800,51 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209453+00:00"
+    "updated_at": "2026-09-18T23:50:59.476324+00:00"
+  },
+  "001215.SZ": {
+    "name": "千味央厨",
+    "report_count": 2,
+    "last_analysis": "2026-09-19",
+    "reports": [
+      {
+        "id": "fundamental_20260919",
+        "filename": "fundamental_20260919.md",
+        "type": "fundamental",
+        "created_at": "2026-09-19",
+        "price": 30.45
+      },
+      {
+        "id": "technical_20260919",
+        "filename": "technical_20260919.md",
+        "type": "technical",
+        "created_at": "2026-09-19",
+        "price": 30.45
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.476491+00:00"
+  },
+  "601088.SH": {
+    "name": "中国神华",
+    "report_count": 2,
+    "last_analysis": "2026-09-13",
+    "reports": [
+      {
+        "id": "fundamental_20260913",
+        "filename": "fundamental_20260913.md",
+        "type": "fundamental",
+        "created_at": "2026-09-13",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.476631+00:00"
   },
   "000651.SZ": {
     "name": "格力电器",
@@ -639,7 +866,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209555+00:00"
+    "updated_at": "2026-09-18T23:50:59.476797+00:00"
   },
   "605117.SH": {
     "name": "德业股份",
@@ -675,7 +902,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209674+00:00"
+    "updated_at": "2026-09-18T23:50:59.477005+00:00"
   },
   "000988.SZ": {
     "name": "华工科技",
@@ -697,7 +924,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209764+00:00"
+    "updated_at": "2026-09-18T23:50:59.477169+00:00"
+  },
+  "600803.SH": {
+    "name": "新奥股份",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.477330+00:00"
   },
   "300122.SZ": {
     "name": "智飞生物",
@@ -719,7 +968,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.209860+00:00"
+    "updated_at": "2026-09-18T23:50:59.477483+00:00"
   },
   "300319.SZ": {
     "name": "麦捷科技",
@@ -755,7 +1004,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210019+00:00"
+    "updated_at": "2026-09-18T23:50:59.477688+00:00"
   },
   "601869.SH": {
     "name": "长飞光纤",
@@ -777,7 +1026,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210113+00:00"
+    "updated_at": "2026-09-18T23:50:59.477844+00:00"
   },
   "300628.SZ": {
     "name": "亿联网络",
@@ -806,7 +1055,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210231+00:00"
+    "updated_at": "2026-09-18T23:50:59.478061+00:00"
   },
   "002032.SZ": {
     "name": "苏泊尔",
@@ -828,7 +1077,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210335+00:00"
+    "updated_at": "2026-09-18T23:50:59.478245+00:00"
   },
   "688138.SH": {
     "name": "清溢光电",
@@ -857,7 +1106,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210450+00:00"
+    "updated_at": "2026-09-18T23:50:59.478414+00:00"
+  },
+  "600835.SH": {
+    "name": "上海机电",
+    "report_count": 2,
+    "last_analysis": "2026-09-18",
+    "reports": [
+      {
+        "id": "fundamental_20260918",
+        "filename": "fundamental_20260918.md",
+        "type": "fundamental",
+        "created_at": "2026-09-18",
+        "price": 17.78
+      },
+      {
+        "id": "technical_20260918",
+        "filename": "technical_20260918.md",
+        "type": "technical",
+        "created_at": "2026-09-18",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.478571+00:00"
   },
   "300502.SZ": {
     "name": "新易盛",
@@ -879,7 +1150,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210554+00:00"
+    "updated_at": "2026-09-18T23:50:59.478745+00:00"
+  },
+  "688002.SH": {
+    "name": "睿创微纳",
+    "report_count": 2,
+    "last_analysis": "2026-09-14",
+    "reports": [
+      {
+        "id": "fundamental_20260914",
+        "filename": "fundamental_20260914.md",
+        "type": "fundamental",
+        "created_at": "2026-09-14",
+        "price": null
+      },
+      {
+        "id": "technical_20260914",
+        "filename": "technical_20260914.md",
+        "type": "technical",
+        "created_at": "2026-09-14",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.478907+00:00"
   },
   "600109.SH": {
     "name": "国金证券",
@@ -915,7 +1208,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210657+00:00"
+    "updated_at": "2026-09-18T23:50:59.479084+00:00"
   },
   "600563.SH": {
     "name": "法拉电子",
@@ -937,7 +1230,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210771+00:00"
+    "updated_at": "2026-09-18T23:50:59.479237+00:00"
   },
   "002430.SZ": {
     "name": "杭氧股份",
@@ -980,7 +1273,51 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.210885+00:00"
+    "updated_at": "2026-09-18T23:50:59.479396+00:00"
+  },
+  "300014.SZ": {
+    "name": "亿纬锂能",
+    "report_count": 2,
+    "last_analysis": "2026-09-16",
+    "reports": [
+      {
+        "id": "fundamental_20260916",
+        "filename": "fundamental_20260916.md",
+        "type": "fundamental",
+        "created_at": "2026-09-16",
+        "price": null
+      },
+      {
+        "id": "technical_20260916",
+        "filename": "technical_20260916.md",
+        "type": "technical",
+        "created_at": "2026-09-16",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.479567+00:00"
+  },
+  "688696.SH": {
+    "name": "极米科技",
+    "report_count": 2,
+    "last_analysis": "2026-09-07",
+    "reports": [
+      {
+        "id": "fundamental_20260907",
+        "filename": "fundamental_20260907.md",
+        "type": "fundamental",
+        "created_at": "2026-09-07",
+        "price": null
+      },
+      {
+        "id": "technical_20260907",
+        "filename": "technical_20260907.md",
+        "type": "technical",
+        "created_at": "2026-09-07",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.479730+00:00"
   },
   "000333.SZ": {
     "name": "美的集团",
@@ -1002,7 +1339,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211060+00:00"
+    "updated_at": "2026-09-18T23:50:59.479910+00:00"
   },
   "159883.SZ": {
     "name": "医疗器械ETF",
@@ -1031,7 +1368,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211174+00:00"
+    "updated_at": "2026-09-18T23:50:59.480117+00:00"
   },
   "002436.SZ": {
     "name": "兴森科技",
@@ -1053,12 +1390,12 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211263+00:00"
+    "updated_at": "2026-09-18T23:50:59.480265+00:00"
   },
   "300433.SZ": {
     "name": "蓝思科技",
-    "report_count": 4,
-    "last_analysis": "2026-07-22",
+    "report_count": 6,
+    "last_analysis": "2026-09-15",
     "reports": [
       {
         "id": "fundamental_20260721",
@@ -1075,6 +1412,13 @@
         "price": null
       },
       {
+        "id": "fundamental_20260915",
+        "filename": "fundamental_20260915.md",
+        "type": "fundamental",
+        "created_at": "2026-09-15",
+        "price": null
+      },
+      {
         "id": "technical_20260721",
         "filename": "technical_20260721.md",
         "type": "technical",
@@ -1087,9 +1431,16 @@
         "type": "technical",
         "created_at": "2026-07-22",
         "price": null
+      },
+      {
+        "id": "technical_20260915",
+        "filename": "technical_20260915.md",
+        "type": "technical",
+        "created_at": "2026-09-15",
+        "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211380+00:00"
+    "updated_at": "2026-09-18T23:50:59.480440+00:00"
   },
   "600316.SH": {
     "name": "洪都航空",
@@ -1111,7 +1462,29 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211474+00:00"
+    "updated_at": "2026-09-18T23:50:59.480577+00:00"
+  },
+  "002367.SZ": {
+    "name": "康力电梯",
+    "report_count": 2,
+    "last_analysis": "2026-09-18",
+    "reports": [
+      {
+        "id": "fundamental_20260918",
+        "filename": "fundamental_20260918.md",
+        "type": "fundamental",
+        "created_at": "2026-09-18",
+        "price": 5.71
+      },
+      {
+        "id": "technical_20260918",
+        "filename": "technical_20260918.md",
+        "type": "technical",
+        "created_at": "2026-09-18",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.480713+00:00"
   },
   "688126.SH": {
     "name": "沪硅产业",
@@ -1147,12 +1520,12 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211599+00:00"
+    "updated_at": "2026-09-18T23:50:59.480909+00:00"
   },
   "002282.SZ": {
     "name": "博深股份",
-    "report_count": 3,
-    "last_analysis": "2026-07-22",
+    "report_count": 5,
+    "last_analysis": "2026-09-15",
     "reports": [
       {
         "id": "fundamental_20260721",
@@ -1169,14 +1542,28 @@
         "price": null
       },
       {
+        "id": "fundamental_20260915",
+        "filename": "fundamental_20260915.md",
+        "type": "fundamental",
+        "created_at": "2026-09-15",
+        "price": null
+      },
+      {
         "id": "technical_20260722",
         "filename": "technical_20260722.md",
         "type": "technical",
         "created_at": "2026-07-22",
         "price": null
+      },
+      {
+        "id": "technical_20260915",
+        "filename": "technical_20260915.md",
+        "type": "technical",
+        "created_at": "2026-09-15",
+        "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211711+00:00"
+    "updated_at": "2026-09-18T23:50:59.481096+00:00"
   },
   "600862.SH": {
     "name": "中航高科",
@@ -1198,7 +1585,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211802+00:00"
+    "updated_at": "2026-09-18T23:50:59.481243+00:00"
   },
   "688721.SH": {
     "name": "龙图光罩",
@@ -1227,7 +1614,73 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.211909+00:00"
+    "updated_at": "2026-09-18T23:50:59.481403+00:00"
+  },
+  "603738.SH": {
+    "name": "泰晶科技",
+    "report_count": 2,
+    "last_analysis": "2026-09-15",
+    "reports": [
+      {
+        "id": "fundamental_20260915",
+        "filename": "fundamental_20260915.md",
+        "type": "fundamental",
+        "created_at": "2026-09-15",
+        "price": null
+      },
+      {
+        "id": "technical_20260915",
+        "filename": "technical_20260915.md",
+        "type": "technical",
+        "created_at": "2026-09-15",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.481540+00:00"
+  },
+  "600875.SH": {
+    "name": "东方电气",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.481705+00:00"
+  },
+  "002353.SZ": {
+    "name": "杰瑞股份",
+    "report_count": 2,
+    "last_analysis": "2026-09-11",
+    "reports": [
+      {
+        "id": "fundamental_20260911",
+        "filename": "fundamental_20260911.md",
+        "type": "fundamental",
+        "created_at": "2026-09-11",
+        "price": null
+      },
+      {
+        "id": "technical_20260911",
+        "filename": "technical_20260911.md",
+        "type": "technical",
+        "created_at": "2026-09-11",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.481848+00:00"
   },
   "300699.SZ": {
     "name": "光威复材",
@@ -1249,7 +1702,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.212023+00:00"
+    "updated_at": "2026-09-18T23:50:59.481995+00:00"
   },
   "688278.SH": {
     "name": "特宝生物",
@@ -1285,7 +1738,51 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.212148+00:00"
+    "updated_at": "2026-09-18T23:50:59.482179+00:00"
+  },
+  "002522.SZ": {
+    "name": "浙江众成",
+    "report_count": 2,
+    "last_analysis": "2026-09-15",
+    "reports": [
+      {
+        "id": "fundamental_20260915",
+        "filename": "fundamental_20260915.md",
+        "type": "fundamental",
+        "created_at": "2026-09-15",
+        "price": null
+      },
+      {
+        "id": "technical_20260915",
+        "filename": "technical_20260915.md",
+        "type": "technical",
+        "created_at": "2026-09-15",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.482335+00:00"
+  },
+  "002222.SZ": {
+    "name": "福晶科技",
+    "report_count": 2,
+    "last_analysis": "2026-09-07",
+    "reports": [
+      {
+        "id": "fundamental_20260907",
+        "filename": "fundamental_20260907.md",
+        "type": "fundamental",
+        "created_at": "2026-09-07",
+        "price": null
+      },
+      {
+        "id": "technical_20260907",
+        "filename": "technical_20260907.md",
+        "type": "technical",
+        "created_at": "2026-09-07",
+        "price": null
+      }
+    ],
+    "updated_at": "2026-09-18T23:50:59.482490+00:00"
   },
   "002162.SZ": {
     "name": "悦心健康",
@@ -1307,7 +1804,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-09T11:07:40.212278+00:00"
+    "updated_at": "2026-09-18T23:50:59.482587+00:00"
   },
   "601985.SH": {
     "name": "中国核电",
@@ -1329,7 +1826,7 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-11T10:40:11.805487+00:00"
+    "updated_at": "2026-09-18T23:50:59.482688+00:00"
   },
   "003816.SZ": {
     "name": "中国广核",
@@ -1351,270 +1848,6 @@
         "price": null
       }
     ],
-    "updated_at": "2026-09-11T10:40:11.816638+00:00"
-  },
-  "600875.SH": {
-    "name": "东方电气",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.827772+00:00"
-  },
-  "600256.SH": {
-    "name": "广汇能源",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.838470+00:00"
-  },
-  "600803.SH": {
-    "name": "新奥股份",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.850015+00:00"
-  },
-  "600026.SH": {
-    "name": "中远海能",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.861243+00:00"
-  },
-  "601088.SH": {
-    "name": "中国神华",
-    "report_count": 2,
-    "last_analysis": "2026-09-13",
-    "reports": [
-      {
-        "id": "fundamental_20260913",
-        "filename": "fundamental_20260913.md",
-        "type": "fundamental",
-        "created_at": "2026-09-13",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-13T14:33:23.334563+00:00"
-  },
-  "601225.SH": {
-    "name": "陕西煤业",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.883326+00:00"
-  },
-  "600886.SH": {
-    "name": "国投电力",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.894299+00:00"
-  },
-  "002353.SZ": {
-    "name": "杰瑞股份",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.905158+00:00"
-  },
-  "300274.SZ": {
-    "name": "阳光电源",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.916220+00:00"
-  },
-  "300827.SZ": {
-    "name": "上能电气",
-    "report_count": 2,
-    "last_analysis": "2026-09-11",
-    "reports": [
-      {
-        "id": "fundamental_20260911",
-        "filename": "fundamental_20260911.md",
-        "type": "fundamental",
-        "created_at": "2026-09-11",
-        "price": null
-      },
-      {
-        "id": "technical_20260911",
-        "filename": "technical_20260911.md",
-        "type": "technical",
-        "created_at": "2026-09-11",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-11T10:40:11.927324+00:00"
-  },
-  "002367.SZ": {
-    "name": "康力电梯",
-    "report_count": 2,
-    "last_analysis": "2026-09-18",
-    "reports": [
-      {
-        "id": "fundamental_20260918",
-        "filename": "fundamental_20260918.md",
-        "type": "fundamental",
-        "created_at": "2026-09-18",
-        "price": 5.71
-      },
-      {
-        "id": "technical_20260918",
-        "filename": "technical_20260918.md",
-        "type": "technical",
-        "created_at": "2026-09-18",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-18T10:43:38.172082+00:00"
-  },
-  "600835.SH": {
-    "name": "上海机电",
-    "report_count": 2,
-    "last_analysis": "2026-09-18",
-    "reports": [
-      {
-        "id": "fundamental_20260918",
-        "filename": "fundamental_20260918.md",
-        "type": "fundamental",
-        "created_at": "2026-09-18",
-        "price": 17.78
-      },
-      {
-        "id": "technical_20260918",
-        "filename": "technical_20260918.md",
-        "type": "technical",
-        "created_at": "2026-09-18",
-        "price": null
-      }
-    ],
-    "updated_at": "2026-09-18T10:47:34.930382+00:00"
+    "updated_at": "2026-09-18T23:50:59.482783+00:00"
   }
 }
