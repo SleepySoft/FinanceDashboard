@@ -89,7 +89,7 @@ data/
 12. **首页卡片顺序与搜索（2026-09-13 新增）** — 分组视图下的股票卡支持管理员 HTML5 拖动排序；拖动仅在当前分组内生效，不跨组。全局顺序保存在 `data/_dashboard.json` 的 `stock_order`，`/api/dashboard` 返回并用于初始排序；`PUT /api/dashboard/order`（仅 admin）保存规范化后的全局顺序。首页工具栏提供名称/代码实时模糊搜索，前端在所有视图的股票列表上过滤。首页工具栏另提供按交易所过滤（全部/沪/深/北，2026-09-17 新增），按代码后缀 `.SH`/`.SZ`/`.BJ` 过滤，选择同步到 URL `?exchange=` 与 `dash:context` 会话记录。
 13. **笔记只能用户写（硬性约束）** — `notes.md` 是用户的私人记录区。AI 只负责编写 `reports/` 下的分析报告，**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记；读取笔记用于了解用户想法是允许的。分析结论一律写进报告文件，不是笔记。
 14. **「价格网格」= 价格阶梯功能，不是价格标记（硬性约束）** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`：`POST /api/stocks/{code}/ladder/strategy` 应用 grid 策略，或 `PUT /api/agent/stocks/{code}/ladder` 写 agent 档），**不要**用 `/api/stocks/{code}/price-marks` 价格标记。价格标记只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
-15. **数据文件 Schema 与强制校验（2026-09-17 新增）** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应的 `{文件名}.schema.json`（顶层 `data/_xxx.json` ↔ `schemas/_xxx.schema.json`；个股 `data/{code}/xxx.json` ↔ `schemas/xxx.schema.json`）。校验脚本 `scripts/validate_data.py`（纯 stdlib，Windows 用根目录 `validate.bat`），发现 JSON 损坏/字段缺失/枚举越界会非零退出。**凡是改了读写数据文件的代码、新增数据文件种类、或手工/批量修改过 data/ 内容，都必须跑一次 `validate.bat`**；新增数据文件种类时必须同步新增对应 schema（顶层文件缺 schema 直接判失败）。schema 变更时同步更新 `docs/STOCK_SCHEMA.md`。
+15. **数据文件 Schema 与强制校验（2026-09-17 新增）** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应的 `{文件名}.schema.json`（顶层 `data/_xxx.json` ↔ `schemas/_xxx.schema.json`；个股 `data/{code}/xxx.json` ↔ `schemas/xxx.schema.json`）。校验脚本 `scripts/validate_data.py`（纯 stdlib，Windows 用根目录 `validate.bat`），发现 JSON 损坏/字段缺失/枚举越界会非零退出。**凡是改了读写数据文件的代码、新增数据文件种类、或手工/批量修改过 data/ 内容，都必须跑一次 `validate.bat`**；新增数据文件种类时必须同步新增对应 schema（顶层文件缺 schema 直接判失败）。schema 变更时同步更新 `docs/what/stock-schema.md`。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -107,7 +107,7 @@ data/
 
 ## 消息箱与股票反馈（POW 防刷屏）
 
-- 协议与复用指南：`docs/powbox-design.md`；模块 `backend/powbox/` + `frontend/src/powbox/`（均自包含可拷走）。
+- 协议与复用指南：`docs/what/powbox-design.md`；模块 `backend/powbox/` + `frontend/src/powbox/`（均自包含可拷走）。
 - POW 绑定提交内容（消息=正文；反馈=`{code}|{vote}|{comment}`），challenge 自包含签名、10 分钟有效、
   不记历史：反馈 upsert 幂等，消息按「10 分钟内同用户同内容」去重。
 - 消息箱 `data/_messages.json`：用户 → 站主单向信箱；admin 看全部/可删，用户只看自己；`/messages` 页。
@@ -256,9 +256,9 @@ cd frontend && start.bat
 cd frontend && build.bat
 cd backend && start_production.bat
 ```
-详见 [docs/windows-setup.md](docs/windows-setup.md)。
+详见 [docs/how/windows-setup.md](docs/how/windows-setup.md)。
 
-Linux 生产拓扑、发布和故障排查详见 [docs/linux-deployment.md](docs/linux-deployment.md)。
+Linux 生产拓扑、发布和故障排查详见 [docs/how/linux-deployment.md](docs/how/linux-deployment.md)。
 
 ### Dependency Files
 - 后端：`backend/requirements.txt`（FastAPI + Uvicorn + Pydantic）
@@ -327,7 +327,7 @@ validate.bat    # 等价于 backend\venv\Scripts\python.exe scripts\validate_dat
 - [x] **Separate fundamental/technical reports** — Backend API now supports `reports` array in complete endpoint. Agent MUST generate two files for `full` analysis.
 - [x] **Holdings & T-trade tracking** — Smart FIFO + intraday LIFO matching, trade entry modal, holdings display on cards
 - [x] Tushare token 迁入 `data/_config.json`（`tushare_token`），代码统一从配置读取
-- [x] Windows startup scripts (`start_all.bat`, `backend/start.bat`, `frontend/start.bat`) and dependency docs (`docs/windows-setup.md`)
+- [x] Windows startup scripts (`start_all.bat`, `backend/start.bat`, `frontend/start.bat`) and dependency docs (`docs/how/windows-setup.md`)
 - [ ] Frontend Markdown rendering: add marked.js for proper tables/code blocks
 - [ ] Add stock code validation/normalization (A-share format auto-correction)
 - [x] 价格自动刷新定时任务（后台 asyncio 调度器 + 设置页可配置间隔，2026-08-16）

@@ -61,7 +61,11 @@ FinanceDashboard/
 │   └── _config.json         # 普通配置（权限/分类标签等，入库）
 │   └── _secrets.json        # 敏感配置（api_key/tushare_token，git 忽略）
 ├── skill/            # AI Agent Skill 定义
-└── docs/             # 设计文档
+├── schemas/          # 数据文件 JSON Schema（validate.bat 校验）
+└── docs/             # 文档（按 WHY/WHAT/HOW 组织，见 docs/README.md）
+    ├── why/          # 为什么：动机、选型、复盘
+    ├── what/         # 是什么：数据/分析/模块规范
+    └── how/          # 怎么做：安装、部署、运维
 ```
 
 ## 登录与权限配置
@@ -129,11 +133,11 @@ journalctl -u financedashboard -f
 
 当前公网通过另一台 Tailscale 主机反向代理发布，应用主机 Nginx 将 `/api/`
 转发到 `127.0.0.1:8010`。完整拓扑、前端发布、更新和 502 排查步骤见
-[Linux 生产部署](docs/linux-deployment.md)。
+[Linux 生产部署](docs/how/linux-deployment.md)。
 
 ### Windows
 
-项目已提供 Windows 批处理脚本，详见 [docs/windows-setup.md](docs/windows-setup.md)。
+项目已提供 Windows 批处理脚本，详见 [docs/how/windows-setup.md](docs/how/windows-setup.md)。
 
 ```powershell
 # 一键启动后端 + 前端（推荐）

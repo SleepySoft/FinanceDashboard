@@ -217,7 +217,7 @@ sudo ./scripts/install_systemd_service.sh
 - systemd 单元为 `financedashboard.service`，生产模式禁止 `--reload`
 - 后端仅监听 `127.0.0.1:8010`；应用主机 Nginx 的 `/api/` 必须反代到该端口
 - 公网入口位于另一台 Tailscale 主机，发布地址为 `https://www.sleepysoft.dev/dashboard/`
-- 完整部署说明见 `docs/linux-deployment.md`
+- 完整部署说明见 `docs/how/linux-deployment.md`
 
 ### Data Persistence
 
