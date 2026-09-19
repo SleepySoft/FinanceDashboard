@@ -103,10 +103,12 @@ All stock data is stored under `data/{code}/` with the following files:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| id | string | Unique mark ID |
+| id | string | Unique mark ID（缺失时后端按内容哈希生成） |
 | label | string | Display label |
 | price | number | Mark price |
-| type | string | target_buy, stop_loss, take_profit, add, reduce, mark, last_buy, last_sell |
+| type | string | target_buy, stop_loss, take_profit, add, reduce, mark, last_buy, last_sell, support, resistance, custom |
+| source | string | `manual`（用户手工，默认）/ `agent`（AI 技术面标记：阻力位/支撑位/筹码密集区等，经 `PUT /api/agent/stocks/{code}/price-marks` 整体替换，手工标记不受影响） |
+| note | string | 可选备注（AI 标记的理由等） |
 
 `last_buy` / `last_sell`：前端「最后买入」「最后卖出」快捷按钮，自动从持仓交易记录（`holdings.json` summary 的 `last_buy_price` / `last_sell_price`）取价填充；无交易记录时提示先录入交易。
 | created_at | string | ISO 8601 timestamp |

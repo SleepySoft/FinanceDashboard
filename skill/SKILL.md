@@ -15,7 +15,8 @@ The AI agent is the **analysis engine** of FinanceDashboard. It does NOT serve t
 
 1. **笔记只能用户写，AI 严禁写笔记** — `data/{code}/notes.md` 是用户的私人记录区。Agent 只负责编写 `reports/` 下的分析报告；**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记（读取笔记了解用户想法是允许的）。分析结论一律写进报告文件，不是笔记。
 2. **「价格网格」= 价格阶梯功能，不是价格标记** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`）：内置 grid 策略走 `POST /api/stocks/{code}/ladder/strategy`，AI 自定义档位（如压力位/支撑位）走 `PUT /api/agent/stocks/{code}/ladder`。**不要**用 `/api/stocks/{code}/price-marks` 价格标记——它只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
-3. **写数据文件必须过 schema 校验** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应 schema（`{文件名}.schema.json`）。Agent 新增/修改 `data/` 下任何 JSON 文件、或改动读写数据文件的代码后，**必须运行 `validate.bat`（或 `python scripts/validate_data.py`）**，全部通过才算完成；新增数据文件种类必须同步在 `schemas/` 新增对应 schema。写数据优先走 API（有 Pydantic 校验），直接写文件时必须严格遵守 `schemas/` 中的结构（字段名、类型、枚举值）。
+3. **AI 技术面水位标记走专用接口** — 技术面分析得出的阻力位/支撑位/筹码密集区等纯参考价位，用 `PUT /api/agent/stocks/{code}/price-marks` 整体写入（`source=agent`，与手工标记分区共存，前端水位轴展示为紫色 AI 徽标）。**不要**混进 `POST /api/stocks/{code}/price-marks`（那是手工通道），也不要写进 ladder（那是带买卖方向的交易计划）。
+4. **写数据文件必须过 schema 校验** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应 schema（`{文件名}.schema.json`）。Agent 新增/修改 `data/` 下任何 JSON 文件、或改动读写数据文件的代码后，**必须运行 `validate.bat`（或 `python scripts/validate_data.py`）**，全部通过才算完成；新增数据文件种类必须同步在 `schemas/` 新增对应 schema。写数据优先走 API（有 Pydantic 校验），直接写文件时必须严格遵守 `schemas/` 中的结构（字段名、类型、枚举值）。
 
 ## What the Agent Does
 

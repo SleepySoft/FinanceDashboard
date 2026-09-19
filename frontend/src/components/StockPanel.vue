@@ -248,6 +248,18 @@
       </div>
     </div>
 
+    <!-- 价格水位轴：手工标记 + AI 标记 + 阶梯/网格 统一纵轴展示 -->
+    <div class="card" v-if="meta.price_marks?.length || ladder.levels.length">
+      <div class="section-header">
+        <h3>📊 价格水位轴</h3>
+      </div>
+      <PriceAxis
+        :marks="meta.price_marks || []"
+        :levels="ladder.levels"
+        :current-price="ladder.current_price ?? meta.last_price"
+      />
+    </div>
+
     <!-- Price Marks -->
     <div class="card">
       <div class="section-header">
@@ -255,6 +267,7 @@
       </div>
       <div class="price-marks">
         <div v-for="m in meta.price_marks" :key="m.id" class="price-mark">
+          <i v-if="m.source === 'agent'" class="mark-ai-badge" :title="m.note || 'AI 技术面标记'">AI</i>
           <span :class="markLabelClass(m.type)">{{ m.label }}</span>
           <span class="mark-price">¥{{ m.price.toFixed(2) }}</span>
           <span v-if="meta.last_price != null" :class="['mark-diff', diffClass(meta.last_price - m.price)]">
@@ -411,6 +424,7 @@ import { readState, writeState } from '../composables/useSession.js'
 import statusCats from '../composables/useStatusCategories.js'
 import auth from '../composables/useAuth.js'
 import PowPanel from '../powbox/PowPanel.vue'
+import PriceAxis from './PriceAxis.vue'
 
 const props = defineProps({
   code: { type: String, required: true },
@@ -1514,6 +1528,7 @@ onMounted(handleCodeChange)
 
 /* Price marks */
 .price-marks { margin-bottom: 12px; }
+.mark-ai-badge { font-style: normal; font-size: 10px; padding: 0 5px; border-radius: 8px; background: #ede9fe; color: #6d28d9; margin-right: 4px; line-height: 16px; }
 .price-mark { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #334155; flex-wrap: wrap; }
 .price-mark:last-child { border-bottom: none; }
 .mark-label { padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; }

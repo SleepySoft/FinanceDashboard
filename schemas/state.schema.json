@@ -27,7 +27,9 @@
           "label": { "type": "string" },
           "price": { "type": "number" },
           "type":  { "type": "string", "enum": ["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell", "support", "resistance", "custom"] },
-          "created_at": { "type": "string" }
+          "created_at": { "type": "string" },
+          "source": { "type": "string", "enum": ["manual", "agent"], "description": "manual=用户手工，agent=AI 技术面标记；缺失视为 manual" },
+          "note":   { "type": "string" }
         }
       }
     },

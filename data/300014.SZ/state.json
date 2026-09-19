@@ -13,37 +13,43 @@
       "type": "support",
       "price": 45.0,
       "label": "整数关口+2024年9月平台，证伪线",
-      "id": "d73ce6d3"
+      "id": "d73ce6d3",
+      "source": "manual"
     },
     {
       "type": "support",
       "price": 47.0,
       "label": "9/16盘中最低+布林下轨共振",
-      "id": "46933c7e"
+      "id": "46933c7e",
+      "source": "manual"
     },
     {
       "type": "support",
       "price": 48.36,
       "label": "9/15收盘，一年最低收盘",
-      "id": "db7cf8b8"
+      "id": "db7cf8b8",
+      "source": "manual"
     },
     {
       "type": "resistance",
       "price": 52.1,
       "label": "MA20+布林中轨，右侧确认第一关",
-      "id": "f77b0935"
+      "id": "f77b0935",
+      "source": "manual"
     },
     {
       "type": "resistance",
       "price": 55.9,
       "label": "MA60+8月枢轴高点密集区",
-      "id": "dfb27d3c"
+      "id": "dfb27d3c",
+      "source": "manual"
     },
     {
       "id": "ad52c69f",
       "label": "3月VWAP，解套抛压区",
       "price": 57.35,
-      "type": "resistance"
+      "type": "resistance",
+      "source": "manual"
     }
   ],
   "daily_briefs": [],

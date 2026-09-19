@@ -90,6 +90,10 @@ data/
 13. **笔记只能用户写（硬性约束）** — `notes.md` 是用户的私人记录区。AI 只负责编写 `reports/` 下的分析报告，**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记；读取笔记用于了解用户想法是允许的。分析结论一律写进报告文件，不是笔记。
 14. **「价格网格」= 价格阶梯功能，不是价格标记（硬性约束）** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`：`POST /api/stocks/{code}/ladder/strategy` 应用 grid 策略，或 `PUT /api/agent/stocks/{code}/ladder` 写 agent 档），**不要**用 `/api/stocks/{code}/price-marks` 价格标记。价格标记只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
 15. **数据文件 Schema 与强制校验（2026-09-17 新增）** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应的 `{文件名}.schema.json`（顶层 `data/_xxx.json` ↔ `schemas/_xxx.schema.json`；个股 `data/{code}/xxx.json` ↔ `schemas/xxx.schema.json`）。校验脚本 `scripts/validate_data.py`（纯 stdlib，Windows 用根目录 `validate.bat`），发现 JSON 损坏/字段缺失/枚举越界会非零退出。**凡是改了读写数据文件的代码、新增数据文件种类、或手工/批量修改过 data/ 内容，都必须跑一次 `validate.bat`**；新增数据文件种类时必须同步新增对应 schema（顶层文件缺 schema 直接判失败）。schema 变更时同步更新 `docs/what/stock-schema.md`。
+16. **价格类数据二维模型（2026-09-17 新增）** — 价格相关数据按「用途 × 来源」两个维度组织，不按来源拆文件、也不合并成一个结构：
+   - **用途 = 价格标记（mark，存 `state.json.price_marks`）**：纯参考水位，无方向、无数量、不触发提醒。来源 `source=manual`（用户手工）/ `agent`（AI 技术面标记：阻力位/支撑位/筹码密集区等）。AI 只能经 `PUT /api/agent/stocks/{code}/price-marks` **整体替换 agent 档**，手工标记不受影响；传空数组即清空 AI 标记。
+   - **用途 = 价格阶梯（ladder，存 `ladder.json`）**：交易计划，有买卖方向/数量/临近·触及提醒。来源 `manual` / `strategy` / `agent` 三分区互不覆盖（见决策 10）。**网格 = ladder × strategy，不是第三类价格**。
+   - 前端「价格水位轴」（`PriceAxis.vue`，股票面板内）把两类价位画在同一纵轴：显示各档位（颜色区分用途×来源）、当前价位置、当前价与上一档/下一档的差额与百分比。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -213,6 +217,7 @@ data/
 | `/api/agent/tasks/{id}/complete` | POST | Submit completed report |
 | `/api/agent/tasks/{id}/fail` | POST | Mark task failed |
 | `/api/agent/stocks/{code}/ladder` | GET/PUT/DELETE | 读取 / 整体替换 agent 档（压力位/支撑位等）/ 清空 agent 档 |
+| `/api/agent/stocks/{code}/price-marks` | PUT | 整体替换 AI 价格标记（source=agent；手工标记不受影响，空数组=清空） |
 
 ## External Credentials
 

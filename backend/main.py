@@ -549,6 +549,9 @@ def _normalize_price_marks(marks) -> list:
             print(f"[data-guard] 价格标记缺有效 price，已丢弃: {m}")
             continue
         m.setdefault("type", "custom")
+        # 来源：manual（用户手工）/ agent（AI 技术面标记），手工添加默认 manual
+        if m.get("source") not in ("manual", "agent"):
+            m["source"] = "manual"
         if not m.get("id"):
             m["id"] = hashlib.md5(
                 f"{m['type']}|{m['label']}|{m['price']}".encode("utf-8")
@@ -1102,6 +1105,46 @@ def delete_price_mark(code: str, mark_id: str):
     meta["price_marks"] = remaining
     _save_meta(code, meta)
     return {"ok": True}
+
+
+# ─── AI 价格标记（技术面水位：阻力位/支撑位/筹码密集区等） ────
+# 与手工标记共存于 price_marks，按 source 分区：AI 只能整体替换 agent 档，
+# 手工（manual）标记不受影响。与价格阶梯（ladder）的关系见 AGENTS.md 决策 16。
+
+_PRICE_MARK_TYPES = {"target_buy", "stop_loss", "take_profit", "add", "reduce",
+                     "mark", "last_buy", "last_sell", "support", "resistance", "custom"}
+
+
+class AgentPriceMarkItem(BaseModel):
+    label: str
+    price: float
+    type: Optional[str] = "custom"
+    note: Optional[str] = ""
+
+
+class AgentPriceMarksReq(BaseModel):
+    marks: List[AgentPriceMarkItem]
+
+
+@app.put("/api/agent/stocks/{code}/price-marks")
+def agent_replace_price_marks(code: str, req: AgentPriceMarksReq):
+    """AI 整体替换自己的价格标记（source=agent），手工标记保留。传空列表即清空 AI 标记。"""
+    meta = _load_meta(code)
+    manual = [m for m in meta.get("price_marks", []) if m.get("source", "manual") == "manual"]
+    agent_marks = []
+    for item in req.marks[:50]:
+        agent_marks.append({
+            "id": str(uuid.uuid4())[:8],
+            "label": item.label.strip()[:50] or "AI标记",
+            "price": float(item.price),
+            "type": item.type if item.type in _PRICE_MARK_TYPES else "custom",
+            "note": (item.note or "")[:200],
+            "source": "agent",
+            "created_at": _now()
+        })
+    meta["price_marks"] = manual + agent_marks
+    _save_meta(code, meta)
+    return {"ok": True, "agent_marks": len(agent_marks), "manual_marks": len(manual)}
 
 @app.get("/api/stocks/{code}/reports")
 def list_reports(code: str):
