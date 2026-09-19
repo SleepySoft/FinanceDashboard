@@ -1,0 +1,22 @@
+{
+  "tags": {
+    "overall": "yellow",
+    "watchlist": true,
+    "quality": "green",
+    "valuation": "green",
+    "timing": "red",
+    "risk": "yellow",
+    "verdict": "yellow",
+    "unread": true
+  },
+  "status": "unassessed",
+  "holdings": {},
+  "record_prices": {
+    "notes": {},
+    "reports": {
+      "fundamental_20260919": 11.66,
+      "technical_20260919": 11.66
+    }
+  },
+  "report_generated_at": "2026-09-19T08:30:00+08:00"
+}
