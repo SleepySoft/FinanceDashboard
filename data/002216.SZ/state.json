@@ -7,16 +7,34 @@
     "timing": "red",
     "risk": "yellow",
     "verdict": "yellow",
-    "unread": true
+    "unread": false
   },
-  "status": "unassessed",
+  "status": "core_position",
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-21 07:46": 11.75
+    },
     "reports": {
       "fundamental_20260919": 11.66,
       "technical_20260919": 11.66
     }
   },
-  "report_generated_at": "2026-09-19T08:30:00+08:00"
+  "report_generated_at": "2026-09-19T08:30:00+08:00",
+  "notes": [
+    {
+      "time": "2026-09-21 07:46",
+      "content": "可能没有增长潜力了，不过现金和股息不错，没有意外的话可以作为底仓收息。",
+      "price": 11.75
+    }
+  ],
+  "price_marks": [
+    {
+      "id": "81e8d0d6",
+      "label": "观察标记",
+      "price": 11.75,
+      "type": "mark",
+      "created_at": "2026-09-21T07:47:06.008491+00:00"
+    }
+  ]
 }

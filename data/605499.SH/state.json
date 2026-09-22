@@ -101,5 +101,19 @@
       "amplitude": 3.29,
       "created_at": "2026-08-11T07:30:01.288620+00:00"
     }
-  ]
+  ],
+  "holdings": {},
+  "price_marks": [
+    {
+      "id": "6c28730e",
+      "label": "观察标记",
+      "price": 113.18,
+      "type": "mark",
+      "created_at": "2026-09-21T09:07:09.631861+00:00"
+    }
+  ],
+  "record_prices": {
+    "notes": {},
+    "reports": {}
+  }
 }

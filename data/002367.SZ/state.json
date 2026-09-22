@@ -9,17 +9,33 @@
     "verdict": "none",
     "unread": false
   },
-  "price_marks": [],
+  "price_marks": [
+    {
+      "id": "62acc90c",
+      "label": "观察标记",
+      "price": 6.28,
+      "type": "mark",
+      "created_at": "2026-09-21T08:09:41.007105+00:00"
+    }
+  ],
   "daily_briefs": [],
   "updated_at": "2026-09-18T18:45:00+08:00",
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-09-21 08:09",
+      "content": "虽然第一印象这是什么杂牌电梯，但仔细看它业务还真不错，而且属于可能暴涨股票的低位。有点妖，有点意思。",
+      "price": 6.28
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-21 08:09": 6.28
+    },
     "reports": {
       "fundamental_20260918": 5.71
     }
   },
-  "status": "unassessed",
+  "status": "neutral",
   "report_generated_at": "2026-09-18T18:45:00+08:00"
 }

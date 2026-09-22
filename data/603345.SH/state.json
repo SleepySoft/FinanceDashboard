@@ -7,16 +7,34 @@
     "timing": "yellow",
     "risk": "yellow",
     "verdict": "green",
-    "unread": true
+    "unread": false
   },
-  "status": "unassessed",
+  "status": "bullish",
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-21 07:34": 80.91
+    },
     "reports": {
       "fundamental_20260919": 79.48,
       "technical_20260919": 79.48
     }
   },
-  "report_generated_at": "2026-09-19T08:30:00+08:00"
+  "report_generated_at": "2026-09-19T08:30:00+08:00",
+  "notes": [
+    {
+      "time": "2026-09-21 07:34",
+      "content": "好股票，价格在低位，股息很高，港股更便宜，A股相比溢价略高。",
+      "price": 80.91
+    }
+  ],
+  "price_marks": [
+    {
+      "id": "dd4cf906",
+      "label": "观察标记",
+      "price": 80.91,
+      "type": "mark",
+      "created_at": "2026-09-21T07:32:56.843016+00:00"
+    }
+  ]
 }

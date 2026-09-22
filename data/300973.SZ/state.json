@@ -7,16 +7,34 @@
     "timing": "yellow",
     "risk": "red",
     "verdict": "yellow",
-    "unread": true
+    "unread": false
   },
-  "status": "unassessed",
+  "status": "neutral",
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-21 07:44": 25.49
+    },
     "reports": {
       "fundamental_20260919": 25.06,
       "technical_20260919": 25.06
     }
   },
-  "report_generated_at": "2026-09-19T08:30:00+08:00"
+  "report_generated_at": "2026-09-19T08:30:00+08:00",
+  "notes": [
+    {
+      "time": "2026-09-21 07:44",
+      "content": "高超冷冻龙头，山姆/盒马/胖东来，业务似乎在触底上升期。先观察。",
+      "price": 25.49
+    }
+  ],
+  "price_marks": [
+    {
+      "id": "30406ae0",
+      "label": "观察标记",
+      "price": 25.49,
+      "type": "mark",
+      "created_at": "2026-09-21T07:44:12.123810+00:00"
+    }
+  ]
 }

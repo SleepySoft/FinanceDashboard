@@ -11,11 +11,19 @@
   },
   "price_marks": [],
   "daily_briefs": [],
-  "notes": [],
-  "status": "unassessed",
+  "notes": [
+    {
+      "time": "2026-09-21 07:38",
+      "content": "现金非常多，但躺在账上，经营不怎么漂亮，电梯的预期不好说。",
+      "price": 18.66
+    }
+  ],
+  "status": "neutral",
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-09-21 07:38": 18.66
+    },
     "reports": {
       "fundamental_20260918": 17.78
     }
