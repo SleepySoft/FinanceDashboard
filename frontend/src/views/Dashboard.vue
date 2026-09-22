@@ -172,6 +172,7 @@
                 <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
                   <span class="mark-label">{{ m.label }}</span>
                   <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="m.created_at" class="mark-time" :title="m.created_at">{{ fmtDate(m.created_at) }} {{ fmtTime(m.created_at) }}</span>
                   <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
@@ -296,6 +297,7 @@
                 <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
                   <span class="mark-label">{{ m.label }}</span>
                   <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="m.created_at" class="mark-time" :title="m.created_at">{{ fmtDate(m.created_at) }} {{ fmtTime(m.created_at) }}</span>
                   <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
@@ -420,6 +422,7 @@
                 <div v-for="m in s.price_marks" :key="m.id" class="mark-row">
                   <span class="mark-label">{{ m.label }}</span>
                   <span class="mark-target">¥{{ m.price.toFixed(2) }}</span>
+                  <span v-if="m.created_at" class="mark-time" :title="m.created_at">{{ fmtDate(m.created_at) }} {{ fmtTime(m.created_at) }}</span>
                   <span v-if="m.diff != null" :class="['mark-diff', m.diff >= 0 ? 'up' : 'down']">
                     {{ m.diff > 0 ? '+' : '' }}{{ m.diff.toFixed(2) }} ({{ m.diff_pct > 0 ? '+' : '' }}{{ m.diff_pct.toFixed(1) }}%)
                   </span>
@@ -1553,6 +1556,7 @@ onUnmounted(stopAutoRefresh)
 .mark-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
 .mark-label { color: #94a3b8; min-width: 50px; }
 .mark-target { font-weight: 600; color: #e2e8f0; }
+.mark-time { color: #475569; font-size: 11px; font-variant-numeric: tabular-nums; }
 .mark-diff { font-size: 11px; }
 /* 价格阶梯迷你仪表：嵌在价格行右侧空白处，不增加卡片高度 */
 .ladder-gauge { margin-left: auto; display: flex; align-items: center; align-self: center; gap: 4px; min-width: 0; }
