@@ -70,6 +70,20 @@ def _clean_state(value: str | None, default: str = "active") -> str:
     return state
 
 
+def _effective_state(state: str, valid_until: str | None) -> str:
+    if state != "active" or not valid_until:
+        return state
+    try:
+        expiry = datetime.fromisoformat(str(valid_until).replace("Z", "+00:00"))
+        if len(str(valid_until)) == 10:
+            return "expired" if datetime.now(timezone.utc).date() > expiry.date() else state
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
+        return "expired" if datetime.now(timezone.utc) > expiry else state
+    except (TypeError, ValueError):
+        return state
+
+
 def _analysis_level(mark: dict, types: dict[str, dict]) -> dict | None:
     try:
         price = _clean_price(mark.get("price"))
@@ -81,6 +95,11 @@ def _analysis_level(mark: dict, types: dict[str, dict]) -> dict | None:
         type_key = "custom" if "custom" in types else "mark"
         type_meta = types.get(type_key, {"label": mark.get("label") or "标记"})
     storage_id = str(mark.get("id") or uuid.uuid4().hex[:8])
+    lifecycle = mark.get("state") if mark.get("state") in LIFECYCLE_STATES else "active"
+    note = str(mark.get("note") or "")
+    legacy_label = str(mark.get("label") or "").strip()
+    if not note and legacy_label and legacy_label != type_meta.get("label"):
+        note = legacy_label
     return {
         "id": f"analysis:{storage_id}",
         "storage_id": storage_id,
@@ -89,8 +108,8 @@ def _analysis_level(mark: dict, types: dict[str, dict]) -> dict | None:
         "label": type_meta.get("label") or mark.get("label") or type_key,
         "price": price,
         "source": mark.get("source") if mark.get("source") in ("manual", "agent", "strategy", "system") else "manual",
-        "state": mark.get("state") if mark.get("state") in LIFECYCLE_STATES else "active",
-        "note": str(mark.get("note") or ""),
+        "state": _effective_state(lifecycle, mark.get("valid_until")),
+        "note": note,
         "valid_from": mark.get("valid_from"),
         "valid_until": mark.get("valid_until"),
         "created_at": mark.get("created_at"),
@@ -121,7 +140,7 @@ def _plan_level(level: dict, types: dict[str, dict]) -> dict | None:
         "label": type_meta.get("label") or type_key,
         "price": price,
         "source": level.get("source") if level.get("source") in ("manual", "agent", "strategy") else "manual",
-        "state": lifecycle,
+        "state": _effective_state(lifecycle, level.get("valid_until")),
         "note": str(level.get("note") or ""),
         "valid_from": level.get("valid_from"),
         "valid_until": level.get("valid_until"),

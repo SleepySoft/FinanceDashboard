@@ -20,10 +20,17 @@ class PriceLevelTests(unittest.TestCase):
         )
         (stock_dir / "state.json").write_text(
             json.dumps({
-                "price_marks": [{
-                    "id": "m1", "label": "旧标签", "price": 10,
-                    "type": "support", "source": "agent", "state": "proposed",
-                }]
+                "price_marks": [
+                    {
+                        "id": "m1", "label": "旧标签", "price": 10,
+                        "type": "support", "source": "agent", "state": "proposed",
+                    },
+                    {
+                        "id": "m2", "label": "观察", "price": 8,
+                        "type": "mark", "source": "manual", "state": "active",
+                        "valid_until": "2020-01-01",
+                    },
+                ]
             }), encoding="utf-8"
         )
         (stock_dir / "ladder.json").write_text(
@@ -62,7 +69,9 @@ class PriceLevelTests(unittest.TestCase):
         levels = {item["id"]: item for item in payload["levels"]}
 
         self.assertEqual(levels["analysis:m1"]["label"], "支撑位")
+        self.assertEqual(levels["analysis:m1"]["note"], "旧标签")
         self.assertEqual(levels["analysis:m1"]["state"], "proposed")
+        self.assertEqual(levels["analysis:m2"]["state"], "expired")
         self.assertEqual(levels["plan:l1"]["plan"], {"side": "sell", "qty": 100})
         self.assertEqual(levels["fact:last_buy"]["price"], 9.5)
         self.assertEqual(levels["fact:average_cost"]["price"], 9.5)
