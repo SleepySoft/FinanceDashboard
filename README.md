@@ -100,7 +100,7 @@ curl -H "X-API-Key: $TOKEN" http://localhost:8010/api/agent/tasks
 
 ## Arachne 产业图谱集成
 
-项目通过 `services/arachne` Git submodule 接入独立的 Arachne 服务。股票面板中的“产业链图谱”按需使用证券代码解析 Arachne 公司，并嵌入公司产业上下文；Arachne 故障或未收录公司不会影响看板其他功能。
+项目通过 `services/arachne` Git submodule 接入独立的 Arachne 服务。股票面板中的“产业链图谱”优先使用证券代码解析 Arachne 公司；公司记录尚未补证券代码时，以标准名称或别名做精确兜底，然后嵌入公司产业上下文。Arachne 故障或尚未完成公司产业暴露建模时不会影响看板其他功能。
 
 首次拉取或更新后初始化嵌套子模块：
 
