@@ -23,6 +23,7 @@ from subsystems.backtest.routes import router as backtest_router
 from subsystems.anomaly.routes import router as anomaly_router
 from messages import router as messages_router
 from feedback import router as feedback_router
+from integrations.arachne import router as arachne_integration_router
 import ladder
 import views
 from powbox import pow as powbox_pow
@@ -66,6 +67,7 @@ app.include_router(anomaly_router)
 app.include_router(providers_router)
 app.include_router(messages_router)
 app.include_router(feedback_router)
+app.include_router(arachne_integration_router)
 app.include_router(ladder.router)
 app.include_router(ladder.agent_router)
 app.include_router(views.router)
