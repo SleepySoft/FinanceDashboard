@@ -131,6 +131,7 @@ async function assertStockModal(page, canWrite) {
   })
   await firstRow.click()
   await page.waitForSelector('.modal-content', { timeout: 10000 })
+  await page.locator('.modal-content .pl-card h3', { hasText: '价格水位' }).waitFor()
 
   const editAreaCount = await page.locator('.modal-content .timeline-note-input').count()
   if ((editAreaCount > 0) !== canWrite) {

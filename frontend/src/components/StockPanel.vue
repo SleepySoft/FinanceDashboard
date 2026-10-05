@@ -160,83 +160,11 @@
       <div v-else class="empty" style="padding: 20px">暂无记录</div>
     </div>
 
-    <!-- 价格阶梯：买入/卖出计划价位，临近/触及提醒（来源：手动/策略/AI） -->
-    <div class="card">
-      <div class="section-header">
-        <h3>🎚 价格阶梯</h3>
-        <span v-if="ladder.strategy" class="ld-strategy-tag" :title="`策略参数：${JSON.stringify(ladder.strategy.params)}`">
-          {{ ladder.strategy.type === 'grid' ? '网格策略' : ladder.strategy.type }}
-        </span>
-      </div>
-      <template v-if="ladder.levels.length">
-        <div class="ld-list">
-          <div v-for="lv in ladderSellLevels" :key="lv.id"
-               :class="['ld-row', 'ld-sell', 'ld-st-' + lv.state]"
-               :title="lv.note || ''">
-            <span class="ld-side">卖出</span>
-            <span class="ld-price">¥{{ lv.price.toFixed(2) }}</span>
-            <span class="ld-diff">{{ fmtLadderDiff(lv) }}</span>
-            <span v-if="lv.qty" class="ld-qty">{{ lv.qty }}股</span>
-            <span :class="['ld-src', 'ld-src-' + lv.source]">{{ ladderSourceLabel(lv.source) }}</span>
-            <span v-if="lv.note" class="ld-note">{{ lv.note }}</span>
-            <span class="ld-state">{{ ladderStateLabel(lv) }}</span>
-            <span v-if="!readonly && lv.source === 'manual'" class="ld-ops">
-              <button class="ld-op" @click="startEditLevel(lv)" title="编辑">✎</button>
-              <button class="ld-op" @click="removeLevel(lv)" title="删除">🗑</button>
-            </span>
-          </div>
-          <div class="ld-current">
-            <span class="ld-side">现价</span>
-            <span class="ld-price">{{ ladder.current_price ? '¥' + ladder.current_price.toFixed(2) : '--' }}</span>
-            <span class="ld-time">{{ fmtLadderTime(ladder.price_updated) }}</span>
-          </div>
-          <div v-for="lv in ladderBuyLevels" :key="lv.id"
-               :class="['ld-row', 'ld-buy', 'ld-st-' + lv.state]"
-               :title="lv.note || ''">
-            <span class="ld-side">买入</span>
-            <span class="ld-price">¥{{ lv.price.toFixed(2) }}</span>
-            <span class="ld-diff">{{ fmtLadderDiff(lv) }}</span>
-            <span v-if="lv.qty" class="ld-qty">{{ lv.qty }}股</span>
-            <span :class="['ld-src', 'ld-src-' + lv.source]">{{ ladderSourceLabel(lv.source) }}</span>
-            <span v-if="lv.note" class="ld-note">{{ lv.note }}</span>
-            <span class="ld-state">{{ ladderStateLabel(lv) }}</span>
-            <span v-if="!readonly && lv.source === 'manual'" class="ld-ops">
-              <button class="ld-op" @click="startEditLevel(lv)" title="编辑">✎</button>
-              <button class="ld-op" @click="removeLevel(lv)" title="删除">🗑</button>
-            </span>
-          </div>
-        </div>
-      </template>
-      <div v-else class="ld-empty">还没有价格阶梯 — 可手动添加、用网格策略生成，或让 AI 计算压力位/支撑位后填入</div>
-
-      <div v-if="!readonly" class="ld-edit">
-        <div class="ld-form-row">
-          <select v-model="ldForm.side" class="ld-input ld-side-sel">
-            <option value="buy">买入</option>
-            <option value="sell">卖出</option>
-          </select>
-          <input v-model.number="ldForm.price" class="ld-input" type="number" step="0.01" min="0" placeholder="价格" />
-          <input v-model.number="ldForm.qty" class="ld-input" type="number" step="100" min="0" placeholder="数量(可空)" />
-          <input v-model="ldForm.note" class="ld-input ld-note-input" maxlength="100" placeholder="备注(可空)" />
-          <button class="primary" @click="saveLevel" :disabled="ldSaving || !ldForm.price">
-            {{ ldEditingId ? '保存' : '添加' }}
-          </button>
-          <button v-if="ldEditingId" @click="cancelEditLevel">取消</button>
-        </div>
-        <div class="ld-form-row">
-          <span class="ld-grid-label">网格：</span>
-          <input v-model.number="ldGrid.base_price" class="ld-input" type="number" step="0.01" min="0"
-                 :placeholder="ladder.current_price ? `基准(默认${ladder.current_price.toFixed(2)})` : '基准价'" />
-          <input v-model.number="ldGrid.step_pct" class="ld-input ld-sm" type="number" step="0.5" min="0.1" max="50" placeholder="步长%" />
-          <input v-model.number="ldGrid.up" class="ld-input ld-sm" type="number" step="1" min="0" max="20" placeholder="上档" />
-          <input v-model.number="ldGrid.down" class="ld-input ld-sm" type="number" step="1" min="0" max="20" placeholder="下档" />
-          <button @click="applyGrid" :disabled="ldSaving">{{ ladder.strategy ? '重算网格' : '生成网格' }}</button>
-          <button v-if="ladder.strategy" @click="clearStrategyLevels" :disabled="ldSaving">清除策略档</button>
-          <button v-if="ladderHasAgent" @click="clearAgentLevels" :disabled="ldSaving">清除 AI 档</button>
-        </div>
-        <p v-if="ldError" class="ld-error">{{ ldError }}</p>
-      </div>
-    </div>
+    <PriceLevelManager
+      :code="code"
+      :readonly="readonly"
+      @changed="refreshPriceLevelSources"
+    />
 
     <!-- Delete Confirm Modal -->
     <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
@@ -260,46 +188,6 @@
         :levels="ladder.levels"
         :current-price="ladder.current_price ?? meta.last_price"
       />
-    </div>
-
-    <!-- Price Marks -->
-    <div class="card">
-      <div class="section-header">
-        <h3>📌 价格标记</h3>
-      </div>
-      <div class="price-marks">
-        <div v-for="m in meta.price_marks" :key="m.id" class="price-mark">
-          <i v-if="m.source === 'agent'" class="mark-ai-badge" :title="m.note || 'AI 技术面标记'">AI</i>
-          <span :class="markLabelClass(m.type)">{{ m.label }}</span>
-          <span class="mark-price">¥{{ m.price.toFixed(2) }}</span>
-          <span v-if="meta.last_price != null" :class="['mark-diff', diffClass(meta.last_price - m.price)]">
-            {{ meta.last_price >= m.price ? '+' : '' }}{{ (meta.last_price - m.price).toFixed(2) }}
-            ({{ ((meta.last_price - m.price) / m.price * 100).toFixed(1) }}%)
-          </span>
-          <button v-if="!readonly" class="ghost" style="padding:2px 8px;font-size:12px" @click.stop="removeMark(m.id)">×</button>
-        </div>
-      </div>
-      <div v-if="meta.price_marks?.length === 0" class="empty" style="margin-bottom:12px">暂无价格标记</div>
-      <div v-if="!readonly" class="add-mark">
-        <div class="preset-labels">
-          <span
-            v-for="tag in priceMarkLabels"
-            :key="tag.key"
-            :class="['preset-label', { 'preset-trade': tag.key === 'last_buy' || tag.key === 'last_sell' }]"
-            @click="selectPriceMarkLabel(tag)"
-          >{{ tag.label }}</span>
-        </div>
-        <div class="add-mark-row">
-          <input v-model="newMark.label" placeholder="标签（可自定义）" style="flex:1" />
-          <div class="price-input-group">
-            <button class="ghost price-shortcut" @click="fillPrice(-0.1)">-10%</button>
-            <button class="ghost price-shortcut" @click="fillPrice(0)">当前</button>
-            <button class="ghost price-shortcut" @click="fillPrice(0.1)">+10%</button>
-            <input v-model.number="newMark.price" placeholder="价格" type="number" step="0.01" style="width:100px" />
-          </div>
-          <button class="primary" @click="addMark" :disabled="!newMark.label || !newMark.price">添加</button>
-        </div>
-      </div>
     </div>
 
     <!-- Holdings -->
@@ -427,6 +315,7 @@ import statusCats from '../composables/useStatusCategories.js'
 import auth from '../composables/useAuth.js'
 import PowPanel from '../powbox/PowPanel.vue'
 import PriceAxis from './PriceAxis.vue'
+import PriceLevelManager from './PriceLevelManager.vue'
 import ArachnePanel from './ArachnePanel.vue'
 
 const props = defineProps({
@@ -577,17 +466,8 @@ function feedbackUserName(username) {
   return username
 }
 
-// 价格阶梯：买入/卖出计划价位 + 临近/触及提醒；manual/strategy/agent 三来源分区管理
+// 价格轴仍使用底层 mark/ladder 数据；管理操作统一由 PriceLevelManager 提供。
 const ladder = ref({ current_price: null, price_updated: null, alert_threshold_pct: 2, strategy: null, levels: [] })
-const ldForm = ref({ side: 'buy', price: null, qty: null, note: '' })
-const ldGrid = ref({ base_price: null, step_pct: 3, up: 3, down: 3 })
-const ldEditingId = ref(null)
-const ldSaving = ref(false)
-const ldError = ref('')
-
-const ladderSellLevels = computed(() => ladder.value.levels.filter(l => l.side === 'sell'))
-const ladderBuyLevels = computed(() => ladder.value.levels.filter(l => l.side === 'buy'))
-const ladderHasAgent = computed(() => ladder.value.levels.some(l => l.source === 'agent'))
 
 // 最后浏览时间：展示的是「上次」打开的时间（本次打开会在加载后记录）；超过阈值闪烁
 const staleViewDays = computed(() => auth.config.value?.stale_view_days ?? 7)
@@ -614,136 +494,7 @@ async function loadLadder() {
   }
 }
 
-function ladderSourceLabel(s) {
-  return { manual: '手动', strategy: '策略', agent: 'AI' }[s] || s
-}
-
-function ladderStateLabel(lv) {
-  return { triggered: '⚡ 触及', near: '临近', disabled: '已停用' }[lv.state] || ''
-}
-
-function fmtLadderDiff(lv) {
-  if (lv.diff_pct === null || lv.diff_pct === undefined) return '--'
-  return (lv.diff_pct > 0 ? '+' : '') + lv.diff_pct.toFixed(1) + '%'
-}
-
-function fmtLadderTime(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString()
-}
-
-function applyLadder(res) {
-  if (res && typeof res === 'object' && Array.isArray(res.levels)) ladder.value = res
-}
-
-async function saveLevel() {
-  ldError.value = ''
-  if (!ldForm.value.price || ldForm.value.price <= 0) {
-    ldError.value = '请填写有效的价格'
-    return
-  }
-  ldSaving.value = true
-  try {
-    const body = {
-      side: ldForm.value.side,
-      price: ldForm.value.price,
-      qty: ldForm.value.qty || null,
-      note: (ldForm.value.note || '').trim(),
-    }
-    const res = ldEditingId.value
-      ? await api.ladder.updateLevel(props.code, ldEditingId.value, body)
-      : await api.ladder.addLevel(props.code, body)
-    applyLadder(res)
-    cancelEditLevel()
-  } catch (e) {
-    ldError.value = e.message || '保存失败'
-  } finally {
-    ldSaving.value = false
-  }
-}
-
-function startEditLevel(lv) {
-  ldEditingId.value = lv.id
-  ldForm.value = { side: lv.side, price: lv.price, qty: lv.qty, note: lv.note || '' }
-}
-
-function cancelEditLevel() {
-  ldEditingId.value = null
-  ldForm.value = { side: 'buy', price: null, qty: null, note: '' }
-}
-
-async function removeLevel(lv) {
-  if (!window.confirm(`删除 ${lv.side === 'buy' ? '买入' : '卖出'}档 ¥${lv.price.toFixed(2)}？`)) return
-  ldError.value = ''
-  try {
-    applyLadder(await api.ladder.deleteLevel(props.code, lv.id))
-  } catch (e) {
-    ldError.value = e.message || '删除失败'
-  }
-}
-
-async function applyGrid() {
-  ldError.value = ''
-  if (ladder.value.strategy && !window.confirm('重算将替换现有策略档位（手动/AI 档不受影响），继续？')) return
-  ldSaving.value = true
-  try {
-    const params = {
-      base_price: ldGrid.value.base_price || null,
-      step_pct: ldGrid.value.step_pct || 3,
-      up: ldGrid.value.up ?? 3,
-      down: ldGrid.value.down ?? 3,
-    }
-    applyLadder(await api.ladder.applyStrategy(props.code, 'grid', params))
-  } catch (e) {
-    ldError.value = e.message || '生成失败'
-  } finally {
-    ldSaving.value = false
-  }
-}
-
-async function clearStrategyLevels() {
-  if (!window.confirm('清除策略生成的所有档位？')) return
-  ldError.value = ''
-  try {
-    applyLadder(await api.ladder.clearStrategy(props.code))
-  } catch (e) {
-    ldError.value = e.message || '清除失败'
-  }
-}
-
-async function clearAgentLevels() {
-  if (!window.confirm('清除 AI 填入的所有档位？')) return
-  ldError.value = ''
-  try {
-    applyLadder(await api.ladder.clearAgent(props.code))
-  } catch (e) {
-    ldError.value = e.message || '清除失败'
-  }
-}
-const newMark = ref({ label: '', price: null, type: 'mark' })
 const newNote = ref('')
-
-const priceMarkLabels = computed(() => {
-  const labels = auth.config.value.price_mark_labels
-  return Array.isArray(labels) && labels.length ? labels : []
-})
-
-function markLabelClass(type) {
-  const known = new Set([
-    'target_buy', 'stop_loss', 'take_profit', 'add', 'reduce', 'mark', 'last_buy', 'last_sell',
-  ])
-  return ['mark-label', known.has(type) ? `mark-${type}` : 'mark-custom']
-}
-
-function selectPriceMarkLabel(tag) {
-  if (tag.key === 'last_buy' || tag.key === 'last_sell') {
-    fillLastTrade(tag.key === 'last_buy' ? 'buy' : 'sell')
-    return
-  }
-  newMark.value.label = tag.label
-  newMark.value.type = tag.key
-}
 
 const holdingsData = ref({ trades: [], summary: null })
 const showHoldings = ref(false)
@@ -1074,15 +825,13 @@ async function analyze(type) {
   }
 }
 
-async function addMark() {
-  await api.stocks.addPriceMark(props.code, newMark.value)
-  newMark.value = { label: '', price: null, type: 'mark' }
-  await load()
-}
-
-async function removeMark(id) {
-  await api.stocks.deletePriceMark(props.code, id)
-  await load()
+async function refreshPriceLevelSources() {
+  try {
+    meta.value = await api.stocks.get(props.code)
+  } catch {
+    // PriceLevelManager already reports mutation failures; keep the existing panel data.
+  }
+  await loadLadder()
 }
 
 async function addNote() {
@@ -1136,24 +885,6 @@ function renderMarkdown(md) {
     .replace(/\n/g, '<br>')
 }
 
-function fillPrice(offset) {
-  const base = newMark.value.price || meta.value.last_price
-  if (base == null) return
-  newMark.value.price = Number((base * (1 + offset)).toFixed(2))
-}
-
-// 最后买入/最后卖出：从持仓交易记录取价自动填充；无记录则提示录入
-function fillLastTrade(kind) {
-  const summary = holdingsData.value?.summary
-  const price = kind === 'buy' ? summary?.last_buy_price : summary?.last_sell_price
-  const label = kind === 'buy' ? '最后买入' : '最后卖出'
-  if (price == null) {
-    alert(`暂无${label}记录，请先在「持仓」中录入交易后再试`)
-    return
-  }
-  newMark.value = { label, price, type: kind === 'buy' ? 'last_buy' : 'last_sell' }
-}
-
 function fmtDate(iso) {
   if (!iso) return '-'
   const d = new Date(iso)
@@ -1173,7 +904,6 @@ function panelKey(name) {
 
 function restorePanelState() {
   newNote.value = readState(panelKey('note'), '')
-  newMark.value = readState(panelKey('mark'), { label: '', price: null, type: 'mark' })
   const urlOpen = isStandalone && typeof route.query.open === 'string' ? route.query.open : ''
   const savedExpanded = readState(panelKey('expanded'), null)
   expandedTimelineId.value = urlOpen || savedExpanded
@@ -1186,12 +916,11 @@ function restorePanelState() {
 
 function persistPanelState() {
   writeState(panelKey('note'), newNote.value)
-  writeState(panelKey('mark'), newMark.value)
   writeState(panelKey('expanded'), expandedTimelineId.value)
   writeState(panelKey('holdings'), showHoldings.value)
 }
 
-watch([newNote, newMark, expandedTimelineId, showHoldings], persistPanelState, { deep: true })
+watch([newNote, expandedTimelineId, showHoldings], persistPanelState, { deep: true })
 if (isStandalone) {
   // 阅读位置写入 URL（?open=...），刷新/分享后可直达同一条目
   watch(expandedTimelineId, (v) => {

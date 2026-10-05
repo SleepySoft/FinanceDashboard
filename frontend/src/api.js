@@ -76,6 +76,10 @@ export default {
     addNote: (code, content) => api(`/stocks/${code}/notes`, { method: 'POST', body: { content } }),
     deleteNote: (code, time) => api(`/stocks/${code}/notes/${encodeURIComponent(time)}`, { method: 'DELETE' }),
     markViewed: (code) => api(`/stocks/${code}/viewed`, { method: 'POST' }),
+    listPriceLevels: (code) => api(`/stocks/${code}/price-levels`),
+    createPriceLevel: (code, level) => api(`/stocks/${code}/price-levels`, { method: 'POST', body: level }),
+    updatePriceLevel: (code, id, patch) => api(`/stocks/${code}/price-levels/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
+    deletePriceLevel: (code, id) => api(`/stocks/${code}/price-levels/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   },
   agent: {
     tasks: () => api('/agent/tasks'),

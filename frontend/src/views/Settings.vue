@@ -77,12 +77,12 @@
         </div>
       </div>
 
-      <!-- 价格标记标签 -->
+      <!-- 价格水位类型 -->
       <div class="card" v-if="isAdmin">
-        <h3>价格标记标签</h3>
+        <h3>价格水位类型</h3>
         <p class="settings-hint">
-          股票面板添加价格标记时，按此列表顺序显示可选标签。拖动 ⠿ 可排序，
-          名称可修改；删除后仅影响以后新增标记的选择项，已有标记不会被删除。
+          所有分析水位、交易计划和系统事实必须引用已注册类型。名称可修改，也可添加自己的分析或计划类型；
+          类型 key 创建后保持稳定，已有水位不会因显示名称变化而失去语义。
         </p>
         <div class="cat-list">
           <div
@@ -96,16 +96,25 @@
             @dragend="markDragIndex = null"
           >
             <span class="cat-drag" title="拖动排序">⠿</span>
-            <input v-model="row.label" maxlength="20" placeholder="价格标记名称" class="cat-label" />
+            <input v-model="row.label" maxlength="20" placeholder="价格水位名称" class="cat-label" />
+            <select v-model="row.family" class="mark-family" :disabled="systemFactKeys.has(row.key)">
+              <option value="analysis">分析</option>
+              <option value="plan">计划</option>
+              <option value="fact">事实</option>
+            </select>
+            <select v-if="row.family === 'plan'" v-model="row.side" class="mark-family">
+              <option value="buy">买入</option>
+              <option value="sell">卖出</option>
+            </select>
             <span class="mark-key">{{ row.key }}</span>
-            <button class="ghost danger-text cat-del" @click="removePriceMarkLabel(idx)">删除</button>
+            <button v-if="!systemFactKeys.has(row.key)" class="ghost danger-text cat-del" @click="removePriceMarkLabel(idx)">删除</button>
           </div>
         </div>
         <p v-if="markMsg" :class="['config-msg', markError ? 'err' : 'ok']">{{ markMsg }}</p>
         <div class="settings-actions">
-          <button class="ghost" @click="addPriceMarkLabel">添加标签</button>
+          <button class="ghost" @click="addPriceMarkLabel">添加类型</button>
           <button class="primary" @click="savePriceMarkLabels" :disabled="savingMarks">
-            {{ savingMarks ? '保存中...' : '保存价格标记标签' }}
+            {{ savingMarks ? '保存中...' : '保存价格水位类型' }}
           </button>
         </div>
       </div>
@@ -463,7 +472,7 @@ async function saveCategories() {
   }
 }
 
-// 价格标记标签（改名/新增/删除/拖动排序）
+// 价格水位类型注册表（改名/新增/删除/拖动排序）
 const markRows = ref([])
 const markMsg = ref('')
 const markError = ref(false)
@@ -471,19 +480,23 @@ const savingMarks = ref(false)
 const markDragIndex = ref(null)
 
 function resetMarkRows() {
-  markRows.value = (auth.config.value.price_mark_labels || []).map(item => ({
+  markRows.value = (auth.config.value.price_level_types || []).map(item => ({
     key: item.key,
     label: item.label,
+    family: item.family,
+    side: item.side || 'buy',
   }))
 }
 
 function addPriceMarkLabel() {
-  markRows.value.push({ key: 'mark_' + Math.random().toString(36).slice(2, 10), label: '' })
+  markRows.value.push({ key: 'level_' + Math.random().toString(36).slice(2, 10), label: '', family: 'analysis', side: 'buy' })
 }
+
+const systemFactKeys = new Set(['last_buy', 'last_sell', 'average_cost'])
 
 function removePriceMarkLabel(idx) {
   const row = markRows.value[idx]
-  if (!window.confirm(`删除价格标记「${row.label || row.key}」？`)) return
+  if (!window.confirm(`删除价格水位类型「${row.label || row.key}」？已有水位仍会保留，但会按兼容类型显示。`)) return
   markRows.value.splice(idx, 1)
 }
 
@@ -504,19 +517,24 @@ async function savePriceMarkLabels() {
   const labels = markRows.value.map(row => row.label.trim())
   if (labels.some(label => !label)) {
     markError.value = true
-    markMsg.value = '价格标记名称不能为空'
+    markMsg.value = '价格水位名称不能为空'
     return
   }
   if (new Set(labels).size !== labels.length) {
     markError.value = true
-    markMsg.value = '价格标记名称不能重复'
+    markMsg.value = '价格水位名称不能重复'
     return
   }
   savingMarks.value = true
   try {
-    const payload = markRows.value.map(row => ({ key: row.key, label: row.label.trim() }))
-    await auth.updateConfig({ price_mark_labels: payload })
-    markMsg.value = '价格标记标签已保存'
+    const payload = markRows.value.map(row => ({
+      key: row.key,
+      label: row.label.trim(),
+      family: row.family,
+      ...(row.family === 'plan' ? { side: row.side } : {}),
+    }))
+    await auth.updateConfig({ price_level_types: payload })
+    markMsg.value = '价格水位类型已保存'
     resetMarkRows()
   } catch (e) {
     markError.value = true
@@ -984,6 +1002,10 @@ button.ghost.danger-text {
   color: #64748b;
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.mark-family {
+  width: 88px;
+  flex: 0 0 auto;
 }
 .info-label {
   color: #64748b;

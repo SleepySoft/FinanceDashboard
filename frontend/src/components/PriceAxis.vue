@@ -35,9 +35,9 @@
 
     <!-- 图例 -->
     <div class="pa-legend">
-      <span><i class="pa-badge pa-b-mark-manual">手工</i> 价格标记</span>
-      <span><i class="pa-badge pa-b-mark-agent">AI</i> 技术面标记</span>
-      <span><i class="pa-badge pa-b-ladder-buy">买</i> / <i class="pa-badge pa-b-ladder-sell">卖</i> 阶梯（含网格）</span>
+      <span><i class="pa-badge pa-b-mark-manual">手工</i> 分析水位</span>
+      <span><i class="pa-badge pa-b-mark-agent">AI</i> 分析水位</span>
+      <span><i class="pa-badge pa-b-ladder-buy">买</i> / <i class="pa-badge pa-b-ladder-sell">卖</i> 计划水位</span>
     </div>
   </div>
 </template>
@@ -45,9 +45,7 @@
 <script setup>
 import { computed } from 'vue'
 
-// 价格水位轴：把三类价位画在同一根纵轴上——
-//   手工价格标记（mark×manual）、AI 技术面标记（mark×agent）、价格阶梯/网格（ladder）
-// 并标注当前价与上/下一档的差额。设计依据见 AGENTS.md 决策 16。
+// 价格水位轴通过兼容适配器聚合分析水位（state.price_marks）与计划水位（ladder）。
 const props = defineProps({
   marks: { type: Array, default: () => [] },          // price_marks（含 source 字段）
   levels: { type: Array, default: () => [] },         // ladder levels（含 side/source/qty）
@@ -61,6 +59,8 @@ const MIN_GAP = 22   // 标签行最小间距 px
 const entries = computed(() => {
   const out = []
   for (const m of props.marks || []) {
+    if (m.state && m.state !== 'active') continue
+    if (isExpired(m.valid_until)) continue
     const price = Number(m.price)
     if (!price || price <= 0) continue
     out.push({
@@ -71,7 +71,8 @@ const entries = computed(() => {
     })
   }
   for (const lv of props.levels || []) {
-    if (lv.enabled === false) continue
+    if (lv.enabled === false || (lv.lifecycle_state && lv.lifecycle_state !== 'active')) continue
+    if (isExpired(lv.valid_until)) continue
     const price = Number(lv.price)
     if (!price || price <= 0) continue
     out.push({
@@ -84,6 +85,12 @@ const entries = computed(() => {
   }
   return out.sort((a, b) => a.price - b.price)
 })
+
+function isExpired(value) {
+  if (!value) return false
+  const expiry = new Date(value.length === 10 ? `${value}T23:59:59` : value)
+  return !Number.isNaN(expiry.getTime()) && expiry.getTime() < Date.now()
+}
 
 const hasData = computed(() => entries.value.length > 0 || props.currentPrice)
 
@@ -138,7 +145,7 @@ function badgeText(e) {
   return e.source === 'agent' ? 'AI' : '手工'
 }
 function entryTitle(e) {
-  const parts = [e.kind === 'ladder' ? '价格阶梯' : (e.source === 'agent' ? 'AI 标记' : '手工标记')]
+  const parts = [e.kind === 'ladder' ? '计划水位' : (e.source === 'agent' ? 'AI 分析水位' : '手工分析水位')]
   if (e.note) parts.push(e.note)
   return parts.join('：')
 }
