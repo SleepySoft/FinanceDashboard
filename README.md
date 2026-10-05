@@ -98,6 +98,25 @@ TOKEN=$(cat agent_token.txt)
 curl -H "X-API-Key: $TOKEN" http://localhost:8010/api/agent/tasks
 ```
 
+## Arachne 产业图谱集成
+
+项目通过 `services/arachne` Git submodule 接入独立的 Arachne 服务。股票面板中的“产业链图谱”按需使用证券代码解析 Arachne 公司，并嵌入公司产业上下文；Arachne 故障或未收录公司不会影响看板其他功能。
+
+首次拉取或更新后初始化嵌套子模块：
+
+```bash
+git submodule update --init --recursive
+```
+
+本地启动 Arachne：
+
+```powershell
+cd services/arachne
+.\scripts\start-all.ps1
+```
+
+FinanceDashboard 后端默认连接 `http://127.0.0.1:16060/api/v1`，前端开发服务器把 `/arachne/*` 转发到 `http://localhost:3000`。可通过 `ARACHNE_API_URL`、`ARACHNE_PUBLIC_BASE`、`ARACHNE_TIMEOUT_SECONDS` 覆盖。
+
 ## 快速开始
 
 ### Linux / macOS 开发

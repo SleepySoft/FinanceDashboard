@@ -72,6 +72,7 @@ sudo systemctl reload nginx
 ```bash
 cd /root/data/FinanceDashboard
 git pull --ff-only
+git submodule update --init --recursive
 
 # 前端有改动时构建并同步到 Nginx 静态目录
 cd frontend
@@ -88,6 +89,55 @@ sudo ./scripts/install_systemd_service.sh
 
 ```bash
 sudo systemctl restart financedashboard
+```
+
+## Arachne 独立服务
+
+Arachne 位于 `services/arachne`，但作为独立服务运行。不要把它的 FastAPI 路由或 Python 环境合并到 FinanceDashboard。生产环境需要分别运行 Arachne 后端、Neo4j 和 PostgreSQL，并构建 Arachne 前端：
+
+```bash
+cd /root/data/FinanceDashboard/services/arachne/frontend
+npm install
+VITE_PUBLIC_BASE=/arachne/ VITE_API_BASE=/arachne/api/v1 npm run build
+sudo mkdir -p /var/www/arachne
+sudo rsync -a --delete dist/ /var/www/arachne/
+```
+
+FinanceDashboard 服务环境默认值如下；Arachne 在其他主机时通过项目根目录 `.env` 覆盖：
+
+```dotenv
+ARACHNE_API_URL=http://127.0.0.1:16060/api/v1
+ARACHNE_PUBLIC_BASE=/arachne
+ARACHNE_TIMEOUT_SECONDS=3
+```
+
+Arachne 公网集成应保持只读：后端设置 `AUTH_MODE=jwt` 和 `JWT_LOCAL_BYPASS=false`。未携带 JWT 的查询与推理仍可用，写操作返回 403。Arachne 后端仅监听内网或回环地址。
+
+应用主机 Nginx 增加更具体的 API location，并把静态文件发布到同源 `/arachne/`：
+
+```nginx
+location ^~ /arachne/api/v1/ {
+    proxy_pass http://127.0.0.1:16060/api/v1/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+location ^~ /arachne/ {
+    root /var/www;
+    try_files $uri $uri/ /arachne/index.html;
+}
+```
+
+公网入口主机也必须把 `/arachne/` 转发到应用主机。不要公开代理 Arachne 的 `/integration/config`。发布后验证：
+
+```bash
+curl --fail http://127.0.0.1:16060/health
+curl --fail 'http://127.0.0.1:16060/api/v1/companies/resolve/by-stock-code?stock_code=300308.SZ'
+curl --fail http://127.0.0.1:8010/api/integrations/arachne/stocks/300308.SZ
+curl --fail http://127.0.0.1/arachne/embed.html
 ```
 
 ## 运维与验证

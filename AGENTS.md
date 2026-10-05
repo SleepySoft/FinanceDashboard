@@ -35,6 +35,7 @@ Internet: https://www.sleepysoft.dev/dashboard/
 | Data | JSON + Markdown | — | One dir per stock, `_dashboard.json` for prices |
 | Auth | backend/auth.py（stdlib，无新依赖） | — | PBKDF2 密码哈希 + 文件会话 + 权限配置 |
 | Gateway | OpenClaw | 18789 | localhost only, not exposed |
+| Industry Graph | Arachne submodule + FastAPI/React/Neo4j/PostgreSQL | 16060/3000/7687/5433 | 独立服务，经 `/arachne/` 嵌入 |
 
 ## Data Layout
 
@@ -94,6 +95,7 @@ data/
    - **用途 = 价格标记（mark，存 `state.json.price_marks`）**：纯参考水位，无方向、无数量、不触发提醒。来源 `source=manual`（用户手工）/ `agent`（AI 技术面标记：阻力位/支撑位/筹码密集区等）。AI 只能经 `PUT /api/agent/stocks/{code}/price-marks` **整体替换 agent 档**，手工标记不受影响；传空数组即清空 AI 标记。
    - **用途 = 价格阶梯（ladder，存 `ladder.json`）**：交易计划，有买卖方向/数量/临近·触及提醒。来源 `manual` / `strategy` / `agent` 三分区互不覆盖（见决策 10）。**网格 = ladder × strategy，不是第三类价格**。
    - 前端「价格水位轴」（`PriceAxis.vue`，股票面板内）把两类价位画在同一纵轴：显示各档位（颜色区分用途×来源）、当前价位置、当前价与上一档/下一档的差额与百分比。
+17. **Arachne 独立服务集成（2026-10-05 新增）** — `services/arachne` 是 `SleepySoft/Arachne` 的 Git submodule，Arachne 保持独立前后端和 Neo4j/PostgreSQL，不导入 FinanceDashboard 进程。FinanceDashboard 后端通过 `ARACHNE_API_URL` 按证券代码精确解析公司，前端股票面板按需加载 `/arachne/embed.html` 的公司产业上下文。Arachne 未运行或未收录公司时仅降级该卡片，不影响股票详情。更新时先在 Arachne 仓库提交并 push，再单独更新父仓库 gitlink；clone/deploy 必须使用 `git submodule update --init --recursive`，因为 Arachne 还包含 ArachneData 嵌套子模块。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -205,6 +207,7 @@ data/
 | `/api/stocks/{code}/ladder/levels/{id}` | PATCH/DELETE | 改/删 manual 档位 |
 | `/api/stocks/{code}/ladder/strategy` | POST/DELETE | 应用策略（如 grid）重算策略档 / 清除策略档 |
 | `/api/stocks/{code}/viewed` | POST | 记录管理员最后浏览时间（仅 admin） |
+| `/api/integrations/arachne/stocks/{code}` | GET | 按证券代码解析 Arachne 公司并返回产业链 embed URL |
 
 ## API Endpoints (Agent-facing)
 
@@ -268,6 +271,23 @@ Linux 生产拓扑、发布和故障排查详见 [docs/how/linux-deployment.md](
 ### Dependency Files
 - 后端：`backend/requirements.txt`（FastAPI + Uvicorn + Pydantic）
 - 前端：`frontend/package.json`（Vue 3 + Vite + Axios + Vue Router）
+- 产业图谱：`services/arachne`（独立仓库子模块；使用自己的 Python/Node 依赖和数据库）
+
+### Arachne 子模块与本地联调
+
+```cmd
+git submodule update --init --recursive
+cd services\arachne
+powershell -ExecutionPolicy Bypass -File scripts\start-all.ps1
+```
+
+本地 FinanceDashboard Vite 会把 `/arachne/*` 转发到 Arachne 前端 `localhost:3000`；FinanceDashboard 后端默认访问 `http://127.0.0.1:16060/api/v1`。可用环境变量覆盖：
+
+- `ARACHNE_API_URL`：服务端 API 根地址，默认 `http://127.0.0.1:16060/api/v1`
+- `ARACHNE_PUBLIC_BASE`：浏览器访问前缀，默认 `/arachne`
+- `ARACHNE_TIMEOUT_SECONDS`：解析公司的请求超时，默认 3 秒
+
+Arachne 上游更新流程：在独立 `C:\D\code\Arachne` 工作区完成测试、提交并 push；然后在本仓库执行 `git -C services/arachne fetch origin main`、checkout 已 push 的 commit，并把子模块指针作为独立提交保存。禁止直接留下未 push 的 submodule commit。
 
 ### Code Quality Gates (frontend/)
 ```cmd
