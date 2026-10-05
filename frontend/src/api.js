@@ -51,7 +51,10 @@ export default {
     status: () => api('/scheduler/status'),
   },
   arachne: {
-    resolveStock: (code) => api(`/integrations/arachne/stocks/${encodeURIComponent(code)}`),
+    resolveStock: (code, name = '') => {
+      const query = name ? `?name=${encodeURIComponent(name)}` : ''
+      return api(`/integrations/arachne/stocks/${encodeURIComponent(code)}${query}`)
+    },
   },
   tushare: {
     test: (token) => api('/tushare/test', { method: 'POST', body: { token } }),

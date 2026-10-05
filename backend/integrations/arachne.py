@@ -58,8 +58,11 @@ def _build_embed_url(company_id: str, company_name: str) -> str:
     return f"{_public_base()}/embed.html?{query}"
 
 
-def _request_company(stock_code: str) -> dict | None:
-    query = urllib.parse.urlencode({"stock_code": stock_code})
+def _request_company(stock_code: str, company_name: str | None = None) -> dict | None:
+    params = {"stock_code": stock_code}
+    if company_name and company_name.strip():
+        params["company_name"] = company_name.strip()
+    query = urllib.parse.urlencode(params)
     url = f"{_api_base()}/companies/resolve/by-stock-code?{query}"
     request = urllib.request.Request(url, headers={"Accept": "application/json"})
     try:
@@ -82,10 +85,10 @@ def _request_company(stock_code: str) -> dict | None:
 
 
 @router.get("/stocks/{code}")
-def resolve_stock(code: str):
+def resolve_stock(code: str, name: str | None = None):
     """Resolve a FinanceDashboard stock to an Arachne company and embed URL."""
     stock_code = _normalize_stock_code(code)
-    company = _request_company(stock_code)
+    company = _request_company(stock_code, name)
     if company is None:
         return {"available": True, "matched": False, "stock_code": stock_code}
 

@@ -39,18 +39,19 @@ class ArachneIntegrationTests(unittest.TestCase):
         self.assertIn("title=%E5%8D%97%E5%A4%A7%E5%85%89%E7%94%B5", url)
 
     def test_resolve_stock_returns_unmatched_without_guessing(self):
-        with patch.object(arachne, "_request_company", return_value=None):
-            result = arachne.resolve_stock(" 002430.sz ")
+        with patch.object(arachne, "_request_company", return_value=None) as request_company:
+            result = arachne.resolve_stock(" 002430.sz ", "杭氧股份")
 
         self.assertEqual(
             result,
             {"available": True, "matched": False, "stock_code": "002430.SZ"},
         )
+        request_company.assert_called_once_with("002430.SZ", "杭氧股份")
 
     def test_resolve_stock_builds_company_embed(self):
         company = {"company_id": "nanda_optoelectronics", "name_zh": "南大光电"}
         with patch.object(arachne, "_request_company", return_value=company):
-            result = arachne.resolve_stock("002430.SZ")
+            result = arachne.resolve_stock("002430.SZ", "南大光电")
 
         self.assertTrue(result["matched"])
         self.assertEqual(result["company"], company)

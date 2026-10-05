@@ -54,7 +54,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    result.value = await api.arachne.resolveStock(props.code)
+    result.value = await api.arachne.resolveStock(props.code, props.name)
   } catch (e) {
     error.value = e.message || '产业链服务暂不可用'
   } finally {
