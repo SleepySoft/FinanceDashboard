@@ -1,0 +1,22 @@
+{
+  "tags": {
+    "overall": "green",
+    "quality": "green",
+    "valuation": "green",
+    "timing": "yellow",
+    "risk": "yellow",
+    "verdict": "green",
+    "unread": true,
+    "watchlist": false
+  },
+  "notes": [],
+  "holdings": {},
+  "price_marks": [],
+  "record_prices": {
+    "notes": {},
+    "reports": {
+      "technical_20261004": 20.29
+    }
+  },
+  "status": "unassessed"
+}

@@ -1009,5 +1009,248 @@
       "reports": null
     },
     "error": null
+  },
+  {
+    "id": "3a1abf47-91d",
+    "code": "688836.SH",
+    "name": "宇树科技",
+    "sector": "机器人",
+    "note": "人形机器人第一股，2026-08-19上市，发行价150.80，现450.40腰斩创低，写目标价",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-03T01:35:57.240512+00:00",
+    "claimed_at": "2026-10-03T01:36:02.848074+00:00",
+    "completed_at": "2026-10-03T01:38:22.960548+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "报告撰写中，先建档",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "3c8cf07b-67b",
+    "code": "688825.SH",
+    "name": "长鑫科技",
+    "sector": "半导体",
+    "note": "国产DRAM第一股，2026-07-27上市，发行价8.66，现54.79市值3.72万亿，写目标价",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-03T01:35:57.250847+00:00",
+    "claimed_at": "2026-10-03T01:36:02.873889+00:00",
+    "completed_at": "2026-10-03T01:38:22.999162+00:00",
+    "result": {
+      "report_path": null,
+      "summary": "报告撰写中，先建档",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "8a476a23-c89",
+    "code": "000400.SZ",
+    "name": "许继电气",
+    "sector": "特高压",
+    "note": "特高压直流换流阀/二次设备",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:22:10.105540+00:00",
+    "claimed_at": "2026-10-04T10:22:19.031816+00:00",
+    "completed_at": "2026-10-04T10:31:29.141607+00:00",
+    "result": {
+      "report_path": "data/000400.SZ/reports/fundamental_20261004.md,data/000400.SZ/reports/technical_20261004.md",
+      "summary": "国网系直流换流阀/控保双核心（换流阀2026前4批份额26.4%第一），特高压利润占比45%板块最高。2026H1归母-34.4%系去年低价电表/配网订单确收+直流确收空窗，毛利率-3.85pp，现金流转负；国网前4批特高压中标26亿+60%，十五五15回直流弹性测算直流板块5年翻倍以上。估值板块最低（PE_TTM 23/PB 1.78/股息2.18%），技术面双底+跳空放量三连阳冲22.0-22.4压力区。综合评级黄：逻辑对、节奏待Q3验证。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "9ca889e6-f55",
+    "code": "601179.SH",
+    "name": "中国西电",
+    "sector": "特高压",
+    "note": "一次设备全谱系央企",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:22:11.145464+00:00",
+    "claimed_at": "2026-10-04T10:22:18.203492+00:00",
+    "completed_at": "2026-10-04T10:34:25.565681+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/601179.SH/reports/fundamental_20261004.md,/root/data/FinanceDashboard/data/601179.SH/reports/technical_20261004.md",
+      "summary": "中国西电：特高压一次设备全谱系央企，参与80%+特高压工程，换流变/GIS市占约29%/25%。基本面真实改善：毛利率四年升8.1pct至24.5%，合同负债四年翻2.6倍至62.25亿，在手订单超400亿，6-7月国网中标60亿+。2026H1归母6.88亿(+15%)，扣非+21%，2026E一致预期15.4亿。估值偏贵：PE_ttm 43.8x为许继/平高约两倍，现价已计入较多预期；技术面3月见顶20.65后回撤44%，空头排列但9月末地量超卖。评级🟡，目标价12.5-14.5元，10.5元以下安全边际较好。催化：特高压核准提速、2027年3月同业竞争整合承诺到期、SST出海。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "ade43a56-af8",
+    "code": "002028.SZ",
+    "name": "思源电气",
+    "sector": "特高压",
+    "note": "民营一次+二次设备平台",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:22:23.669611+00:00",
+    "claimed_at": "2026-10-04T10:22:34.993138+00:00",
+    "completed_at": "2026-10-04T10:31:28.667921+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/002028.SZ/reports/fundamental_20261004.md,/root/data/FinanceDashboard/data/002028.SZ/reports/technical_20261004.md",
+      "summary": "思源电气：民营输配电平台型龙头，2026H1营收108亿(+27%)但归母仅+13.2%，Q2增速骤降至8%，汇兑损失8506万+毛利率降1.3pct为主因。订单饱满（375亿目标+30%，合同负债31.5亿为三年前4倍），经营现金流+131%改善。海外31.8亿(+11%)占比29.5%，瑞银降级提示2027-28西方产能释放的份额风险。股价自3月高点239元腰斩至120元，PE 28.4x/PS 3.95x仍为同行最高。评级🟡：好公司坏时点，等三季报验证增速回升。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "abf70718-283",
+    "code": "002606.SZ",
+    "name": "大连电瓷",
+    "sector": "特高压",
+    "note": "特高压绝缘子",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:22:35.232837+00:00",
+    "claimed_at": "2026-10-04T10:22:44.112752+00:00",
+    "completed_at": "2026-10-04T10:33:04.549652+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/002606.SZ/reports/fundamental_20261004.md,/root/data/FinanceDashboard/data/002606.SZ/reports/technical_20261004.md",
+      "summary": "大连电瓷：特高压瓷绝缘子绝对龙头（交流市占率约59%），2026H1归母+232%/扣非+258%，毛利率38.7%创新高，PE_TTM仅16.4倍为板块最低。技术面年线11.93上方缩量超卖，11.75-11.95为多空分水岭。评级🟢，目标价15.5-19.0元。核心风险：高管减持记录、客户集中度72%、存货高企。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "ee12875e-792",
+    "code": "600312.SH",
+    "name": "平高电气",
+    "sector": "特高压",
+    "note": "特高压GIS/高压开关龙头",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:22:50.817690+00:00",
+    "claimed_at": "2026-10-04T10:23:10.026026+00:00",
+    "completed_at": "2026-10-04T10:30:33.196596+00:00",
+    "result": {
+      "report_path": "data/600312.SH/reports/fundamental_20261004.md,data/600312.SH/reports/technical_20261004.md",
+      "summary": "平高电气：特高压交流GIS绝对龙头（1000kV份额44%+/直流GIS约50%），2026前三批国网特高压招标292.6亿(+674%)直接受益。2026H1毛利率29.8%(+5pct)、扣非+21%、合同负债+27%印证订单饱满。PE_TTM 21.6x/26E 19.5x，板块内中游偏低。技术面7月16.01见底后低点抬升，9月末放量站上全部均线+MACD零轴金叉，右侧启动初期，短线J值超买不宜追，19.5-19.65回踩分批或站稳21.6右侧跟进。风险：国网集采降价、毛利率高位回落、应收61.7亿+现金流波动。评级🟢。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "f3ad10ee-6a0",
+    "code": "601700.SH",
+    "name": "风范股份",
+    "sector": "特高压",
+    "note": "绝缘子/铁塔，本轮情绪龙头",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:23:11.225509+00:00",
+    "claimed_at": "2026-10-04T10:23:20.538731+00:00",
+    "completed_at": "2026-10-04T10:35:46.763188+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/601700.SH/reports/fundamental_20261004.md",
+      "summary": "风范股份：主业输电铁塔（非绝缘子），塔类收入占65%，出口毛利率28%为隐藏亮点。2026H1归母0.91亿(+923%)系低基数幻觉：Q2实际增速仅+22%，利润总额仅0.18亿，靠4.16亿税盾+少数股东分担晶樱亏损撑起表观利润；经营现金流-0.77亿、短借27亿。市值70.5亿对全年2.0-2.5亿利润=28-35x，PB3.2x，大连电瓷（H1赚1.55亿、38.7%毛利率、16x）市值反低34%——溢价纯为妖股情绪。16天9板后自8.78已回撤29.5%，缩量阴跌、MA20反压、北向已撤，无右侧信号。评级🔴，目标区间5.0-6.0元。",
+      "reports": [
+        {
+          "path": "/root/data/FinanceDashboard/data/601700.SH/reports/fundamental_20261004.md",
+          "type": "fundamental"
+        },
+        {
+          "path": "/root/data/FinanceDashboard/data/601700.SH/reports/technical_20261004.md",
+          "type": "technical"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "id": "c0c69c83-d03",
+    "code": "600312.SH",
+    "name": "平高电气",
+    "sector": "特高压",
+    "note": "特高压GIS/高压开关龙头",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:23:20.738472+00:00",
+    "claimed_at": "2026-10-04T10:23:30.409752+00:00",
+    "completed_at": "2026-10-04T10:29:32.109705+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/600312.SH/reports/fundamental_20261004.md,/root/data/FinanceDashboard/data/600312.SH/reports/technical_20261004.md",
+      "summary": "平高电气：特高压交流GIS绝对龙头(1100kV市占率约46%)，2026H1归母8.17亿(+23%)、毛利率29.8%(+5pct)，年内国网中标超73亿、合同负债+27%。PE(TTM)21.6倍、2026E约19.5倍，板块内增速最快梯队里的最低估值(PEG<1)。盈利质量瑕疵：应收61.7亿高企、2025年现金流含量仅0.72。技术面大箱体上半区放量突破，MACD零轴金叉+均线束收复，短线超买宜等回踩19.5或放量站稳21.55。评级🟢，目标价22.5-26.0元。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "816082af-8fe",
+    "code": "601179.SH",
+    "name": "中国西电",
+    "sector": "特高压",
+    "note": "一次设备全谱系央企",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:24:06.842331+00:00",
+    "claimed_at": "2026-10-04T10:24:14.943999+00:00",
+    "completed_at": "2026-10-04T10:33:13.801324+00:00",
+    "result": {
+      "report_path": "data/601179.SH/reports/fundamental_20261004.md,data/601179.SH/reports/technical_20261004.md",
+      "summary": "中国西电601179：特高压交直流一次设备全谱系央企，在手订单280亿+至2027，毛利率三连升至24.5%，26H1归母6.88亿+15%。但ROE仅6%、净利率5.6%，47倍PE为板块最贵（平高17-25倍/思源30倍），估值透支确定性溢价。技术面：3月天量顶20.65后回撤43.8%，跌破61.8%回撤位，均线空头排列，KDJ超卖+量能枯竭，下降趋势未破坏。评级🟡：好公司贵股票，基准目标9.0-10.5元，乐观13.5-15.5元需催化，等右侧或更好价格。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "47963eb3-f3d",
+    "code": "601700.SH",
+    "name": "风范股份",
+    "sector": "特高压",
+    "note": "绝缘子/铁塔，本轮情绪龙头",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:33:16.509223+00:00",
+    "claimed_at": "2026-10-04T10:33:34.295515+00:00",
+    "completed_at": "2026-10-04T10:37:10.662913+00:00",
+    "result": {
+      "report_path": "data/601700.SH/reports/fundamental_20261004.md, data/601700.SH/reports/technical_20261004.md",
+      "summary": "风范股份601700.SH：评级🔴。铁塔（非绝缘子）主业，2025年晶樱光伏减值4.19亿致亏3.87亿，2026H1归母0.91亿但利润总额仅0.18亿、六成靠税盾与少数股东分担，Q2真实增速仅22%。本轮16天9板已走完：8/28见顶8.38、9/30收6.19（回撤26%），换手缩至峰值12%、北向8/24起撤退。70亿市值对2.0-2.5亿全年利润=28-35x forward PE，高于大连电瓷(16x)一倍，溢价纯情绪定价。目标价5.0-6.0元，不接力，持有者逢6.6-6.9减仓、破6.02离场。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "22c141f9-16b",
+    "code": "002028.SZ",
+    "name": "思源电气",
+    "sector": "特高压",
+    "note": "民营一次+二次设备平台",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:34:06.492840+00:00",
+    "claimed_at": "2026-10-04T10:34:15.291921+00:00",
+    "completed_at": "2026-10-04T10:36:30.055370+00:00",
+    "result": {
+      "report_path": "/root/data/FinanceDashboard/data/002028.SZ/reports/fundamental_20261004.md,/root/data/FinanceDashboard/data/002028.SZ/reports/technical_20261004.md",
+      "summary": "思源电气🟡中性：民营输配电平台唯一标的，订单饱满（2026目标375亿/+30%）、合同负债4倍、现金流H1转正+9.4亿改善明显；但Q2归母增速骤降至+7.9%（汇兑损失8506万+毛利率-1.3pct），海外增速从+40%降至+11%，瑞银降级+美行政令+H股发行压制估值。PE 28.4x/PB 5.73x/PS 3.95x为同行最高，民营溢价需利润增速重回20%+支撑。技术面完全空头排列，RSI6=0.9极端超卖但无底背离，120.46元距高点腰斩，上方134-152套牢盘沉重。短期看110-142，中期120-165，关键看三季报增速与H股定价。",
+      "reports": null
+    },
+    "error": null
+  },
+  {
+    "id": "2d3e6e92-54e",
+    "code": "002606.SZ",
+    "name": "大连电瓷",
+    "sector": "特高压",
+    "note": "特高压绝缘子",
+    "type": "full",
+    "status": "completed",
+    "created_at": "2026-10-04T10:37:52.024994+00:00",
+    "claimed_at": "2026-10-04T10:37:55.363403+00:00",
+    "completed_at": "2026-10-04T10:45:11.924419+00:00",
+    "result": {
+      "report_path": "data/002606.SZ/reports/fundamental_20261004.md,data/002606.SZ/reports/technical_20261004.md",
+      "summary": "大连电瓷：特高压悬式瓷绝缘子份额约50%的百年寡头。2026H1归母+232%、毛利率38.7%创新高，扣非占比94%质量极干净；PE_TTM仅16.4倍，为板块唯一增速200%+且PE<20标的。低风险负债34%、三大基地满产、海外收入占比24%。压制项：董事长两次减持史、客户集中72%、存货7.4亿。目标价13.2-18.2元（2026E净利3.6-4.0亿×16-20倍），评级🟢。技术面年线11.93上方超卖企稳，空头排列未反转，11.75破位减半。",
+      "reports": null
+    },
+    "error": null
   }
 ]

@@ -1,0 +1,11 @@
+{
+  "tags": {
+    "overall": "green",
+    "quality": "green",
+    "valuation": "green",
+    "timing": "yellow",
+    "risk": "yellow",
+    "verdict": "green",
+    "unread": true
+  }
+}
