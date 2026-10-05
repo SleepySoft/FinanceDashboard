@@ -9,10 +9,21 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response
+
+import auth
 
 
 router = APIRouter(prefix="/api/integrations/arachne", tags=["integrations"])
+
+
+@router.get("/auth-scope")
+def auth_scope(request: Request, response: Response):
+    """Translate a FinanceDashboard login session into Arachne's scope model."""
+    username = auth.get_session_user(request)
+    scope = "read_write" if username else "read_only"
+    response.headers["X-Arachne-Scope"] = scope
+    return {"scope": scope, "authenticated": username is not None}
 
 
 def _api_base() -> str:
@@ -86,4 +97,3 @@ def resolve_stock(code: str):
         "company": company,
         "embed_url": _build_embed_url(company["company_id"], company_name),
     }
-

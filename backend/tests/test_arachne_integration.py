@@ -2,10 +2,33 @@ import os
 import unittest
 from unittest.mock import patch
 
+from starlette.requests import Request
+from starlette.responses import Response
+
 from integrations import arachne
 
 
 class ArachneIntegrationTests(unittest.TestCase):
+    @staticmethod
+    def _request():
+        return Request({"type": "http", "method": "GET", "path": "/", "headers": []})
+
+    def test_auth_scope_is_read_only_without_login(self):
+        response = Response()
+        with patch.object(arachne.auth, "get_session_user", return_value=None):
+            result = arachne.auth_scope(self._request(), response)
+
+        self.assertEqual(result, {"scope": "read_only", "authenticated": False})
+        self.assertEqual(response.headers["X-Arachne-Scope"], "read_only")
+
+    def test_auth_scope_grants_write_to_logged_in_user(self):
+        response = Response()
+        with patch.object(arachne.auth, "get_session_user", return_value="sleepy"):
+            result = arachne.auth_scope(self._request(), response)
+
+        self.assertEqual(result, {"scope": "read_write", "authenticated": True})
+        self.assertEqual(response.headers["X-Arachne-Scope"], "read_write")
+
     def test_embed_url_uses_configured_public_base(self):
         with patch.dict(os.environ, {"ARACHNE_PUBLIC_BASE": "/dashboard/arachne"}):
             url = arachne._build_embed_url("nanda_optoelectronics", "南大光电")
@@ -36,4 +59,3 @@ class ArachneIntegrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

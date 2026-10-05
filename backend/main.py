@@ -119,7 +119,12 @@ async def permission_control(request: Request, call_next):
         return await call_next(request)
 
     method = request.method.upper()
-    if path.startswith("/api/auth") or path == "/api/health" or method == "OPTIONS":
+    if (
+        path.startswith("/api/auth")
+        or path == "/api/health"
+        or path == "/api/integrations/arachne/auth-scope"
+        or method == "OPTIONS"
+    ):
         return await call_next(request)
 
     user = auth.get_current_user(request)
