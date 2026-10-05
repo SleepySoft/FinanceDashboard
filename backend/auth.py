@@ -395,6 +395,10 @@ def _validate_price_level_types(raw) -> list:
         out.append(normalized)
     if not any(item["family"] == "analysis" for item in out):
         raise HTTPException(400, "至少保留一个 analysis 类型")
+    fact_keys = {item["key"] for item in out if item["family"] == "fact"}
+    required_facts = {"last_buy", "last_sell", "average_cost"}
+    if not required_facts.issubset(fact_keys):
+        raise HTTPException(400, "系统事实类型 last_buy/last_sell/average_cost 不可删除或改组")
     return out
 
 

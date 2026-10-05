@@ -1120,10 +1120,6 @@ def delete_price_mark(code: str, mark_id: str):
 # 与手工标记共存于 price_marks，按 source 分区：AI 只能整体替换 agent 档，
 # 手工（manual）标记不受影响。与价格阶梯（ladder）的关系见 AGENTS.md 决策 16。
 
-_PRICE_MARK_TYPES = {"target_buy", "stop_loss", "take_profit", "add", "reduce",
-                     "mark", "last_buy", "last_sell", "support", "resistance", "custom"}
-
-
 class AgentPriceMarkItem(BaseModel):
     label: str
     price: float
@@ -1140,14 +1136,24 @@ def agent_replace_price_marks(code: str, req: AgentPriceMarksReq):
     """AI 整体替换自己的价格标记（source=agent），手工标记保留。传空列表即清空 AI 标记。"""
     meta = _load_meta(code)
     manual = [m for m in meta.get("price_marks", []) if m.get("source", "manual") == "manual"]
+    registry = {
+        item["key"]: item
+        for item in auth.get_price_level_types(auth.load_config())
+        if item.get("family") == "analysis"
+    }
     agent_marks = []
     for item in req.marks[:50]:
+        type_key = item.type if item.type in registry else "custom"
+        type_meta = registry.get(type_key) or {"label": "自定义"}
+        note = (item.note or "").strip()
+        if type_key == "custom" and item.label.strip() and not note:
+            note = item.label.strip()
         agent_marks.append({
             "id": str(uuid.uuid4())[:8],
-            "label": item.label.strip()[:50] or "AI标记",
+            "label": type_meta["label"],
             "price": float(item.price),
-            "type": item.type if item.type in _PRICE_MARK_TYPES else "custom",
-            "note": (item.note or "")[:200],
+            "type": type_key,
+            "note": note[:200],
             "source": "agent",
             "state": "proposed",
             "created_at": _now()
