@@ -85,16 +85,20 @@ data/
   - 回归测试脚本：`scripts/fault_injection_test.ps1`（仓库相对路径，注入坏 JSON、错误字段类型、非 UTF-8 notes 和异常报告名，验证接口仍 200 并自动恢复数据）；`frontend/tests/smoke.mjs` 同时模拟附属接口返回损坏 JSON。
   - 价格标记规范化（2026-09-17）：`_load_meta` 经 `_normalize_price_marks()` 兼容历史脏数据——缺 `id` 时按内容哈希生成确定性 id、`note` 字段映射为 `label`、`price` 转 float、无法修复的条目丢弃；`DELETE price-marks/{id}` 找不到标记返回 404 而非 KeyError 500；`PriceMarkReq.type` 放宽支持 `support`/`resistance`/`custom`。
 9. **记录价格快照（2026-09-03 新增）** — 新增笔记和 Agent 完成分析时，从 `_dashboard.json` 读取可用价格并写入股票 `state.json.record_prices`；时间线按固定列显示，旧记录或取价失败显示 `--`。报告键为文件名主干，笔记键为 `##` 时间戳。
-10. **价格阶梯（2026-09-10 新增，`backend/ladder.py`）** — 每股票 `ladder.json` 存买入/卖出计划价位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换，用于压力位/支撑位场景）。提醒语义基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
+10. **计划水位的兼容存储（2026-09-10 新增，2026-10-05 纳入统一模型；`backend/ladder.py`）** — 每股票 `ladder.json` 存 `family=plan` 水位，三种来源按 `source` 分区替换互不覆盖：`manual`（面板手动增删改）、`strategy`（内置策略计算，首期 grid 网格，注册表 `STRATEGIES` 可扩展）、`agent`（AI 经 `/api/agent/stocks/{code}/ladder` 整体替换明确带买卖方向的交易计划）。距离状态基于 `_dashboard.json` 当前价：买入档 current≤price、卖出档 current≥price 为 `triggered`，距离 ≤ `alert_threshold_pct`（默认 2%）为 `near`；`/api/dashboard` 每股附 `ladder_hint`（最近买/卖档 + 触及计数）。
 11. **最后浏览时间（2026-09-11 新增，`backend/views.py`；2026-09-12 改为管理员专属）** — 管理员打开股票面板/详情页时前端调 `POST /api/stocks/{code}/viewed` 记录（按用户存 `views.json`）；`/api/dashboard` 与 `/api/stocks/{code}` 仅对管理员返回 `last_viewed`（展示的是「上次」浏览，本次记录在返回之后）。非管理员不记录、不返回、不显示浏览时间。超过配置 `stale_view_days`（默认 7 天，0=关闭，设置页可改）未浏览时，卡片/面板上的「👁 最后浏览」闪烁提醒；从未浏览不闪烁。
 12. **首页卡片顺序与搜索（2026-09-13 新增）** — 分组视图下的股票卡支持管理员 HTML5 拖动排序；拖动仅在当前分组内生效，不跨组。全局顺序保存在 `data/_dashboard.json` 的 `stock_order`，`/api/dashboard` 返回并用于初始排序；`PUT /api/dashboard/order`（仅 admin）保存规范化后的全局顺序。首页工具栏提供名称/代码实时模糊搜索，前端在所有视图的股票列表上过滤。首页工具栏另提供按交易所过滤（全部/沪/深/北，2026-09-17 新增），按代码后缀 `.SH`/`.SZ`/`.BJ` 过滤，选择同步到 URL `?exchange=` 与 `dash:context` 会话记录。
 13. **笔记只能用户写（硬性约束）** — `notes.md` 是用户的私人记录区。AI 只负责编写 `reports/` 下的分析报告，**严禁**通过 `POST /api/stocks/{code}/notes` 或直接写文件的方式添加/修改/删除笔记；读取笔记用于了解用户想法是允许的。分析结论一律写进报告文件，不是笔记。
-14. **「价格网格」= 价格阶梯功能，不是价格标记（硬性约束）** — 用户说「设置价格网格/价格阶梯」时，必须使用价格阶梯功能（`backend/ladder.py`：`POST /api/stocks/{code}/ladder/strategy` 应用 grid 策略，或 `PUT /api/agent/stocks/{code}/ladder` 写 agent 档），**不要**用 `/api/stocks/{code}/price-marks` 价格标记。价格标记只是单个关注价位的展示，没有买/卖方向、数量和临近/触及提醒语义。
+14. **「价格网格」属于计划水位（硬性约束）** — 用户说「设置价格网格」时，使用 `backend/ladder.py` 的 grid 策略生成一组 `family=plan` 水位，不得生成分析水位。底层仍写 `ladder.json` 的 `source=strategy` 分区；统一读取走 `/api/stocks/{code}/price-levels`。
 15. **数据文件 Schema 与强制校验（2026-09-17 新增）** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应的 `{文件名}.schema.json`（顶层 `data/_xxx.json` ↔ `schemas/_xxx.schema.json`；个股 `data/{code}/xxx.json` ↔ `schemas/xxx.schema.json`）。校验脚本 `scripts/validate_data.py`（纯 stdlib，Windows 用根目录 `validate.bat`），发现 JSON 损坏/字段缺失/枚举越界会非零退出。**凡是改了读写数据文件的代码、新增数据文件种类、或手工/批量修改过 data/ 内容，都必须跑一次 `validate.bat`**；新增数据文件种类时必须同步新增对应 schema（顶层文件缺 schema 直接判失败）。schema 变更时同步更新 `docs/what/stock-schema.md`。
-16. **价格类数据二维模型（2026-09-17 新增）** — 价格相关数据按「用途 × 来源」两个维度组织，不按来源拆文件、也不合并成一个结构：
-   - **用途 = 价格标记（mark，存 `state.json.price_marks`）**：纯参考水位，无方向、无数量、不触发提醒。来源 `source=manual`（用户手工）/ `agent`（AI 技术面标记：阻力位/支撑位/筹码密集区等）。AI 只能经 `PUT /api/agent/stocks/{code}/price-marks` **整体替换 agent 档**，手工标记不受影响；传空数组即清空 AI 标记。
-   - **用途 = 价格阶梯（ladder，存 `ladder.json`）**：交易计划，有买卖方向/数量/临近·触及提醒。来源 `manual` / `strategy` / `agent` 三分区互不覆盖（见决策 10）。**网格 = ladder × strategy，不是第三类价格**。
-   - 前端「价格水位轴」（`PriceAxis.vue`，股票面板内）把两类价位画在同一纵轴：显示各档位（颜色区分用途×来源）、当前价位置、当前价与上一档/下一档的差额与百分比。
+16. **统一价格水位领域模型（2026-10-05 修订）** — 用户面对的统一对象是 `PriceLevel`，按 `family × source × state` 管理：
+   - `family=analysis`：市场结构判断（支撑、阻力、筹码密集区、合理估值等），底层兼容存于 `state.json.price_marks`；
+   - `family=plan`：交易计划（买入、加仓、减仓、止盈、止损、清仓等），底层存于 `ladder.json`，可带 `side/qty`；网格是批量生成 plan 水位的 strategy 来源；
+   - `family=fact`：最后买入、最后卖出、持仓成本等，由 `holdings.json` 动态投影，只读且不重复存储；
+   - 来源 `manual/agent/strategy/system`；生命周期 `proposed/active/retired/invalidated/expired`。AI 新分析水位默认 `proposed`，用户接受后转 `active`；
+   - 类型必须来自 `_config.json.price_level_types` 注册表。自由说明写 `note`，不得用临时 label 创造系统语义；
+   - 统一 CRUD 与读取走 `/api/stocks/{code}/price-levels`，服务层按 family 路由到现有存储。旧 price-marks/ladder API 保留兼容；
+   - `PriceLevelManager.vue` 统一管理，`PriceAxis.vue` 仅显示当前有效水位。提醒、统计和执行是引用 level id 的后续能力，不定义 PriceLevel 本身。
 17. **Arachne 独立服务集成（2026-10-05 新增）** — `services/arachne` 是 `SleepySoft/Arachne` 的 Git submodule，Arachne 保持独立前后端和 Neo4j/PostgreSQL，不导入 FinanceDashboard 进程。FinanceDashboard 后端通过 `ARACHNE_API_URL` 按证券代码精确解析公司，前端股票面板按需加载 `/arachne/embed.html` 的公司产业上下文。Arachne 未运行或未收录公司时仅降级该卡片，不影响股票详情。更新时先在 Arachne 仓库提交并 push，再单独更新父仓库 gitlink；clone/deploy 必须使用 `git submodule update --init --recursive`，因为 Arachne 还包含 ArachneData 嵌套子模块。
 18. **Arachne 服务端视图与权限桥（2026-10-05 新增）** — Arachne 的浏览器本地视图保留，并新增 PostgreSQL 服务端视图：所有用户可读取/载入，FinanceDashboard 登录用户可推送、重命名、删除及按 `industrial`/`company` 设置默认视图。生产 Arachne 使用 `AUTH_MODE=header`；Nginx 对 `/arachne/api/v1/` 发起内部子请求 `GET /api/integrations/arachne/auth-scope`，把响应 `X-Arachne-Scope` 注入上游。该端点未登录返回 `read_only`，已登录返回 `read_write`，不暴露会话内容。Arachne 后端端口不得直接公开。
 
@@ -147,8 +151,7 @@ data/
     首页分组与状态下拉顺序均按此列表；内置兜底分类 `none`（无分类）不可删除、不出现在下拉中，
     删除有股票的分类时其股票 `status` 自动改写为 `none`，看板仅在有股票时于最后显示「无分类」组
     （status 不在配置列表中的股票也归入此组）。key 规则 `^[a-z0-9_]{1,32}$` 且不能为 `none`。
-  - `price_mark_labels`：价格标记标签有序列表 `[{key, label}]`，「设置」页可改名/新增/删除/拖动排序；
-    股票面板添加价格标记时按此顺序显示。`last_buy` / `last_sell` 会自动带入最近交易价格。
+  - `price_level_types`：价格水位类型注册表 `[{key, label, family, side?}]`，「设置」页可改名/新增/删除/拖动排序；plan 类型必须指定 `side=buy/sell`，系统事实类型不可删除。旧 `price_mark_labels` 仅用于未迁移配置的显示名称兼容。
   - `pow_difficulty`：POW 最低难度（bit，8~64，默认 20），「设置 → 防刷屏验证」可改，立即生效；
   - `pow_max_difficulty`：POW 滑块可选的最高难度（bit，8~64，默认 32），且最低难度不能高于它；
     提交面板的难度滑块默认 0 bit，必须手动拖到最低难度及以上才能发消息/提交反馈
@@ -185,6 +188,8 @@ data/
 | `/api/stocks/{code}` | GET | Stock detail (meta + injected price) |
 | `/api/stocks/{code}/tags` | PATCH | Update overall/watchlist/unread tags |
 | `/api/stocks/{code}/price-marks` | POST | Add price mark（仅单个关注价位；「价格网格/阶梯」用 ladder 接口，见决策 14） |
+| `/api/stocks/{code}/price-levels` | GET/POST | 统一列出全部价格水位 / 新增 analysis 或 plan 水位 |
+| `/api/stocks/{code}/price-levels/{id}` | PATCH/DELETE | 修改生命周期、内容或删除可写水位；fact 水位只读 |
 | `/api/stocks/{code}/notes` | GET/POST | Notes（POST 仅限用户在前端使用；AI 严禁写笔记，见决策 13） |
 | `/api/stocks/{code}/notes/{time}` | DELETE | Delete note(s) by timestamp |
 | `/api/stocks/{code}/reports/{id}` | GET | Report content (Markdown) |
@@ -220,8 +225,8 @@ data/
 | `/api/agent/tasks/{id}/claim` | POST | Claim a task |
 | `/api/agent/tasks/{id}/complete` | POST | Submit completed report |
 | `/api/agent/tasks/{id}/fail` | POST | Mark task failed |
-| `/api/agent/stocks/{code}/ladder` | GET/PUT/DELETE | 读取 / 整体替换 agent 档（压力位/支撑位等）/ 清空 agent 档 |
-| `/api/agent/stocks/{code}/price-marks` | PUT | 整体替换 AI 价格标记（source=agent；手工标记不受影响，空数组=清空） |
+| `/api/agent/stocks/{code}/ladder` | GET/PUT/DELETE | 读取 / 整体替换带买卖方向的 agent 计划水位 / 清空 agent 计划水位 |
+| `/api/agent/stocks/{code}/price-marks` | PUT | 整体替换 AI 分析水位（source=agent、state=proposed；手工水位不受影响，空数组=清空） |
 
 ## External Credentials
 

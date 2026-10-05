@@ -7,7 +7,9 @@
 - **meta.json**（静态）：`code`（必须带交易所后缀）、`name`、`sector`、`type`、`added_at`。
 - **state.json**（可变）：`tags`（维度唯一存储地）、`status`、`price_marks`、`notes`、`record_prices`、`holdings`。
   - 维度值只允许 `green / yellow / red / none`；`watchlist`、`unread` 为布尔。
-  - `price_marks` 每项必须有 `label`(string) + `price`(number)；`id` 缺失时后端自动生成。
+  - 用户面对的价格对象统一为 `PriceLevel`，按 `family=analysis/plan/fact`、`source` 和 `state` 管理；类型必须来自 `_config.json.price_level_types`。
+  - `analysis` 兼容存入 `state.json.price_marks`，`plan` 存入 `ladder.json.levels`，`fact` 从 `holdings.json` 投影；统一经 `/api/stocks/{code}/price-levels` 读写。
+  - AI 新增分析水位一律为 `proposed`，由用户接受后才成为 `active`；自由说明写 `note`，不创建临时类型或 label。
 - **`dimensions` 永不落盘**：API 响应里的 `dimensions` 由 `_normalize_dimensions()` 从 `tags` 计算。
 - 机器可读版本在 `schemas/`；改完数据跑 `validate.bat`。
 

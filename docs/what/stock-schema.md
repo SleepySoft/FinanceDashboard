@@ -104,14 +104,30 @@ All stock data is stored under `data/{code}/` with the following files:
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | Unique mark ID（缺失时后端按内容哈希生成） |
-| label | string | Display label |
+| label | string | 兼容显示字段；新写入的语义名称由类型注册表决定，自由说明使用 `note` |
 | price | number | Mark price |
-| type | string | target_buy, stop_loss, take_profit, add, reduce, mark, last_buy, last_sell, support, resistance, custom |
+| type | string | `_config.json.price_level_types` 中 `family=analysis` 的注册 key |
 | source | string | `manual`（用户手工，默认）/ `agent`（AI 技术面标记：阻力位/支撑位/筹码密集区等，经 `PUT /api/agent/stocks/{code}/price-marks` 整体替换，手工标记不受影响） |
 | note | string | 可选备注（AI 标记的理由等） |
-
-`last_buy` / `last_sell`：前端「最后买入」「最后卖出」快捷按钮，自动从持仓交易记录（`holdings.json` summary 的 `last_buy_price` / `last_sell_price`）取价填充；无交易记录时提示先录入交易。
 | created_at | string | ISO 8601 timestamp |
+
+兼容存储中的 `price_marks` 对应统一价格水位模型的 `family=analysis`。新增字段：
+
+| Field | Type | Description |
+|-------|------|-------------|
+| state | string | proposed / active / retired / invalidated / expired；旧数据缺失视为 active |
+| valid_from | string/null | 可选生效时间 |
+| valid_until | string/null | 可选有效期；读取时超过日期表现为 expired |
+| updated_at | string | 最近更新时间 |
+
+统一读取接口 `GET /api/stocks/{code}/price-levels` 同时聚合：
+
+- `family=analysis`：来自 `state.json.price_marks`；
+- `family=plan`：来自 `ladder.json.levels`，扩展字段 `plan={side, qty}`；
+- `family=fact`：从 `holdings.json` 投影最后买入、最后卖出和持仓成本，不另行存储。
+
+类型语义来自 `_config.json.price_level_types` 注册表，而不是单条水位的自由文本 `label`。历史 label 与标准名称不同时，统一接口将其作为兼容说明返回在 `note` 中。
+AI 经 `PUT /api/agent/stocks/{code}/price-marks` 写入的新增分析水位必须为 `state=proposed`；用户接受后才转为 `active`。成交事实只读，不能复制成手工标记。
 
 ### API Response Format
 
