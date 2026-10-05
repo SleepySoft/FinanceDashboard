@@ -111,14 +111,25 @@ ARACHNE_PUBLIC_BASE=/arachne
 ARACHNE_TIMEOUT_SECONDS=3
 ```
 
-Arachne 公网集成应保持只读：后端设置 `AUTH_MODE=jwt` 和 `JWT_LOCAL_BYPASS=false`。未携带 JWT 的查询与推理仍可用，写操作返回 403。Arachne 后端仅监听内网或回环地址。
+Arachne 生产集成使用 FinanceDashboard 登录会话决定写权限。Arachne 后端设置 `AUTH_MODE=header` 和 `AUTH_SCOPE_HEADER=X-Arachne-Scope`，并且只监听内网或回环地址。浏览器不能直接访问后端端口，可信的 Nginx 会通过内部鉴权子请求注入该请求头。
 
 应用主机 Nginx 增加更具体的 API location，并把静态文件发布到同源 `/arachne/`：
 
 ```nginx
+location = /_arachne_auth_scope {
+    internal;
+    proxy_pass http://127.0.0.1:8010/api/integrations/arachne/auth-scope;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+    proxy_set_header Cookie $http_cookie;
+}
+
 location ^~ /arachne/api/v1/ {
+    auth_request /_arachne_auth_scope;
+    auth_request_set $arachne_scope $upstream_http_x_arachne_scope;
     proxy_pass http://127.0.0.1:16060/api/v1/;
     proxy_http_version 1.1;
+    proxy_set_header X-Arachne-Scope $arachne_scope;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -131,12 +142,15 @@ location ^~ /arachne/ {
 }
 ```
 
+`GET /api/integrations/arachne/auth-scope` 对未登录请求返回 `read_only`，对任何已登录 FinanceDashboard 用户返回 `read_write`。因此所有用户都能读取和载入 Arachne 服务端视图，登录用户才能推送、重命名、删除或设置默认视图。该端点只输出权限级别，不返回会话 token。
+
 公网入口主机也必须把 `/arachne/` 转发到应用主机。不要公开代理 Arachne 的 `/integration/config`。发布后验证：
 
 ```bash
 curl --fail http://127.0.0.1:16060/health
 curl --fail 'http://127.0.0.1:16060/api/v1/companies/resolve/by-stock-code?stock_code=300308.SZ'
 curl --fail http://127.0.0.1:8010/api/integrations/arachne/stocks/300308.SZ
+curl --fail -D- http://127.0.0.1:8010/api/integrations/arachne/auth-scope
 curl --fail http://127.0.0.1/arachne/embed.html
 ```
 

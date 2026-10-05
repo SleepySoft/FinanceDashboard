@@ -117,6 +117,8 @@ cd services/arachne
 
 FinanceDashboard 后端默认连接 `http://127.0.0.1:16060/api/v1`，前端开发服务器把 `/arachne/*` 转发到 `http://localhost:3000`。可通过 `ARACHNE_API_URL`、`ARACHNE_PUBLIC_BASE`、`ARACHNE_TIMEOUT_SECONDS` 覆盖。
 
+Arachne 的本地视图功能保持不变，同时支持共享服务端视图。所有用户可以载入服务端视图，登录用户可以推送和管理服务端视图，并分别为产业图、公司图配置默认视图。生产部署通过 Nginx 内部鉴权子请求把 FinanceDashboard 会话转换为 Arachne 的读写 scope，配置见 `docs/how/linux-deployment.md`。
+
 ## 快速开始
 
 ### Linux / macOS 开发

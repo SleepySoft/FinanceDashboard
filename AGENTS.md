@@ -96,6 +96,7 @@ data/
    - **用途 = 价格阶梯（ladder，存 `ladder.json`）**：交易计划，有买卖方向/数量/临近·触及提醒。来源 `manual` / `strategy` / `agent` 三分区互不覆盖（见决策 10）。**网格 = ladder × strategy，不是第三类价格**。
    - 前端「价格水位轴」（`PriceAxis.vue`，股票面板内）把两类价位画在同一纵轴：显示各档位（颜色区分用途×来源）、当前价位置、当前价与上一档/下一档的差额与百分比。
 17. **Arachne 独立服务集成（2026-10-05 新增）** — `services/arachne` 是 `SleepySoft/Arachne` 的 Git submodule，Arachne 保持独立前后端和 Neo4j/PostgreSQL，不导入 FinanceDashboard 进程。FinanceDashboard 后端通过 `ARACHNE_API_URL` 按证券代码精确解析公司，前端股票面板按需加载 `/arachne/embed.html` 的公司产业上下文。Arachne 未运行或未收录公司时仅降级该卡片，不影响股票详情。更新时先在 Arachne 仓库提交并 push，再单独更新父仓库 gitlink；clone/deploy 必须使用 `git submodule update --init --recursive`，因为 Arachne 还包含 ArachneData 嵌套子模块。
+18. **Arachne 服务端视图与权限桥（2026-10-05 新增）** — Arachne 的浏览器本地视图保留，并新增 PostgreSQL 服务端视图：所有用户可读取/载入，FinanceDashboard 登录用户可推送、重命名、删除及按 `industrial`/`company` 设置默认视图。生产 Arachne 使用 `AUTH_MODE=header`；Nginx 对 `/arachne/api/v1/` 发起内部子请求 `GET /api/integrations/arachne/auth-scope`，把响应 `X-Arachne-Scope` 注入上游。该端点未登录返回 `read_only`，已登录返回 `read_write`，不暴露会话内容。Arachne 后端端口不得直接公开。
 
 ## 登录与权限（2026-08-11 新增）
 
