@@ -15,7 +15,6 @@ export default defineConfig(({ command }) => ({
       '/arachne': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/arachne/, ''),
       }
     }
   }
