@@ -1,0 +1,3 @@
+[submodule "services/arachne"]
+	path = services/arachne
+	url = https://github.com/SleepySoft/Arachne.git
