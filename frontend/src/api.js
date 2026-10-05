@@ -50,6 +50,9 @@ export default {
   scheduler: {
     status: () => api('/scheduler/status'),
   },
+  arachne: {
+    resolveStock: (code) => api(`/integrations/arachne/stocks/${encodeURIComponent(code)}`),
+  },
   tushare: {
     test: (token) => api('/tushare/test', { method: 'POST', body: { token } }),
   },

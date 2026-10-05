@@ -78,6 +78,8 @@
       </div>
     </div>
 
+    <ArachnePanel :code="props.code" :name="meta.name" />
+
     <!-- 统一时间线 -->
     <div class="card" style="padding: 0; overflow: visible">
       <div class="analysis-header" style="padding: 14px 16px">
@@ -425,6 +427,7 @@ import statusCats from '../composables/useStatusCategories.js'
 import auth from '../composables/useAuth.js'
 import PowPanel from '../powbox/PowPanel.vue'
 import PriceAxis from './PriceAxis.vue'
+import ArachnePanel from './ArachnePanel.vue'
 
 const props = defineProps({
   code: { type: String, required: true },
