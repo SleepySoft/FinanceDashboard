@@ -25,6 +25,7 @@ from messages import router as messages_router
 from feedback import router as feedback_router
 from integrations.arachne import router as arachne_integration_router
 import ladder
+import price_levels
 import views
 from powbox import pow as powbox_pow
 from powbox import routes as powbox_routes
@@ -70,6 +71,7 @@ app.include_router(feedback_router)
 app.include_router(arachne_integration_router)
 app.include_router(ladder.router)
 app.include_router(ladder.agent_router)
+app.include_router(price_levels.router)
 app.include_router(views.router)
 
 # POW 模块钩子：HMAC 密钥用站点 api_key 派生；最低难度读 _config.json
@@ -1147,6 +1149,7 @@ def agent_replace_price_marks(code: str, req: AgentPriceMarksReq):
             "type": item.type if item.type in _PRICE_MARK_TYPES else "custom",
             "note": (item.note or "")[:200],
             "source": "agent",
+            "state": "proposed",
             "created_at": _now()
         })
     meta["price_marks"] = manual + agent_marks

@@ -80,6 +80,25 @@ DEFAULT_CONFIG = {
         {"key": "last_buy", "label": "最后买入"},
         {"key": "last_sell", "label": "最后卖出"},
     ],
+    "price_level_types": [
+        {"key": "support", "label": "支撑位", "family": "analysis"},
+        {"key": "resistance", "label": "阻力位", "family": "analysis"},
+        {"key": "chip_dense", "label": "筹码密集区", "family": "analysis"},
+        {"key": "fair_value", "label": "合理估值", "family": "analysis"},
+        {"key": "mark", "label": "关注价", "family": "analysis"},
+        {"key": "custom", "label": "自定义", "family": "analysis"},
+        {"key": "buy", "label": "买入", "family": "plan", "side": "buy"},
+        {"key": "target_buy", "label": "目标买入", "family": "plan", "side": "buy"},
+        {"key": "add", "label": "加仓", "family": "plan", "side": "buy"},
+        {"key": "sell", "label": "卖出", "family": "plan", "side": "sell"},
+        {"key": "reduce", "label": "减仓", "family": "plan", "side": "sell"},
+        {"key": "take_profit", "label": "止盈", "family": "plan", "side": "sell"},
+        {"key": "stop_loss", "label": "止损", "family": "plan", "side": "sell"},
+        {"key": "exit", "label": "清仓", "family": "plan", "side": "sell"},
+        {"key": "last_buy", "label": "最后买入", "family": "fact"},
+        {"key": "last_sell", "label": "最后卖出", "family": "fact"},
+        {"key": "average_cost", "label": "持仓成本", "family": "fact"},
+    ],
 }
 
 # 内置兜底分类：删除有股票的分类时，这些股票移入该分类。
@@ -327,6 +346,58 @@ def _validate_price_mark_labels(raw) -> list:
     return out
 
 
+def get_price_level_types(cfg: dict) -> list:
+    """Return the governed price-level type registry with legacy label overrides."""
+    raw = cfg.get("price_level_types")
+    if isinstance(raw, list):
+        try:
+            return _validate_price_level_types(raw)
+        except HTTPException:
+            pass
+    defaults = [dict(item) for item in DEFAULT_CONFIG["price_level_types"]]
+    legacy_labels = {
+        item["key"]: item["label"]
+        for item in get_price_mark_labels(cfg)
+        if isinstance(item, dict) and item.get("key") and item.get("label")
+    }
+    for item in defaults:
+        if item["key"] in legacy_labels:
+            item["label"] = legacy_labels[item["key"]]
+    return defaults
+
+
+def _validate_price_level_types(raw) -> list:
+    if not isinstance(raw, list):
+        raise HTTPException(400, "price_level_types 必须是数组")
+    seen = set()
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            raise HTTPException(400, "价格水位类型必须是对象")
+        key = item.get("key")
+        label = item.get("label")
+        family = item.get("family")
+        side = item.get("side")
+        if not isinstance(key, str) or not _STATUS_KEY_RE.match(key):
+            raise HTTPException(400, f"非法的价格水位类型 key: {key!r}")
+        if key in seen:
+            raise HTTPException(400, f"价格水位类型 key 重复: {key}")
+        if not isinstance(label, str) or not label.strip() or len(label.strip()) > 20:
+            raise HTTPException(400, f"价格水位类型 {key} 的名称无效")
+        if family not in ("analysis", "plan", "fact"):
+            raise HTTPException(400, f"价格水位类型 {key} 的 family 无效")
+        if family == "plan" and side not in ("buy", "sell"):
+            raise HTTPException(400, f"计划类型 {key} 必须指定 buy/sell")
+        normalized = {"key": key, "label": label.strip(), "family": family}
+        if family == "plan":
+            normalized["side"] = side
+        seen.add(key)
+        out.append(normalized)
+    if not any(item["family"] == "analysis" for item in out):
+        raise HTTPException(400, "至少保留一个 analysis 类型")
+    return out
+
+
 def _ensure_api_key():
     """首次运行时自动生成 Agent 访问密钥（未配置 FD_API_KEY / api_key 时）。"""
     if os.environ.get("FD_API_KEY", ""):
@@ -509,6 +580,7 @@ class ConfigUpdateReq(BaseModel):
     anomaly_scan_interval_min: Optional[int] = None
     status_categories: Optional[List[dict]] = None
     price_mark_labels: Optional[List[dict]] = None
+    price_level_types: Optional[List[dict]] = None
     pow_difficulty: Optional[int] = None
     pow_max_difficulty: Optional[int] = None
     comments_require_login: Optional[bool] = None
@@ -534,6 +606,7 @@ def _config_payload(cfg: dict) -> dict:
         ),
         "status_categories": get_status_categories(cfg),
         "price_mark_labels": get_price_mark_labels(cfg),
+        "price_level_types": get_price_level_types(cfg),
         "pow_difficulty": int(cfg.get("pow_difficulty", DEFAULT_CONFIG["pow_difficulty"]) or DEFAULT_CONFIG["pow_difficulty"]),
         "pow_max_difficulty": int(cfg.get("pow_max_difficulty", DEFAULT_CONFIG["pow_max_difficulty"]) or DEFAULT_CONFIG["pow_max_difficulty"]),
         "comments_require_login": bool(cfg.get("comments_require_login", True)),
@@ -752,6 +825,8 @@ def update_config(req: ConfigUpdateReq, username: str = Depends(require_admin)):
         cfg["status_categories"] = new_categories
     if req.price_mark_labels is not None:
         cfg["price_mark_labels"] = _validate_price_mark_labels(req.price_mark_labels)
+    if req.price_level_types is not None:
+        cfg["price_level_types"] = _validate_price_level_types(req.price_level_types)
     save_config(cfg)
     payload = _config_payload(cfg)
     # 删除的分类下仍有股票时，移入内置「无分类」（迁移由 main.py 注册的 hook 执行）

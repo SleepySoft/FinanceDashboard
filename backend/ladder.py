@@ -164,7 +164,7 @@ def _clean_level(raw: dict, source: str) -> dict:
             qty = None
     note = str(raw.get("note") or "").strip()[:MAX_NOTE_LEN]
     now = _now()
-    return {
+    cleaned = {
         "id": uuid.uuid4().hex[:10],
         "side": side,
         "price": price,
@@ -175,6 +175,10 @@ def _clean_level(raw: dict, source: str) -> dict:
         "created_at": now,
         "updated_at": now,
     }
+    for key in ("type", "lifecycle_state", "valid_from", "valid_until"):
+        if raw.get(key) is not None:
+            cleaned[key] = raw[key]
+    return cleaned
 
 
 def _state_for(side: str, price: float, current: Optional[float], threshold: float) -> str:

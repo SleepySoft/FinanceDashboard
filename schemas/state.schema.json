@@ -26,9 +26,13 @@
           "id":    { "type": "string", "description": "缺失时后端按内容哈希自动生成" },
           "label": { "type": "string" },
           "price": { "type": "number" },
-          "type":  { "type": "string", "enum": ["target_buy", "stop_loss", "take_profit", "add", "reduce", "mark", "last_buy", "last_sell", "support", "resistance", "custom"] },
+          "type":  { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
           "created_at": { "type": "string" },
+          "updated_at": { "type": "string" },
           "source": { "type": "string", "enum": ["manual", "agent"], "description": "manual=用户手工，agent=AI 技术面标记；缺失视为 manual" },
+          "state": { "type": "string", "enum": ["proposed", "active", "retired", "invalidated", "expired"] },
+          "valid_from": { "type": ["string", "null"] },
+          "valid_until": { "type": ["string", "null"] },
           "note":   { "type": "string" }
         }
       }

@@ -24,7 +24,11 @@
           "qty":    { "type": ["number", "null"] },
           "note":   { "type": "string" },
           "source": { "type": "string", "enum": ["manual", "strategy", "agent"] },
+          "type": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
           "enabled": { "type": "boolean" },
+          "lifecycle_state": { "type": "string", "enum": ["proposed", "active", "retired", "invalidated", "expired"] },
+          "valid_from": { "type": ["string", "null"] },
+          "valid_until": { "type": ["string", "null"] },
           "created_at": { "type": "string" },
           "updated_at": { "type": "string" }
         }

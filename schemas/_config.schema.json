@@ -34,6 +34,19 @@
           "label": { "type": "string" }
         }
       }
+    },
+    "price_level_types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "family"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
+          "label": { "type": "string" },
+          "family": { "type": "string", "enum": ["analysis", "plan", "fact"] },
+          "side": { "type": "string", "enum": ["buy", "sell"] }
+        }
+      }
     }
   }
 }
