@@ -113,6 +113,11 @@ async function assertDashboard(page, data) {
 async function assertStockModal(page, canWrite) {
   const firstRow = page.locator('table tbody tr').first()
   const stockCode = await firstRow.locator('.cell-code').textContent()
+  await page.route('**/api/integrations/arachne/stocks/*', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ available: true, matched: false, stock_code: stockCode }),
+  }))
   let notesRequestCount = 0
   await page.route('**/api/stocks/*/notes', route => {
     notesRequestCount++
@@ -134,6 +139,9 @@ async function assertStockModal(page, canWrite) {
   if (!page.url().includes(`stock=${encodeURIComponent(stockCode)}`)) {
     throw new Error('股票弹窗未同步到 URL，刷新后将无法恢复')
   }
+
+  await page.locator('.modal-content .arachne-card').getByRole('button', { name: '展开' }).click()
+  await page.locator('.modal-content .arachne-card').getByText('Arachne 尚未收录', { exact: false }).waitFor()
 
   await page.setViewportSize({ width: 390, height: 844 })
   const savedScroll = await page.locator('.modal-body').evaluate(element => {
