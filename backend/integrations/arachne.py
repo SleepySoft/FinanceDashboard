@@ -48,9 +48,16 @@ def _normalize_stock_code(code: str) -> str:
 def _build_embed_url(company_id: str, company_name: str) -> str:
     query = urllib.parse.urlencode(
         {
-            # Open Arachne's normal industrial-graph homepage.  The homepage
-            # reads company and overlays that company's exposure nodes while
-            # retaining the complete graph and its regular controls.
+            "company": company_id,
+            "title": company_name,
+        }
+    )
+    return f"{_public_base()}/embed.html?{query}"
+
+
+def _build_full_url(company_id: str, company_name: str) -> str:
+    query = urllib.parse.urlencode(
+        {
             "view": "industrial_graph",
             "engine": "legacy",
             "company": company_id,
@@ -101,4 +108,5 @@ def resolve_stock(code: str, name: str | None = None):
         "stock_code": stock_code,
         "company": company,
         "embed_url": _build_embed_url(company["company_id"], company_name),
+        "full_url": _build_full_url(company["company_id"], company_name),
     }

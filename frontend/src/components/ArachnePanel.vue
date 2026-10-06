@@ -22,7 +22,7 @@
       <div v-else-if="result?.embed_url" class="arachne-frame-wrap">
         <div class="arachne-meta">
           <span>{{ result.company?.name_zh || result.company?.name_en || name }}</span>
-          <a :href="result.embed_url" target="_blank" rel="noopener">新窗口打开 ↗</a>
+          <a :href="result.full_url || result.embed_url" target="_blank" rel="noopener">打开完整图谱 ↗</a>
         </div>
         <iframe
           class="arachne-frame"
