@@ -59,7 +59,6 @@ def _build_full_url(company_id: str, company_name: str) -> str:
     query = urllib.parse.urlencode(
         {
             "view": "industrial_graph",
-            "engine": "legacy",
             "company": company_id,
             "title": company_name,
         }
