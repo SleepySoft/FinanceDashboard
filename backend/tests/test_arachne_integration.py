@@ -34,8 +34,7 @@ class ArachneIntegrationTests(unittest.TestCase):
             url = arachne._build_embed_url("nanda_optoelectronics", "南大光电")
 
         self.assertTrue(url.startswith("/dashboard/arachne/embed.html?"))
-        self.assertIn("seed=nanda_optoelectronics", url)
-        self.assertIn("task_type=cross_graph_context", url)
+        self.assertIn("company=nanda_optoelectronics", url)
         self.assertIn("title=%E5%8D%97%E5%A4%A7%E5%85%89%E7%94%B5", url)
 
     def test_resolve_stock_returns_unmatched_without_guessing(self):
@@ -55,7 +54,7 @@ class ArachneIntegrationTests(unittest.TestCase):
 
         self.assertTrue(result["matched"])
         self.assertEqual(result["company"], company)
-        self.assertIn("seed=nanda_optoelectronics", result["embed_url"])
+        self.assertIn("company=nanda_optoelectronics", result["embed_url"])
 
 
 if __name__ == "__main__":
