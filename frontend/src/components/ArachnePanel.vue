@@ -20,10 +20,6 @@
         Arachne 尚未收录 {{ name || code }}（{{ code }}）
       </div>
       <div v-else-if="result?.embed_url" class="arachne-frame-wrap">
-        <div class="arachne-meta">
-          <span>{{ result.company?.name_zh || result.company?.name_en || name }}</span>
-          <a :href="result.full_url || result.embed_url" target="_blank" rel="noopener">打开完整图谱 ↗</a>
-        </div>
         <iframe
           class="arachne-frame"
           :src="result.embed_url"
@@ -98,16 +94,6 @@ watch(() => props.code, () => {
 }
 .arachne-error { color: #fca5a5; }
 .arachne-frame-wrap { border-top: 1px solid #334155; }
-.arachne-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  background: #0f172a;
-  color: #cbd5e1;
-  font-size: 12px;
-}
-.arachne-meta a { color: #60a5fa; text-decoration: none; }
 .arachne-frame { display: block; width: 100%; height: 620px; border: 0; background: #020617; }
 @media (max-width: 640px) {
   .arachne-header { align-items: flex-start; }
