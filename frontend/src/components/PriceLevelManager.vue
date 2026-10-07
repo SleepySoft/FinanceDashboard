@@ -5,10 +5,17 @@
         <h3>📍 价格水位</h3>
         <p>分析判断、交易计划和持仓事实统一管理</p>
       </div>
-      <div class="pl-current">
+      <button
+        type="button"
+        class="pl-current"
+        :disabled="readonly || !data.current_price"
+        title="点击将现价填入价格输入框"
+        @click="useCurrentPrice"
+      >
         <span>现价</span>
         <strong>{{ data.current_price ? `¥${fmtPrice(data.current_price)}` : '--' }}</strong>
-      </div>
+        <small v-if="!readonly && data.current_price">点击填入</small>
+      </button>
     </div>
 
     <div class="pl-tabs">
@@ -60,20 +67,46 @@
     </div>
 
     <form v-if="!readonly" class="pl-form" @submit.prevent="save">
-      <div class="pl-form-title">{{ editingId ? '编辑水位' : '添加水位' }}</div>
-      <select v-model="form.family" :disabled="!!editingId" @change="chooseDefaultType">
-        <option value="analysis">分析水位</option>
-        <option value="plan">交易计划</option>
-      </select>
-      <select v-model="form.type">
-        <option v-for="type in formTypes" :key="type.key" :value="type.key">{{ type.label }}</option>
-      </select>
-      <input v-model.number="form.price" type="number" min="0" step="0.001" placeholder="价格" required />
-      <input v-if="form.family === 'plan'" v-model.number="form.qty" type="number" min="1" step="100" placeholder="数量（可空）" />
-      <input v-model="form.valid_until" type="date" title="有效期（可空）" />
-      <input v-model="form.note" maxlength="200" placeholder="依据或备注（可空）" />
-      <button class="primary" :disabled="saving">{{ saving ? '保存中…' : (editingId ? '保存' : '添加') }}</button>
-      <button v-if="editingId" type="button" @click="resetForm">取消</button>
+      <div class="pl-form-head">
+        <strong>{{ editingId ? '编辑价格水位' : '添加价格水位' }}</strong>
+        <span>{{ editingId ? '修改选中水位的属性' : '记录观察价格或交易计划' }}</span>
+      </div>
+      <label class="pl-field">
+        <span>水位类别</span>
+        <select v-model="form.family" :disabled="!!editingId" @change="chooseDefaultType">
+          <option value="analysis">分析水位</option>
+          <option value="plan">交易计划</option>
+        </select>
+      </label>
+      <label class="pl-field">
+        <span>类型</span>
+        <select v-model="form.type">
+          <option v-for="type in formTypes" :key="type.key" :value="type.key">{{ type.label }}</option>
+        </select>
+      </label>
+      <label class="pl-field">
+        <span>价格</span>
+        <input v-model.number="form.price" type="number" min="0" step="0.001" placeholder="输入价格" required />
+      </label>
+      <label v-if="form.family === 'plan'" class="pl-field">
+        <span>数量</span>
+        <input v-model.number="form.qty" type="number" min="1" step="100" placeholder="可选" />
+      </label>
+      <label class="pl-field pl-date-field">
+        <span>有效期</span>
+        <div class="pl-date-control">
+          <input ref="validUntilInput" v-model="form.valid_until" type="date" title="有效期（可空）" />
+          <button type="button" title="选择日期" aria-label="选择有效期" @click="openDatePicker">📅</button>
+        </div>
+      </label>
+      <label class="pl-field pl-note-field">
+        <span>依据或备注</span>
+        <input v-model="form.note" maxlength="200" placeholder="可选，例如观察原因" />
+      </label>
+      <div class="pl-form-actions">
+        <button class="primary" :disabled="saving">{{ saving ? '保存中…' : (editingId ? '保存修改' : '添加水位') }}</button>
+        <button v-if="editingId" type="button" @click="resetForm">取消编辑</button>
+      </div>
     </form>
 
     <details v-if="!readonly" class="pl-tools">
@@ -112,6 +145,7 @@ const error = ref('')
 const actionError = ref('')
 const filter = ref('all')
 const editingId = ref(null)
+const validUntilInput = ref(null)
 const form = ref({ family: 'analysis', type: 'support', price: null, qty: null, valid_until: '', note: '' })
 const grid = ref({ base_price: null, step_pct: 3, up: 3, down: 3 })
 
@@ -173,6 +207,20 @@ async function load() {
 
 function chooseDefaultType() {
   form.value.type = formTypes.value[0]?.key || ''
+}
+function useCurrentPrice() {
+  const current = Number(data.value.current_price)
+  if (Number.isFinite(current) && current > 0) form.value.price = current
+}
+function openDatePicker() {
+  const input = validUntilInput.value
+  if (!input) return
+  try {
+    if (typeof input.showPicker === 'function') input.showPicker()
+    else input.focus()
+  } catch {
+    input.focus()
+  }
 }
 function resetForm() {
   editingId.value = null
@@ -272,13 +320,16 @@ onMounted(load)
 .pl-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px 10px; }
 .pl-header h3 { margin: 0; }
 .pl-header p { margin: 4px 0 0; color: #64748b; font-size: 12px; }
-.pl-current { display: flex; align-items: baseline; gap: 8px; color: #94a3b8; font-size: 12px; }
+.pl-current { display: flex; align-items: baseline; gap: 8px; border: 1px solid transparent; background: transparent; color: #94a3b8; font-size: 12px; padding: 5px 8px; }
+.pl-current:not(:disabled):hover { border-color: #334155; background: #0f172a; }
+.pl-current:disabled { cursor: default; opacity: 1; }
 .pl-current strong { color: #e2e8f0; font-size: 18px; }
+.pl-current small { color: #38bdf8; font-size: 10px; }
 .pl-tabs { display: flex; gap: 5px; padding: 0 18px 10px; overflow-x: auto; }
 .pl-tabs button { border: 1px solid #334155; background: #0f172a; color: #94a3b8; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
 .pl-tabs button.active { border-color: #0891b2; color: #67e8f9; background: #083344; }
 .pl-tabs span { opacity: .7; margin-left: 3px; }
-.pl-list { border-top: 1px solid #1e293b; }
+.pl-list { border-top: 1px solid #334155; border-bottom: 1px solid #334155; background: rgba(15, 23, 42, .35); }
 .pl-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px auto; gap: 12px; align-items: center; padding: 10px 18px; border-bottom: 1px solid #1e293b; border-left: 3px solid #64748b; }
 .pl-row.family-analysis { border-left-color: #38bdf8; }
 .pl-row.family-plan { border-left-color: #f59e0b; }
@@ -297,9 +348,17 @@ onMounted(load)
 .pl-actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 .pl-actions button { padding: 3px 7px; font-size: 11px; }
 .pl-actions .accept { color: #34d399; }.pl-actions .danger { color: #f87171; }
-.pl-form { display: grid; grid-template-columns: auto 110px 130px 110px 120px minmax(130px, 1fr) auto auto; gap: 7px; align-items: center; padding: 12px 18px; background: #0b1220; }
-.pl-form-title { font-size: 12px; color: #94a3b8; }
-.pl-form input, .pl-form select, .pl-grid-form input { min-width: 0; padding: 6px 7px; }
+.pl-form { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 10px; align-items: end; margin-top: 12px; padding: 14px 18px 16px; border-top: 2px solid #334155; background: #0a101c; }
+.pl-form-head { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #1e293b; }
+.pl-form-head strong { color: #e2e8f0; font-size: 14px; white-space: nowrap; }
+.pl-form-head span { color: #64748b; font-size: 11px; }
+.pl-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; color: #94a3b8; font-size: 11px; }
+.pl-field > input, .pl-field > select, .pl-date-control input, .pl-grid-form input { width: 100%; min-width: 0; height: 35px; padding: 6px 8px; }
+.pl-note-field { grid-column: span 2; }
+.pl-date-control { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 5px; }
+.pl-date-control button { height: 35px; padding: 0; border: 1px solid #475569; background: #1e293b; color: #cbd5e1; }
+.pl-form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 8px; padding-top: 2px; }
+.pl-form-actions button { min-width: 96px; white-space: nowrap; }
 .pl-tools { padding: 10px 18px 14px; color: #94a3b8; font-size: 12px; }
 .pl-tools summary { cursor: pointer; }
 .pl-grid-form { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 9px; }
@@ -310,6 +369,16 @@ onMounted(load)
   .pl-row { grid-template-columns: 1fr auto; }
   .pl-actions { grid-column: 1 / -1; justify-content: flex-start; }
   .pl-form { grid-template-columns: 1fr 1fr; }
-  .pl-form-title { grid-column: 1 / -1; }
+  .pl-note-field { grid-column: span 2; }
+}
+@media (max-width: 520px) {
+  .pl-header { align-items: flex-start; }
+  .pl-current { flex-wrap: wrap; justify-content: flex-end; max-width: 130px; }
+  .pl-current small { flex-basis: 100%; text-align: right; }
+  .pl-form { grid-template-columns: minmax(0, 1fr); }
+  .pl-note-field { grid-column: auto; }
+  .pl-form-head { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .pl-form-actions { justify-content: stretch; }
+  .pl-form-actions button { flex: 1; }
 }
 </style>
