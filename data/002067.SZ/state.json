@@ -7,14 +7,22 @@
     "risk": "yellow",
     "verdict": "yellow",
     "watchlist": false,
-    "unread": true
+    "unread": false
   },
   "price_marks": [],
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-10-07 14:25",
+      "content": "不如太阳纸业，散户股。",
+      "price": 3.95
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-10-07 14:25": 3.95
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "avoid"
 }

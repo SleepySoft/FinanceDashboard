@@ -7,14 +7,36 @@
     "risk": "yellow",
     "verdict": "green",
     "watchlist": false,
-    "unread": true
+    "unread": false
   },
-  "price_marks": [],
-  "notes": [],
+  "price_marks": [
+    {
+      "id": "bc778656",
+      "label": "关注价",
+      "price": 13.7,
+      "type": "mark",
+      "source": "manual",
+      "state": "active",
+      "note": "",
+      "valid_from": null,
+      "valid_until": null,
+      "created_at": "2026-10-07T14:32:33.644669+00:00",
+      "updated_at": "2026-10-07T14:32:33.644669+00:00"
+    }
+  ],
+  "notes": [
+    {
+      "time": "2026-10-07 14:32",
+      "content": "公司运营很稳，分红也稳定，但纸价下行，且股东数增加，不是一个好趋势。观望。",
+      "price": 13.7
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-10-07 14:32": 13.7
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "waiting"
 }

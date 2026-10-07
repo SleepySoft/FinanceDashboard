@@ -7,14 +7,22 @@
     "risk": "red",
     "verdict": "red",
     "watchlist": false,
-    "unread": true
+    "unread": false
   },
   "price_marks": [],
-  "notes": [],
+  "notes": [
+    {
+      "time": "2026-10-07 11:37",
+      "content": "历史原因看看，不碰。",
+      "price": 20.55
+    }
+  ],
   "holdings": {},
   "record_prices": {
-    "notes": {},
+    "notes": {
+      "2026-10-07 11:37": 20.55
+    },
     "reports": {}
   },
-  "status": "unassessed"
+  "status": "avoid"
 }
