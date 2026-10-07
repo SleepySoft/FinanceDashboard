@@ -17,6 +17,7 @@ The AI agent is the **analysis engine** of FinanceDashboard. It does NOT serve t
 2. **价格统一为 PriceLevel** — 按用途使用 `family=analysis/plan/fact`，类型必须来自 `_config.json.price_level_types`，自由说明写 `note`。网格属于 `family=plan, source=strategy`，用 `POST /api/stocks/{code}/ladder/strategy`；AI 自定义交易计划用 `PUT /api/agent/stocks/{code}/ladder`。底层 `price_marks` 与 `ladder` 是兼容存储分区，不是用户面对的两套领域对象。
 3. **AI 分析水位先提案** — 技术分析得出的阻力、支撑、筹码密集区等，用 `PUT /api/agent/stocks/{code}/price-marks` 整体写入 `source=agent, state=proposed`，与手工分析水位分区共存。用户在统一水位管理器中接受后才转为 `active`；不得写入手工通道，也不得把分析判断写成有买卖方向的计划。
 4. **写数据文件必须过 schema 校验** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应 schema（`{文件名}.schema.json`）。Agent 新增/修改 `data/` 下任何 JSON 文件、或改动读写数据文件的代码后，**必须运行 `validate.bat`（或 `python scripts/validate_data.py`）**，全部通过才算完成；新增数据文件种类必须同步在 `schemas/` 新增对应 schema。写数据优先走 API（有 Pydantic 校验），直接写文件时必须严格遵守 `schemas/` 中的结构（字段名、类型、枚举值）。
+5. **AI 提醒必须是结构化提案** — 分析中出现明确的未来复核动作时，Agent 可以通过任务完成接口提交 reminder 建议，但只能形成 `state=proposed`，由用户确认后生效。Agent 不得直接写 `data/{code}/reminders.json`，不得虚构公告时间，也不得把“持续关注”这类没有时间和动作的套话创建成提醒。调用前必须按下文的功能检测规则确认当前后端已经支持 reminders；未实现时只在报告中写后续验证建议。
 
 ## What the Agent Does
 
@@ -77,6 +78,96 @@ Agent analyzes → Writes report → Marks complete (status: completed)
 Frontend auto-refreshes → Report appears
 ```
 
+### 4. Reminder Suggestions（提醒建议，功能检测后使用）
+
+提醒用于记录“什么时候回来检查什么”，不用于安排 Agent 自动执行分析。完整领域设计见
+[`docs/drafts/reminders.md`](../docs/drafts/reminders.md)。
+
+#### 4.1 先检测服务端能力
+
+技能文档描述的是提醒接口契约，不代表当前连接的服务端一定已经部署该版本。每个新会话首次需要提交提醒前，Agent 必须读取 `GET /openapi.json` 并同时确认：
+
+1. `AgentTaskCompleteReq`（或任务完成接口对应的 request schema）包含 `reminders`；
+2. OpenAPI 中存在 `/api/reminders` 或股票 reminder 管理接口。
+
+两项都满足才能提交结构化 reminders。不要仅凭本文件、设计稿或前端文字判断功能已经可用。
+
+如果能力不存在：
+
+- 正常完成报告和任务；
+- 在报告中保留“后续验证与提醒建议”及建议日期；
+- 明确告诉用户当前服务端尚不能保存系统提醒；
+- **不要**把 `reminders` 塞进 complete 请求碰运气，Pydantic 版本差异可能让未知字段被静默忽略；
+- **不要**直接新建或修改 `reminders.json`。
+
+#### 4.2 什么时候应该建议提醒
+
+只有同时满足以下条件才创建建议：
+
+- 存在具体的未来复核动作，例如查看财报、检查政策细则、核对订单或重新评估结论；
+- 能给出合理的未来提醒时间；
+- 到时的动作可以完成或取消，而不是无限期“保持关注”。
+
+推荐：
+
+```text
+2026-10-30 09:00 — 检查三季报是否披露；若已披露，复核收入增速、毛利率和经营现金流。
+```
+
+禁止：
+
+```text
+未来 — 继续关注公司。
+```
+
+如果公告日期只有大致区间，选择合理的复核日，并在 action 中写“检查是否已披露”。不能把预计月份、历史惯例或搜索摘要伪装成已经确认的精确公告时间。
+
+#### 4.3 提交格式
+
+提醒随分析完成请求一次提交，与对应报告保持同一来源：
+
+```python
+requests.post(
+    f"{base_url}/api/agent/tasks/{task_id}/complete",
+    headers={"X-API-Key": api_key},
+    json={
+        "reports": [
+            {
+                "path": f"data/{code}/reports/fundamental_YYYYMMDD.md",
+                "type": "fundamental",
+            },
+            {
+                "path": f"data/{code}/reports/technical_YYYYMMDD.md",
+                "type": "technical",
+            },
+        ],
+        "summary": "分析完成",
+        "reminders": [
+            {
+                "remind_at": "2026-10-30T09:00:00+08:00",
+                "action": "检查三季报是否披露；若已披露，复核收入增速、毛利率和经营现金流",
+            }
+        ],
+    },
+)
+```
+
+Agent 只提交 `remind_at` 和 `action`：
+
+- `remind_at` 必须是未来时间，并使用带时区的 ISO 8601/RFC 3339 格式；中国市场默认使用 `+08:00`；
+- `action` 必须直接说明届时要查看的事件和要核对的指标，不能只有事件名称；
+- 不提交 `id`、`state`、`source`、`created_by` 或时间戳，这些由后端生成；
+- 没有合格提醒时省略 `reminders` 或传空数组，不编造条目凑格式；
+- complete 请求重试时保持相同的 reminder 内容，由后端按 task 来源幂等处理。
+
+提交成功后，提醒仍是用户界面中的“待确认”，不能向用户声称提醒已经启用。准确表述应是：“已生成 1 条待确认提醒建议，请在提醒列表中确认或改期。”
+
+#### 4.4 报告中的写法
+
+报告可以增加可选章节 `## 后续验证与提醒建议`，解释为什么需要复核以及判断标准。结构化 reminder 的 action 应能脱离报告独立理解；报告章节负责上下文，不替代 API 字段。
+
+同一事件不应在基本面和技术面各创建一次。全量分析时先合并两个报告中的候选，只提交一条内容完整的建议。
+
 ## How to Use the Agent
 
 > **鉴权（2026-08-11 起）**：所有 `/api/agent/*` 接口需要请求头
@@ -99,6 +190,7 @@ Users can talk to the agent directly via WeChat (openclaw-weixin channel):
 | "看看 {code}" | Show current status, latest report summary |
 | "提出 {code} {标准类型} {price}" | 用注册类型创建待确认的 AI 分析水位 |
 | "设置价格网格 {code}" | 创建 `family=plan, source=strategy` 的 grid 水位（`/api/stocks/{code}/ladder/strategy`） |
+| "提醒我在 {时间} 检查 {code} 的 {事项}" | 仅在 OpenAPI 暴露独立 Agent reminder 创建接口时执行；否则明确告知提醒功能尚未部署并保留文字建议，不直接写文件 |
 
 ### Web Interface
 
