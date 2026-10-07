@@ -129,6 +129,17 @@ python3 -m venv venv
 ./venv/bin/pip install -r requirements.txt
 ```
 
+全新数据库或需要完整重建时，应从嵌套子模块的规范快照一次性恢复，不能靠逐个重放业务批次或编写临时回填脚本补外键：
+
+```bash
+cd /root/data/FinanceDashboard/services/arachne
+backend/venv/bin/python scripts/import_db.py \
+  --input-dir data/ArachneData/newest \
+  --clear --yes
+```
+
+`--clear` 会清空 Arachne 的 Neo4j 与 PostgreSQL 数据，只能用于首次安装或明确的整库重建。日常更新保留现有数据库，由正式批次或迁移脚本增量更新。
+
 在 `services/arachne/.env` 写入实际的数据库连接信息与生产权限模式（此文件不入库）：
 
 ```dotenv
