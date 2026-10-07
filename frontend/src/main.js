@@ -9,6 +9,7 @@ import AnomalyBoard from './subsystems/anomaly/views/AnomalyBoard.vue'
 import Login from './views/Login.vue'
 import Settings from './views/Settings.vue'
 import Messages from './views/Messages.vue'
+import Reminders from './views/Reminders.vue'
 import StrategyLibrary from './subsystems/backtest/views/StrategyLibrary.vue'
 import Backtest from './subsystems/backtest/views/Backtest.vue'
 import auth from './composables/useAuth.js'
@@ -24,6 +25,7 @@ const routes = [
   { path: '/login', component: Login },
   { path: '/settings', component: Settings },
   { path: '/messages', component: Messages },
+  { path: '/reminders', component: Reminders },
 ]
 
 const router = createRouter({

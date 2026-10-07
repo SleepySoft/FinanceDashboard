@@ -166,6 +166,8 @@
       @changed="refreshPriceLevelSources"
     />
 
+    <ReminderManager :code="code" :readonly="readonly" />
+
     <!-- Delete Confirm Modal -->
     <div v-if="showDeleteConfirm" class="modal-overlay" @click="showDeleteConfirm = false">
       <div class="confirm-box" @click.stop>
@@ -316,6 +318,7 @@ import auth from '../composables/useAuth.js'
 import PowPanel from '../powbox/PowPanel.vue'
 import PriceAxis from './PriceAxis.vue'
 import PriceLevelManager from './PriceLevelManager.vue'
+import ReminderManager from './ReminderManager.vue'
 import ArachnePanel from './ArachnePanel.vue'
 
 const props = defineProps({

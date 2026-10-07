@@ -132,6 +132,7 @@ async function assertStockModal(page, canWrite) {
   await firstRow.click()
   await page.waitForSelector('.modal-content', { timeout: 10000 })
   await page.locator('.modal-content .pl-card h3', { hasText: '价格水位' }).waitFor()
+  await page.locator('.modal-content .reminder-card h3', { hasText: '提醒' }).waitFor()
 
   const editAreaCount = await page.locator('.modal-content .timeline-note-input').count()
   if ((editAreaCount > 0) !== canWrite) {
@@ -172,6 +173,15 @@ async function assertStockModal(page, canWrite) {
   const restoredCode = await page.locator('.modal-code').textContent()
   if (restoredCode !== stockCode) throw new Error('手机尺寸刷新后恢复到了错误的股票弹窗')
   log(`股票弹窗权限与移动端恢复通过: ${stockCode}`)
+}
+
+async function assertRemindersPage(page) {
+  await page.goto(`${FRONTEND_URL}/#/reminders`, { waitUntil: 'domcontentloaded' })
+  await page.locator('.reminders-page h2', { hasText: '提醒' }).waitFor({ timeout: 10000 })
+  const summaryCount = await page.locator('.summary-card').count()
+  if (summaryCount !== 5) throw new Error(`全局提醒汇总卡数量异常: ${summaryCount}`)
+  await page.getByRole('button', { name: '列表', exact: true }).click()
+  log('全局提醒时间轴与列表入口通过')
 }
 
 async function main() {
@@ -233,6 +243,7 @@ async function main() {
     }
 
     await assertStockModal(page, canWrite)
+    await assertRemindersPage(page)
 
     if (pageErrors.length > 0) {
       throw new Error(`页面存在 JS 错误:\n${pageErrors.join('\n')}`)

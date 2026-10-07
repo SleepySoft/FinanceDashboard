@@ -16,6 +16,11 @@
         <router-link to="/" class="nav-link">看板</router-link>
         <router-link to="/requests" class="nav-link">待分析</router-link>
         <router-link to="/holdings" class="nav-link">持仓</router-link>
+        <router-link to="/reminders" class="nav-link reminder-link">
+          提醒
+          <span v-if="reminderCounts.due" class="nav-count due">{{ reminderCounts.due }}</span>
+          <span v-if="reminderCounts.proposed" class="nav-count proposed">{{ reminderCounts.proposed }}</span>
+        </router-link>
         <router-link to="/anomalies" class="nav-link">异动</router-link>
         <router-link to="/strategies" class="nav-link">策略</router-link>
         <router-link to="/backtest" class="nav-link">回测</router-link>
@@ -39,6 +44,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import auth from './composables/useAuth.js'
+import api from './api.js'
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const router = useRouter()
@@ -46,6 +52,21 @@ const isAuthenticated = auth.isAuthenticated
 const isAdmin = auth.isAdmin
 const user = auth.user
 const config = auth.config
+const reminderCounts = ref({ due: 0, proposed: 0 })
+let reminderTimer = null
+
+async function loadReminderCounts() {
+  if (!isAuthenticated.value && !config.value.allow_anonymous_read) {
+    reminderCounts.value = { due: 0, proposed: 0 }
+    return
+  }
+  try {
+    const result = await api.reminders.list('all')
+    reminderCounts.value = result.counts || { due: 0, proposed: 0 }
+  } catch {
+    reminderCounts.value = { due: 0, proposed: 0 }
+  }
+}
 
 // ─── Toast State ──────────────────────────────────────────────
 const toasts = ref([])
@@ -66,9 +87,14 @@ onMounted(() => {
     addToast(d.message, d.type || 'info', d.duration || 4000)
   }
   window.addEventListener('fd:toast', toastHandler)
+  window.addEventListener('fd:reminders-changed', loadReminderCounts)
+  loadReminderCounts()
+  reminderTimer = window.setInterval(loadReminderCounts, 30000)
 })
 onUnmounted(() => {
   if (toastHandler) window.removeEventListener('fd:toast', toastHandler)
+  window.removeEventListener('fd:reminders-changed', loadReminderCounts)
+  if (reminderTimer) window.clearInterval(reminderTimer)
 })
 
 async function doLogout() {
@@ -127,6 +153,10 @@ body.stock-modal-open { overflow: hidden; }
   background: #1e293b;
   border-color: #334155;
 }
+.reminder-link { display: inline-flex; align-items: center; gap: 4px; }
+.nav-count { min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; color: white; font-size: 10px; line-height: 17px; text-align: center; }
+.nav-count.due { background: #dc2626; }
+.nav-count.proposed { background: #d97706; }
 .topbar-user {
   color: #94a3b8;
 }

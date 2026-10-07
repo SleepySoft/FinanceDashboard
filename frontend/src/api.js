@@ -118,6 +118,13 @@ export default {
     send: (content, pow) => api('/messages', { method: 'POST', body: { content, pow } }),
     delete: (id) => api(`/messages/${id}`, { method: 'DELETE' }),
   },
+  reminders: {
+    list: (scope = 'all') => api(`/reminders?scope=${encodeURIComponent(scope)}`),
+    listStock: (code, includeHistory = true) => api(`/stocks/${code}/reminders?include_history=${includeHistory}`),
+    create: (code, body) => api(`/stocks/${code}/reminders`, { method: 'POST', body }),
+    update: (code, id, patch) => api(`/stocks/${code}/reminders/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
+    delete: (code, id) => api(`/stocks/${code}/reminders/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  },
   feedback: {
     get: (code) => api(`/stocks/${code}/feedback`),
     submit: (code, vote, comment, pow) => api(`/stocks/${code}/feedback`, { method: 'POST', body: { vote, comment, pow } }),
