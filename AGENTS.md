@@ -290,7 +290,7 @@ powershell -ExecutionPolicy Bypass -File scripts\start-all.ps1
 本地 FinanceDashboard Vite 会把 `/arachne/*` 转发到 Arachne 前端 `localhost:3000`；FinanceDashboard 后端默认访问 `http://127.0.0.1:16060/api/v1`。可用环境变量覆盖：
 
 - `ARACHNE_API_URL`：服务端 API 根地址，默认 `http://127.0.0.1:16060/api/v1`
-- `ARACHNE_PUBLIC_BASE`：浏览器访问前缀，默认 `/arachne`
+- `ARACHNE_PUBLIC_BASE`：浏览器访问前缀；本地默认 `/arachne`，当前生产必须设为 `/dashboard/arachne`（公网入口会在转发到应用机时去掉 `/dashboard`）
 - `ARACHNE_TIMEOUT_SECONDS`：解析公司的请求超时，默认 3 秒
 
 Arachne 上游更新流程：在独立 `C:\D\code\Arachne` 工作区完成测试、提交并 push；然后在本仓库执行 `git -C services/arachne fetch origin main`、checkout 已 push 的 commit，并把子模块指针作为独立提交保存。禁止直接留下未 push 的 submodule commit。

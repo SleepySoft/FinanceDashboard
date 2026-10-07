@@ -12,7 +12,7 @@ Internet
   │  https://www.sleepysoft.dev/dashboard/
   ▼
 公网入口主机（Nginx）
-  │  Tailscale 反向代理
+  │  /dashboard/* 去掉 /dashboard 后经 Tailscale 反向代理
   ▼
 应用主机 100.105.210.96:80（Nginx）
   ├─ /api/*             ─► 127.0.0.1:8010（financedashboard.service / Uvicorn）
@@ -169,10 +169,12 @@ sudo systemctl status arachne.service
 
 ### 发布 Arachne 前端与更新服务
 
+当前公网入口只发布 `/dashboard/`，并在转发到应用主机时去掉 `/dashboard`。因此两个路径必须区分：浏览器看到的是 `/dashboard/arachne/`，应用主机 Nginx 收到的是 `/arachne/`。Arachne 构建产物中的资源和 API 地址必须使用公网路径，否则 HTML 虽然返回 200，浏览器仍会因请求根路径 `/arachne/assets/*` 和 `/arachne/api/*` 得到 404 而显示黑屏。
+
 ```bash
 cd /root/data/FinanceDashboard/services/arachne/frontend
 npm ci
-VITE_PUBLIC_BASE=/arachne/ VITE_API_BASE=/arachne/api/v1 npm run build
+VITE_PUBLIC_BASE=/dashboard/arachne/ VITE_API_BASE=/dashboard/arachne/api/v1 npm run build
 sudo mkdir -p /var/www/arachne
 sudo rsync -a --delete dist/ /var/www/arachne/
 
@@ -186,9 +188,11 @@ FinanceDashboard 服务环境默认值如下；Arachne 在其他主机时通过�
 
 ```dotenv
 ARACHNE_API_URL=http://127.0.0.1:16060/api/v1
-ARACHNE_PUBLIC_BASE=/arachne
+ARACHNE_PUBLIC_BASE=/dashboard/arachne
 ARACHNE_TIMEOUT_SECONDS=3
 ```
+
+`ARACHNE_PUBLIC_BASE` 是返回给浏览器的公网前缀，不能填写应用主机内部的 `/arachne`。systemd 服务需要通过 `Environment=` 或 `EnvironmentFile=` 注入该值，修改后执行 `systemctl daemon-reload && systemctl restart financedashboard`。
 
 Arachne 生产集成使用 FinanceDashboard 登录会话决定写权限。Arachne 后端设置 `AUTH_MODE=header` 和 `AUTH_SCOPE_HEADER=X-Arachne-Scope`，并且只监听内网或回环地址。浏览器不能直接访问后端端口，可信的 Nginx 会通过内部鉴权子请求注入该请求头。
 
@@ -223,7 +227,7 @@ location ^~ /arachne/ {
 
 `GET /api/integrations/arachne/auth-scope` 对未登录请求返回 `read_only`，对任何已登录 FinanceDashboard 用户返回 `read_write`。因此所有用户都能读取和载入 Arachne 服务端视图，登录用户才能推送、重命名、删除或设置默认视图。该端点只输出权限级别，不返回会话 token。
 
-公网入口主机也必须把 `/arachne/` 转发到应用主机。不要公开代理 Arachne 的 `/integration/config`。发布后验证：
+公网入口主机继续按现有规则转发 `/dashboard/*`；浏览器访问 `/dashboard/arachne/*`，转发到应用主机时对应 `/arachne/*`。不要额外公开 Arachne 的 `/integration/config`。发布后验证：
 
 ```bash
 curl --fail http://127.0.0.1:16060/health
@@ -231,6 +235,8 @@ curl --fail 'http://127.0.0.1:16060/api/v1/companies/resolve/by-stock-code?stock
 curl --fail http://127.0.0.1:8010/api/integrations/arachne/stocks/300308.SZ
 curl --fail -D- http://127.0.0.1:8010/api/integrations/arachne/auth-scope
 curl --fail http://127.0.0.1/arachne/embed.html
+curl --fail https://www.sleepysoft.dev/dashboard/arachne/embed.html
+curl --fail https://www.sleepysoft.dev/dashboard/arachne/api/v1/query/health
 ```
 
 ## 运维与验证
@@ -246,7 +252,7 @@ ss -ltnp | grep -E ':(8010|16060|7687|5433)\b'
 
 curl --fail http://127.0.0.1:8010/api/auth/config
 curl --fail http://127.0.0.1/api/auth/config
-curl --fail https://www.sleepysoft.dev/api/auth/config
+curl --fail https://www.sleepysoft.dev/dashboard/api/auth/config
 ```
 
 正常状态应满足：
