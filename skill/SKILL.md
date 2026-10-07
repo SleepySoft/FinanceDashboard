@@ -17,7 +17,7 @@ The AI agent is the **analysis engine** of FinanceDashboard. It does NOT serve t
 2. **价格统一为 PriceLevel** — 按用途使用 `family=analysis/plan/fact`，类型必须来自 `_config.json.price_level_types`，自由说明写 `note`。网格属于 `family=plan, source=strategy`，用 `POST /api/stocks/{code}/ladder/strategy`；AI 自定义交易计划用 `PUT /api/agent/stocks/{code}/ladder`。底层 `price_marks` 与 `ladder` 是兼容存储分区，不是用户面对的两套领域对象。
 3. **AI 分析水位先提案** — 技术分析得出的阻力、支撑、筹码密集区等，用 `PUT /api/agent/stocks/{code}/price-marks` 整体写入 `source=agent, state=proposed`，与手工分析水位分区共存。用户在统一水位管理器中接受后才转为 `active`；不得写入手工通道，也不得把分析判断写成有买卖方向的计划。
 4. **写数据文件必须过 schema 校验** — 所有会被载入的 JSON 文件在 `schemas/` 目录有对应 schema（`{文件名}.schema.json`）。Agent 新增/修改 `data/` 下任何 JSON 文件、或改动读写数据文件的代码后，**必须运行 `validate.bat`（或 `python scripts/validate_data.py`）**，全部通过才算完成；新增数据文件种类必须同步在 `schemas/` 新增对应 schema。写数据优先走 API（有 Pydantic 校验），直接写文件时必须严格遵守 `schemas/` 中的结构（字段名、类型、枚举值）。
-5. **AI 提醒必须是结构化提案** — 分析中出现明确的未来复核动作时，Agent 可以通过任务完成接口提交 reminder 建议，但只能形成 `state=proposed`，由用户确认后生效。Agent 不得直接写 `data/{code}/reminders.json`，不得虚构公告时间，也不得把“持续关注”这类没有时间和动作的套话创建成提醒。调用前必须按下文的功能检测规则确认当前后端已经支持 reminders；未实现时只在报告中写后续验证建议。
+5. **AI 提醒必须是结构化提案** — 本版本已实现提醒接口。分析中出现明确的未来复核动作时，Agent 可以通过任务完成接口提交 reminder 建议，但只能形成 `state=proposed`，由用户在个股提醒区或全局提醒页确认后生效。Agent 不得直接写 `data/{code}/reminders.json`，不得虚构公告时间，也不得把“持续关注”这类没有时间和动作的套话创建成提醒。连接旧部署时按下文的功能检测规则降级。
 
 ## What the Agent Does
 
@@ -85,7 +85,7 @@ Frontend auto-refreshes → Report appears
 
 #### 4.1 先检测服务端能力
 
-技能文档描述的是提醒接口契约，不代表当前连接的服务端一定已经部署该版本。每个新会话首次需要提交提醒前，Agent 必须读取 `GET /openapi.json` 并同时确认：
+FinanceDashboard 当前版本已实现此契约，但实际连接的服务端可能尚未部署到该版本。每个新会话首次需要提交提醒前，Agent 必须读取 `GET /openapi.json` 并同时确认：
 
 1. `AgentTaskCompleteReq`（或任务完成接口对应的 request schema）包含 `reminders`；
 2. OpenAPI 中存在 `/api/reminders` 或股票 reminder 管理接口。

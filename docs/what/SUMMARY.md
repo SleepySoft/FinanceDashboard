@@ -11,6 +11,7 @@
   - `analysis` 兼容存入 `state.json.price_marks`，`plan` 存入 `ladder.json.levels`，`fact` 从 `holdings.json` 投影；统一经 `/api/stocks/{code}/price-levels` 读写。
   - AI 新增分析水位一律为 `proposed`，由用户接受后才成为 `active`；自由说明写 `note`，不创建临时类型或 label。
 - **`dimensions` 永不落盘**：API 响应里的 `dimensions` 由 `_normalize_dimensions()` 从 `tags` 计算。
+- **提醒按股票存储**：`reminders.json` 保存 `proposed/active/completed/cancelled` 状态；Agent 只提交待确认建议，全局时间轴由 `/api/reminders` 聚合。
 - 机器可读版本在 `schemas/`；改完数据跑 `validate.bat`。
 
 ## 分析产出规范
@@ -22,6 +23,7 @@
 
 - **回测**：vectorbt 内核，策略注册表 + 记录持久化（[backtest-design.md](backtest-design.md)）。
 - **powbox**：Hashcash 风格 POW，前后端自包含模块，可直接拷去其他项目（[powbox-design.md](powbox-design.md)）。
+- **提醒**：个股面板负责创建与管理，顶部「提醒」进入跨股票时间轴；第一版只做站内持久提醒（[reminders.md](../drafts/reminders.md)）。
 
 ## 修改规范时
 

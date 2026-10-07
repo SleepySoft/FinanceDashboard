@@ -9,6 +9,7 @@ All stock data is stored under `data/{code}/` with the following files:
 - `state.json` — mutable fields (tags, status, dimensions, price_marks, notes, etc.)
 - `reports/` — analysis report markdown files
 - `notes.md` — free-form notes
+- `reminders.json` — reminders attached to this stock
 
 ## Schema Definition
 
@@ -128,6 +129,30 @@ All stock data is stored under `data/{code}/` with the following files:
 
 类型语义来自 `_config.json.price_level_types` 注册表，而不是单条水位的自由文本 `label`。历史 label 与标准名称不同时，统一接口将其作为兼容说明返回在 `note` 中。
 AI 经 `PUT /api/agent/stocks/{code}/price-marks` 写入的新增分析水位必须为 `state=proposed`；用户接受后才转为 `active`。成交事实只读，不能复制成手工标记。
+
+### reminders.json
+
+提醒以股票为边界保存，全局时间轴由后端扫描各股票文件聚合，不维护第二份索引：
+
+```json
+{
+  "version": 1,
+  "items": [{
+    "id": "rem_7b8f4a2d",
+    "action": "查看三季报并复核毛利率和经营现金流",
+    "remind_at": "2026-10-30T09:00:00+08:00",
+    "state": "active",
+    "source": "manual",
+    "origin": null,
+    "created_by": "admin",
+    "created_at": "2026-10-07T05:30:00+00:00",
+    "updated_at": "2026-10-07T05:30:00+00:00",
+    "completed_at": null
+  }]
+}
+```
+
+`state` 只能是 `proposed / active / completed / cancelled`，`source` 只能是 `manual / agent`。Agent 条目的 `origin` 保存任务 ID 和来源报告 ID。到期、今日和逾期由后端按 `Asia/Shanghai` 及当前时间计算，不写回文件。机器校验规则见 `schemas/reminders.schema.json`。
 
 ### API Response Format
 

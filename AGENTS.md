@@ -55,6 +55,7 @@ data/
     ├── notes.md             # User notes (markdown, ## timestamp format)
     ├── holdings.json        # Trade history + T-trade analysis + position summary
     ├── ladder.json          # 价格阶梯：买入/卖出计划价位（source: manual/strategy/agent）
+    ├── reminders.json       # 个股提醒：手工 active + Agent proposed，供全局时间轴聚合
     ├── views.json           # 最后浏览时间：{"views": {username: iso_time}}
     └── reports/
         ├── fundamental_YYYYMMDD.md   # Fundamental analysis ONLY
@@ -101,6 +102,7 @@ data/
    - `PriceLevelManager.vue` 统一管理，`PriceAxis.vue` 仅显示当前有效水位。提醒、统计和执行是引用 level id 的后续能力，不定义 PriceLevel 本身。
 17. **Arachne 独立服务集成（2026-10-05 新增）** — `services/arachne` 是 `SleepySoft/Arachne` 的 Git submodule，Arachne 保持独立前后端和 Neo4j/PostgreSQL，不导入 FinanceDashboard 进程。FinanceDashboard 后端通过 `ARACHNE_API_URL` 优先按证券代码精确解析公司，代码未登记时按公司标准名称或别名精确兜底，不做模糊猜测；前端股票面板按需加载 `/arachne/embed.html` 的公司产业上下文。Arachne 未运行或公司尚未完成产业暴露建模时仅降级该卡片，不影响股票详情。更新时先在 Arachne 仓库提交并 push，再单独更新父仓库 gitlink；clone/deploy 必须使用 `git submodule update --init --recursive`，因为 Arachne 还包含 ArachneData 嵌套子模块。
 18. **Arachne 服务端视图与权限桥（2026-10-05 新增）** — Arachne 的浏览器本地视图保留，并新增 PostgreSQL 服务端视图：所有用户可读取/载入，FinanceDashboard 登录用户可推送、重命名、删除及按 `industrial`/`company` 设置默认视图。生产 Arachne 使用 `AUTH_MODE=header`；Nginx 对 `/arachne/api/v1/` 发起内部子请求 `GET /api/integrations/arachne/auth-scope`，把响应 `X-Arachne-Scope` 注入上游。该端点未登录返回 `read_only`，已登录返回 `read_write`，不暴露会话内容。Arachne 后端端口不得直接公开。
+19. **个股提醒与全局时间轴（2026-10-07 新增，`backend/reminders.py`）** — 提醒按股票存入 `reminders.json`，核心字段为未来时间 `remind_at` 与事项 `action`。用户在个股面板创建的提醒立即为 `active`；Agent 只能随任务完成请求提交 `proposed` 建议，用户接受后才生效。顶部「提醒」入口显示到期和待确认数量，`/reminders` 提供跨股票时间轴、列表和状态筛选。提醒是站内持久记录，不会自动执行分析或发送站外通知。
 
 ## 登录与权限（2026-08-11 新增）
 
@@ -213,6 +215,9 @@ data/
 | `/api/stocks/{code}/ladder/levels/{id}` | PATCH/DELETE | 改/删 manual 档位 |
 | `/api/stocks/{code}/ladder/strategy` | POST/DELETE | 应用策略（如 grid）重算策略档 / 清除策略档 |
 | `/api/stocks/{code}/viewed` | POST | 记录管理员最后浏览时间（仅 admin） |
+| `/api/stocks/{code}/reminders` | GET/POST | 查看个股提醒 / 手工创建 active 提醒 |
+| `/api/stocks/{code}/reminders/{id}` | PATCH/DELETE | 编辑、改期、接受、完成、取消或删除提醒 |
+| `/api/reminders` | GET | 全局聚合；`scope=all/due/upcoming/proposed/history` |
 | `/api/integrations/arachne/stocks/{code}` | GET | 按证券代码解析 Arachne 公司；可传 `name` 做精确名称兜底，并返回产业链 embed URL |
 
 ## API Endpoints (Agent-facing)
@@ -223,7 +228,7 @@ data/
 |----------|--------|---------|
 | `/api/agent/tasks` | GET | List pending tasks |
 | `/api/agent/tasks/{id}/claim` | POST | Claim a task |
-| `/api/agent/tasks/{id}/complete` | POST | Submit completed report |
+| `/api/agent/tasks/{id}/complete` | POST | Submit completed report and optional proposed reminders |
 | `/api/agent/tasks/{id}/fail` | POST | Mark task failed |
 | `/api/agent/stocks/{code}/ladder` | GET/PUT/DELETE | 读取 / 整体替换带买卖方向的 agent 计划水位 / 清空 agent 计划水位 |
 | `/api/agent/stocks/{code}/price-marks` | PUT | 整体替换 AI 分析水位（source=agent、state=proposed；手工水位不受影响，空数组=清空） |
