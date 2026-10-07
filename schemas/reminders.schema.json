@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "data/{code}/reminders.json — 股票提醒",
+  "type": "object",
+  "required": ["version", "items"],
+  "properties": {
+    "version": { "type": "integer", "enum": [1] },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "action", "remind_at", "state", "source", "created_by", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^rem_[a-f0-9]{10}$" },
+          "action": { "type": "string" },
+          "remind_at": { "type": "string" },
+          "state": { "type": "string", "enum": ["proposed", "active", "completed", "cancelled"] },
+          "source": { "type": "string", "enum": ["manual", "agent"] },
+          "origin": {
+            "type": ["object", "null"],
+            "properties": {
+              "task_id": { "type": "string" },
+              "report_ids": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "created_by": { "type": "string" },
+          "created_at": { "type": "string" },
+          "updated_at": { "type": "string" },
+          "completed_at": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

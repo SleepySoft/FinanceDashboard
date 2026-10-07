@@ -27,6 +27,7 @@ from integrations.arachne import router as arachne_integration_router
 import ladder
 import price_levels
 import views
+import reminders as reminder_service
 from powbox import pow as powbox_pow
 from powbox import routes as powbox_routes
 
@@ -73,6 +74,8 @@ app.include_router(ladder.router)
 app.include_router(ladder.agent_router)
 app.include_router(price_levels.router)
 app.include_router(views.router)
+app.include_router(reminder_service.stock_router)
+app.include_router(reminder_service.global_router)
 
 # POW 模块钩子：HMAC 密钥用站点 api_key 派生；最低难度读 _config.json
 powbox_pow.init(
@@ -878,6 +881,7 @@ class AgentTaskCompleteReq(BaseModel):
     summary: Optional[str] = None
     report_type: Literal["fundamental", "technical", "full"] = "full"
     reports: Optional[List[dict]] = None  # [{"path": str, "type": str}] for multiple reports
+    reminders: Optional[List[reminder_service.AgentReminderInput]] = None
 
 class AgentTaskFailReq(BaseModel):
     reason: str
@@ -1336,7 +1340,8 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
         raise HTTPException(404, "Task not found")
     task["status"] = "completed"
     task["completed_at"] = _now()
-    task["result"] = {"report_path": req.report_path, "summary": req.summary, "reports": req.reports}
+    task["result"] = {"report_path": req.report_path, "summary": req.summary, "reports": req.reports,
+                      "reminders": len(req.reminders or [])}
     _save_tasks(tasks)
     
     # Create stock entry if not exists
@@ -1363,6 +1368,15 @@ def complete_task(task_id: str, req: AgentTaskCompleteReq):
             if report_id:
                 report_prices[report_id] = price
     _save_meta(code, meta)
+
+    submitted_paths = [req.report_path] if req.report_path else []
+    submitted_paths.extend(
+        report.get("path") for report in (req.reports or [])
+        if isinstance(report, dict) and report.get("path")
+    )
+    report_ids = [str(path).replace("\\", "/").rsplit("/", 1)[-1].removesuffix(".md")
+                  for path in submitted_paths]
+    reminder_service.replace_agent_proposals(code, task_id, req.reminders or [], report_ids)
 
     # Update reports cache (program-managed, no hand-editing)
     _update_reports_cache(code, name)
