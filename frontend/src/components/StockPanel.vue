@@ -166,6 +166,18 @@
       @changed="refreshPriceLevelSources"
     />
 
+    <!-- 价格水位轴：手工标记 + AI 标记 + 阶梯/网格 统一纵轴展示 -->
+    <div class="card" v-if="meta.price_marks?.length || ladder.levels.length">
+      <div class="section-header">
+        <h3>📊 价格水位轴</h3>
+      </div>
+      <PriceAxis
+        :marks="meta.price_marks || []"
+        :levels="ladder.levels"
+        :current-price="ladder.current_price ?? meta.last_price"
+      />
+    </div>
+
     <ReminderManager :code="code" :readonly="readonly" />
 
     <!-- Delete Confirm Modal -->
@@ -178,18 +190,6 @@
           <button class="btn-danger" @click="doDelete">删除</button>
         </div>
       </div>
-    </div>
-
-    <!-- 价格水位轴：手工标记 + AI 标记 + 阶梯/网格 统一纵轴展示 -->
-    <div class="card" v-if="meta.price_marks?.length || ladder.levels.length">
-      <div class="section-header">
-        <h3>📊 价格水位轴</h3>
-      </div>
-      <PriceAxis
-        :marks="meta.price_marks || []"
-        :levels="ladder.levels"
-        :current-price="ladder.current_price ?? meta.last_price"
-      />
     </div>
 
     <!-- Holdings -->
