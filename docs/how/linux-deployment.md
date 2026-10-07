@@ -140,6 +140,14 @@ backend/venv/bin/python scripts/import_db.py \
 
 `--clear` 会清空 Arachne 的 Neo4j 与 PostgreSQL 数据，只能用于首次安装或明确的整库重建。日常更新保留现有数据库，由正式批次或迁移脚本增量更新。
 
+规范快照同时包含 PostgreSQL `server_views`，因此共享布局、视图使用的图引擎以及 `industrial` / `company` 默认标记会随整库恢复。只复制前端静态文件不会迁移默认 view。恢复后应检查：
+
+```bash
+curl --fail 'http://127.0.0.1:16060/api/v1/server-views/default?workspace=industrial'
+```
+
+返回 `null` 表示当前数据库没有 industrial 默认 view；需要由有写权限的用户在视图管理中推送并设置默认视图，或从包含 `server_views` 的规范快照恢复。
+
 在 `services/arachne/.env` 写入实际的数据库连接信息与生产权限模式（此文件不入库）：
 
 ```dotenv
