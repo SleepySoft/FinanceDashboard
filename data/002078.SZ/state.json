@@ -1,0 +1,20 @@
+{
+  "tags": {
+    "overall": "green",
+    "quality": "green",
+    "valuation": "green",
+    "timing": "yellow",
+    "risk": "yellow",
+    "verdict": "green",
+    "watchlist": false,
+    "unread": true
+  },
+  "price_marks": [],
+  "notes": [],
+  "holdings": {},
+  "record_prices": {
+    "notes": {},
+    "reports": {}
+  },
+  "status": "unassessed"
+}
